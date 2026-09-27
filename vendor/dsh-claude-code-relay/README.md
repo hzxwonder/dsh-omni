@@ -2,6 +2,8 @@
 
 The Claude Code CLI as a first-class LLM provider for [dsh](https://github.com/deepseek-ai/dsh) (DeepSeek Harness), driven against an **Anthropic-compatible relay station with base_url + api_key**.
 
+> **Use case:** this plugin is intended for relay APIs that can only be used from Claude Code. It launches the local Claude Code CLI and sends the CLI's Anthropic-compatible traffic to the configured relay; it is not a generic API provider and does not make the relay available to other dsh providers.
+
 Every turn spawns one `claude -p --input-format stream-json --output-format stream-json` child with `ANTHROPIC_BASE_URL` and the relay key (`ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY`) in its environment. Claude Code's own agent loop, tools (Bash, Read, Edit, …) and session resume keep working, while all model traffic goes to the relay — no OAuth login, and no need for the relay to know anything about Claude Code's native connection.
 
 Inspired by [dsh-oh-my-claude](https://github.com/lcestou/dsh-oh-my-claude), which reuses the CLI's subscription login. This plugin targets relay channels that only hand out a base_url and an api key: it carries one Settings page (connection, model visibility, tool approval) and stays otherwise lean — no SSH boxes, no cost tracking, zero runtime dependencies, no build step (plain ESM JavaScript). See [README.zh.md](README.zh.md) for the full configuration table in Chinese.
@@ -11,12 +13,23 @@ Inspired by [dsh-oh-my-claude](https://github.com/lcestou/dsh-oh-my-claude), whi
 - The Claude Code CLI on the machine that runs dsh (`claude --version` works); it does not need to be logged in.
 - An Anthropic-compatible relay: serves `<baseUrl>/v1/messages` and accepts `Authorization: Bearer` or `x-api-key`.
 
-## Install
+## Install on DeepSeek Harness Desktop
+
+This repository is the standalone plugin for the official [DeepSeek Harness Desktop](https://github.com/deepseek-ai/deepseek-harness). In the app's plugin manager, add:
+
+```text
+https://github.com/hzxwonder-dsh-plugins/dsh-claude-code-relay
+```
+
+Enable the plugin and restart the app if requested. The same package is included in [DSH Omni](https://github.com/hzxwonder/dsh-omni), so Omni users should update through the Omni bundle rather than installing a second copy.
+
+For a CLI/profile installation:
 
 ```sh
-dsh plugin --profile web add /path/to/dsh-claude-code-relay   # local directory
-# or, once published: dsh plugin --profile web add dsh-claude-code-relay
-# then restart dsh
+dsh plugin --profile desktop add https://github.com/hzxwonder-dsh-plugins/dsh-claude-code-relay
+# or use a local checkout:
+dsh plugin --profile desktop add /path/to/dsh-claude-code-relay
+# then restart DeepSeek Harness Desktop
 ```
 
 The package declares `dsh.bundle.patch` and a client bundle, so `dsh plugin add` registers it in the profile's bundle list automatically. After a restart, "Claude Code Relay" appears in dsh's model picker and a dedicated **Claude Code** page appears in Settings.

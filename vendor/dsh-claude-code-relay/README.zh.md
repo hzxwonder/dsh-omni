@@ -2,6 +2,8 @@
 
 把 Claude Code CLI 作为 [dsh](https://github.com/deepseek-ai/dsh)（DeepSeek Harness）的一等模型提供方，通过 **base_url + api_key** 接入 Anthropic 兼容的中转站。
 
+> **适用场景：** 本插件适用于**只能用在 Claude Code 里面的中转站 API**。插件会启动本机 Claude Code CLI，再把 CLI 发出的 Anthropic 兼容请求转发到配置的中转站；它不是通用 API 提供方，也不会让该中转站自动成为 dsh 其他提供方的接口。
+
 每一轮对话都会启动一个 `claude -p --input-format stream-json --output-format stream-json` 子进程，并在其环境中注入 `ANTHROPIC_BASE_URL` 与密钥（`ANTHROPIC_AUTH_TOKEN` 或 `ANTHROPIC_API_KEY`）。Claude Code 自己的智能体循环、工具（Bash、Read、Edit……）与会话续接照常工作，模型流量则全部走中转站——不需要 OAuth 登录，也不需要中转站了解 Claude Code 的外接方式。
 
 本项目受 [dsh-oh-my-claude](https://github.com/lcestou/dsh-oh-my-claude) 启发。oh-my-claude 复用 CLI 已有的订阅登录；本插件面向只有 base_url + api_key 的中转站渠道：带一个设置页（连接、模型可见性、工具审批），无 SSH 主机、无费用统计，零运行时依赖、无构建步骤（纯 ESM JavaScript）。
@@ -11,12 +13,23 @@
 - 运行 dsh 的机器上装有 Claude Code CLI（`claude --version` 可运行），无需登录。
 - 一个 Anthropic 兼容中转站：暴露 `<baseUrl>/v1/messages`，接受 `Authorization: Bearer` 或 `x-api-key`。
 
-## 安装
+## 在 DeepSeek Harness Desktop 中安装
+
+本仓库是官方 [DeepSeek Harness Desktop](https://github.com/deepseek-ai/deepseek-harness) 的独立插件。在应用的插件管理器中添加下面的仓库地址：
+
+```text
+https://github.com/hzxwonder-dsh-plugins/dsh-claude-code-relay
+```
+
+启用插件，并在应用提示时重启。该插件也已集成到 [DSH Omni](https://github.com/hzxwonder/dsh-omni)；Omni 用户应通过 Omni bundle 更新，不要再安装第二份副本。
+
+命令行/profile 安装方式：
 
 ```sh
-dsh plugin --profile web add /path/to/dsh-claude-code-relay   # 本地目录
-# 或发布后：dsh plugin --profile web add dsh-claude-code-relay
-# 重启 dsh（例如 systemctl --user restart dsh-web.service，或你的启动方式）
+dsh plugin --profile desktop add https://github.com/hzxwonder-dsh-plugins/dsh-claude-code-relay
+# 也可以使用本地 checkout：
+dsh plugin --profile desktop add /path/to/dsh-claude-code-relay
+# 然后重启 DeepSeek Harness Desktop
 ```
 
 包声明了 `dsh.bundle.patch` 与一个 client bundle，`dsh plugin add` 会自动把它登记进 profile 的 bundle 列表。重启后模型选择器里会出现 “Claude Code Relay”，设置界面里会出现独立的 **Claude Code** 页。

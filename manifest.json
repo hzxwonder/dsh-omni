@@ -46,7 +46,7 @@
     {
       "name": "dsh-plugin-browser",
       "version": "0.5.2",
-      "commit": "5e041a0fe4a122892d9396c06222f49666908064",
+      "commit": "95f137533ade274bd87f6398d63e2f45099601bb",
       "repository": "https://github.com/hzxwonder-dsh-plugins/dsh-plugin-browser.git"
     },
     {
@@ -125,7 +125,7 @@
     {
       "name": "dsh-claude-code-relay",
       "version": "0.1.0",
-      "commit": "local-web-profile",
+      "commit": "42727cb258922e8ce30dfab68286c3b6980cdd46",
       "repository": "https://github.com/hzxwonder-dsh-plugins/dsh-claude-code-relay.git"
     },
     {
