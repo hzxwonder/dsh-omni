@@ -1,3 +1,37 @@
+import { readFileSync } from 'node:fs';
+import { connectReference } from './graph-edit.js';
+
+const skillDocument = readFileSync(new URL('../skills/paper-explainer/SKILL.md', import.meta.url), 'utf8');
+const articleTemplate = readFileSync(new URL('../skills/paper-explainer/references/article-template.md', import.meta.url), 'utf8');
+const skillHeader = skillDocument.match(/^---\r?\nname:\s*([^\r\n]+)\r?\ndescription:\s*([^\r\n]+)\r?\n---\r?\n/);
+if (!skillHeader) throw new Error('PAPER_SKILL_INVALID');
+
+function paperSkillNode() {
+  return { id: 'paper_skill', name: '论文精读写作规范', kind: 'skill',
+    skill: { name: skillHeader[1].trim(), description: skillHeader[2].trim(),
+      instructions: skillDocument.slice(skillHeader[0].length).trim(),
+      files: [{ path: 'references/article-template.md', content: articleTemplate }] },
+    position: { x: 470, y: 310 } };
+}
+
+export function connectPaperSkill(definition) {
+  const existing = definition.nodes.find(node => node.kind === 'skill' && node.skill?.name === 'paper-explainer');
+  const resource = existing ?? paperSkillNode();
+  const otherNodes = definition.nodes.filter(node => node.id !== resource.id);
+  const articleIndex = otherNodes.findIndex(node => node.id === 'article' && node.kind === 'agent');
+  if (articleIndex < 0) throw new Error('PAPER_ARTICLE_NODE_REQUIRED');
+  const nodes = [...otherNodes.slice(0, articleIndex), resource, ...otherNodes.slice(articleIndex)];
+  const article = nodes.find(node => node.id === 'article' && node.kind === 'agent');
+  const inputKey = Object.entries(article.input ?? {}).find(([, ref]) => ref?.resourceKind === 'skill' && ref.nodeId === resource.id)?.[0] ?? resource.id;
+  const prose = article.prompt.replace(/^使用 paper-explainer skill 及其解读文章模板生成完整中文解读。/,
+    '使用流程图连接的写作规范 Skill 生成完整中文解读。');
+  const prompt = prose.includes(`{{input.${inputKey}}}`) ? prose
+    : `写作规范 Skill 文件夹：{{input.${inputKey}}}。\n${prose}`;
+  const clean = { ...definition, nodes: nodes.map(node => node.id !== article.id ? node
+    : { ...node, prompt, skills: (node.skills ?? []).filter(name => name !== 'paper-explainer') }) };
+  return connectReference(clean, resource.id, article.id, false).definition;
+}
+
 export function reviewedPaperTemplate(id = 'paper-reader') {
   const ref = (nodeId, path = '') => ({ source: 'node', nodeId, path });
   const material = path => ({ source: 'workflow', path });
@@ -18,7 +52,7 @@ export function reviewedPaperTemplate(id = 'paper-reader') {
   nodes[1].exportMarkdown = true;
   nodes[2].resultMember = 'judge';
   nodes[2].subagents[2].outputSchema = nodes[2].outputSchema;
-  return { schemaVersion: '1.0', id, name: '论文精读', description: '原文溯源、分层解读、读者问答评审与 Halo 发布。', trigger: 'material', inputSchema: { type: 'object', properties: { text: { type: 'string' } } }, nodes,
+  return connectPaperSkill({ schemaVersion: '1.0', id, name: '论文精读', description: '原文溯源、分层解读、读者问答评审与 Halo 发布。', trigger: 'material', inputSchema: { type: 'object', properties: { text: { type: 'string' } } }, nodes,
     edges: [{ from: 'source', to: 'article' }, { from: 'article', to: 'review' }, { from: 'source', to: 'review' }, { from: 'article', to: 'publish' }, { from: 'review', to: 'publish' }],
-    outputs: { article: ref('article'), review: ref('review'), publication: ref('publish') }, limits: { concurrency: 1, maxNodeCalls: 30, timeoutSeconds: 7200 } };
+    outputs: { article: ref('article'), review: ref('review'), publication: ref('publish') }, limits: { concurrency: 1, maxNodeCalls: 30, timeoutSeconds: 7200 } });
 }

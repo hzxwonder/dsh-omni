@@ -419,23 +419,23 @@ try {
     await reviewedCard.getByRole('button', { name: '打开', exact: true }).click();
     await page.getByRole('tab',{name:'步骤列表',exact:true}).click();
     await page.getByRole('region',{name:'工作流步骤列表',exact:true}).waitFor();
-    assert.equal(await page.locator('.wf-outline-step').count(),4);
+    assert.equal(await page.locator('.wf-outline-step').count(),5);
     await page.getByRole('toolbar',{name:'添加步骤',exact:true}).getByRole('button',{name:'用户输入',exact:true}).click();
-    assert.equal(await page.locator('.wf-outline-step').count(),5);
+    assert.equal(await page.locator('.wf-outline-step').count(),6);
     await page.getByRole('button',{name:'删除节点',exact:true}).click();
-    assert.equal(await page.locator('.wf-outline-step').count(),4);
-    await page.locator('.wf-editor-notice').getByRole('button',{name:'撤销',exact:true}).click();
     assert.equal(await page.locator('.wf-outline-step').count(),5);
+    await page.locator('.wf-editor-notice').getByRole('button',{name:'撤销',exact:true}).click();
+    assert.equal(await page.locator('.wf-outline-step').count(),6);
     await page.getByRole('button',{name:'删除步骤 用户输入',exact:true}).click();
-    assert.equal(await page.locator('.wf-outline-step').count(),4);
+    assert.equal(await page.locator('.wf-outline-step').count(),5);
     await page.getByRole('toolbar',{name:'添加步骤',exact:true}).getByRole('button',{name:'用户输入',exact:true}).click();
     await page.locator('.wf-outline-step').last().focus();
     await page.keyboard.press('Delete');
-    assert.equal(await page.locator('.wf-outline-step').count(),4);
+    assert.equal(await page.locator('.wf-outline-step').count(),5);
 
 
-    await page.locator('.wf-outline-step').nth(2).click();
-    assert.equal(await page.getByLabel('Prompt',{exact:true}).textContent(),reviewedPaperTemplate('reviewed-paper-ui').nodes[2].prompt);
+    await page.locator('.wf-outline-step').nth(3).click();
+    assert.equal(await page.getByLabel('Prompt',{exact:true}).textContent(),reviewedPaperTemplate('reviewed-paper-ui').nodes[3].prompt);
     const promptEditor = page.getByLabel('Prompt',{exact:true});
     const originalPrompt = await promptEditor.textContent();
     await promptEditor.fill(originalPrompt + ' 保留草稿检查。');
@@ -444,21 +444,24 @@ try {
     assert.equal(await promptEditor.textContent(), originalPrompt + ' 保留草稿检查。');
     await promptEditor.fill(originalPrompt);
     await page.screenshot({path:join(plugin,'docs/screenshots/desktop-step-list.png')});
-    await page.locator('.wf-outline-step').nth(1).click();
+    await page.locator('.wf-outline-step').nth(2).click();
     const inputWidthBefore = await page.getByLabel('Prompt',{exact:true}).evaluate(el=>el.getBoundingClientRect().width);
     await page.locator('.wf-routing-settings').locator('summary').click();
     const inputWidthAfter = await page.getByLabel('Prompt',{exact:true}).evaluate(el=>el.getBoundingClientRect().width);
     assert(Math.abs(inputWidthBefore-inputWidthAfter)<1, `expanding settings changes prompt width: ${inputWidthBefore} -> ${inputWidthAfter}`);
 
-        // 技能与工具 UI 已隐藏：技能覆盖改由引擎/对话路径配置，这里仅验证模型栏展开。
+    // Skill 作为画布资源节点；此处验证模型栏展开。
     await page.locator('.wf-routing-settings').locator('summary').click();
     await page.getByRole('button',{name:'保存版本',exact:true}).click();
     await page.waitForTimeout(500);
     await page.getByRole('tab',{name:'流程图',exact:true}).click();
     await page.locator('.wf-edge-loop').waitFor({state:'attached'});
     assert.equal(await page.locator('.wf-edge-loop').count(),1);
+    await page.locator('.react-flow__node[data-id="paper_skill"]').waitFor();
+    assert((await page.locator('.react-flow__edge').evaluateAll(elements => elements.map(element => element.getAttribute('data-testid'))))
+      .some(id => id?.includes('paper_skill:article')));
     await page.getByRole('toolbar',{name:'添加步骤',exact:true}).waitFor();
-    assert.equal(await page.locator('.wf-addbar > button').count(),5);
+    assert.equal(await page.locator('.wf-addbar > button').count(),7);
     await page.getByRole('button',{name:'更多步骤',exact:true}).click();
     const pickerSpacing = await page.locator('.wf-step-picker').evaluate(el => {
       const a=el.getBoundingClientRect(), b=el.closest('dialog').getBoundingClientRect();
@@ -468,9 +471,9 @@ try {
     await page.screenshot({path:join(plugin,'docs/screenshots/step-picker-spacing.png')});
     for (const name of ['工具','条件','子工作流','发布']) await page.getByRole('menuitem',{name,exact:true}).waitFor();
     await page.getByRole('menuitem',{name:'工具',exact:true}).click();
-    assert.equal(await page.locator('.react-flow__node').count(),5);
+    assert.equal(await page.locator('.react-flow__node').count(),6);
     await page.locator('.wf-canvas-tools').getByRole('button',{name:'撤销',exact:true}).click();
-    assert.equal(await page.locator('.react-flow__node').count(),4);
+    assert.equal(await page.locator('.react-flow__node').count(),5);
     await page.locator('.react-flow__node[data-id="review"]').click();
     // 评审与循环 UI 已隐藏：滚动稳定性改用「模型」栏展开验证，repeat 配置走引擎断言。
     await page.locator('.wf-routing-settings').locator('summary').click();
@@ -484,9 +487,9 @@ try {
     await page.screenshot({path:join(plugin,'docs/screenshots/inspector-expanded-scroll.png')});
     // repeat 配置的 UI 入口已隐藏：改由引擎 API 断言覆盖（对话修改路径）。
     const current = (await call({ action: 'read', id: 'reviewed-paper-ui' })).snapshot.definition;
-    const reviewNodeId = current.nodes[2].id;
-    await call({ action: 'save', definition: { ...current, nodes: current.nodes.map(n => n.id === reviewNodeId ? { ...n, repeat: { ...current.nodes[2].repeat, sessionMode: 'continue' } } : n) }, expectedRevision: (await call({ action: 'read', id: 'reviewed-paper-ui' })).revision });
-    assert.equal((await call({ action: 'read', id: 'reviewed-paper-ui' })).snapshot.definition.nodes[2].repeat.sessionMode, 'continue');
+    const reviewNodeId = current.nodes.find(node => node.id === 'review').id;
+    await call({ action: 'save', definition: { ...current, nodes: current.nodes.map(n => n.id === reviewNodeId ? { ...n, repeat: { ...n.repeat, sessionMode: 'continue' } } : n) }, expectedRevision: (await call({ action: 'read', id: 'reviewed-paper-ui' })).revision });
+    assert.equal((await call({ action: 'read', id: 'reviewed-paper-ui' })).snapshot.definition.nodes.find(node => node.id === 'review').repeat.sessionMode, 'continue');
     assert.equal(await page.getByPlaceholder('描述你想调整的步骤…').count(), 0);
     await page.screenshot({ path: join(plugin, 'docs/screenshots/reviewed-paper-editor.png') });
     await page.getByRole('tab',{name:'步骤列表',exact:true}).click();
