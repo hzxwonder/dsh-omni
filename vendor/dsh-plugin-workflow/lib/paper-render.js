@@ -10,7 +10,7 @@ function escape(value) {
 async function renderMath(tex, displayMode) {
   const math = await renderPaperMath(tex, displayMode);
   return displayMode
-    ? `<div class="paper-equation" role="group" aria-label="公式：${escape(tex.trim())}">${math}</div>`
+    ? `<div class="paper-equation" role="group" aria-label="公式：${escape(tex.trim())}" style="max-width:100%;min-width:0;overflow:hidden;box-sizing:border-box">${math}</div>`
     : `<span class="paper-inline-math">${math}</span>`;
 }
 

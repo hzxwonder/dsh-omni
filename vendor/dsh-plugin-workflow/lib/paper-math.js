@@ -35,6 +35,8 @@ export async function renderPaperMath(tex, displayMode = false) {
   const png = new Resvg(sizedSvg, { fitTo: { mode: 'zoom', value: 2 } }).render().asPng();
   const sourceImage = `data:image/png;base64,${png.toString('base64')}`;
   const label = escape(source);
-  const inlineStyle = displayMode ? '' : ' style="display:inline-block;vertical-align:-0.18em;margin:0;max-width:100%;height:auto"';
-  return `<img class="paper-math-image" src="${sourceImage}" width="${width}" height="${height}" alt="${label}" loading="lazy"${inlineStyle}>`;
+  const imageStyle = displayMode
+    ? 'display:block;max-width:100%;width:auto;height:auto;margin:0 auto'
+    : 'display:inline-block;vertical-align:-0.18em;margin:0;max-width:100%;width:auto;height:auto';
+  return `<img class="paper-math-image" src="${sourceImage}" width="${width}" height="${height}" alt="${label}" loading="lazy" style="${imageStyle}">`;
 }
