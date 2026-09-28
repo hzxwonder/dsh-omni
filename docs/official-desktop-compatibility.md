@@ -1,24 +1,24 @@
 # 官方 Desktop 插件验收与功能比较
 
-验收日期：2026-09-26。官方应用：DeepSeek Harness 0.1.7-rc.2，macOS arm64。
+验收日期：2026-09-26 至 2026-09-28。官方应用：DeepSeek Harness 0.1.7-rc.2，macOS arm64。
 来源：`https://download.deepseek.com/dsh-desk/feeds/mac-arm64/nightly-mac.yml`，安装包 SHA-512 已核对，Developer ID 为 Hangzhou DeepSeek Artificial Intelligence Co., Ltd，含公证票据。
 源码基线：[dsh-v0.1.7-rc.2](https://github.com/deepseek-ai/deepseek-harness/tree/dsh-v0.1.7-rc.2)，提交 `477b4f420553e8a52c2fbccc464d7561b239c443`。
 
 ## 实机验收
 
-通过官方应用的插件管理页直接从公开 GitHub 仓库安装，使用独立测试数据目录。以下为实际结果；安装、启用、核心交互与完整验收分别记录。
+使用官方原版应用和独立数据目录验收。工作流插件从公开 GitHub 仓库的固定提交安装到应用当前 profile；其他插件通过应用的插件管理页安装。以下分别记录各插件的实际验收范围。
 
 | 公开插件 | 版本 | 结果 |
 | --- | --- | --- |
 | dsh-plugin-latex | 0.1.14 | 安装、启用、创建论文与编译 PDF 通过；点击行文导图后主区空白，整体验收未通过 |
 | dsh-plugin-browser | 0.5.2 | 安装、启用、面板通过；默认缺少 Chromium，配置本机 Chrome 后成功导航至 Example Domain；Agent 工具与完整交互待验收 |
-| dsh-plugin-workflow | 0.3.0 | 官方安装器拒绝：skill/tools peerDependencies 限定 0.1.5-rc.2 |
+| dsh-plugin-workflow | 0.4.0 | 官方应用加载、已有定义读取、模型设置、双击改名和八种扩展步骤通过；执行引擎 72 项自动化测试通过。实机范围见[工作流验收记录](https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow/blob/main/docs/desktop-workflow-0.4.0.md) |
 | dsh-plugin-project-memory | 0.2.2 | 官方安装器拒绝：credentials/sandbox-policy/session-projection/tools 限定 0.1.5-rc.2 |
 | dsh-plugin-terminal | 0.5.0 | 安装和启用通过；会话标题栏按钮出现，打开后底部留白、没有终端控件，核心面板验收未通过 |
 | dsh-plugin-ssh | 0.1.0 | 安装后 Host 显示运行；冷启动失败：客户端等待 settingsScope。测试配置已停用该组件 |
 | dsh-plugin-sessions | 0.1.1 | 安装、启用、“对话”分组与新会话通过；跨会话模型上下文待验收 |
 
-公开源码提交：latex `f94e0da`、browser `5e041a0`、terminal `145860f`、SSH `12a88c0`、sessions `df7ca0f`。实际安装锁文件保留完整 SHA。没有以本地未提交源码替换这些公开版本作为验收依据。
+公开源码提交：workflow `39ac992`、latex `f94e0da`、browser `5e041a0`、terminal `145860f`、SSH `12a88c0`、sessions `df7ca0f`。实际安装锁文件保留完整 SHA。
 
 ## 官方能力与插件差异
 
@@ -61,7 +61,7 @@ DSH Omni 集成版本在 dsh-omni 内维护；公开插件仓库维护官方 Des
 
 Applications retains DSH Omni and official DeepSeek Harness. The previous DSH Desktop and community DSH NEXT application bundles were moved to a recoverable local backup. The former Desktop application, data home and Electron user data also have ZIP backups with verified CRC and SHA-256 manifests.
 
-DSH Omni uses io.github.hzxwonder.dsh.omni and ~/.dsh-omni, based on community NEXT 2.0.15-next. Bundle signing and Host readiness were checked. Computer Use still denies access to this application; graphical acceptance is incomplete and no new Omni installer release has been published.
+DSH Omni uses io.github.hzxwonder.dsh.omni and ~/.dsh-omni, based on community NEXT 2.0.15-next. Bundle signing and Host readiness were checked. Computer Use verified the workflow 0.4.0 editor and existing definitions; no new Omni installer release has been published.
 
 The official default profile was backed up and replaced with the public plugin configuration tested here. SSH and third-party terminal bundles remain installed but disabled. Default application launch succeeded, with existing workspaces and conversations visible.
 
