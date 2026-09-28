@@ -120,7 +120,10 @@ export function RunTimeline({ ctx, api, runId, openSession, onChange, embedded =
         {!focusNodeId && show && !state.sessionId && <p className="wf-muted">此步骤的执行信息记录在输入、输出及检查点中。</p>}
         </div>
         {focusNodeId && children}
-        {state.output && !focusNodeId && <div className="wf-step-answer"><small>输出</small><Content value={state.output} /></div>}
+        {state.output && !focusNodeId && <div className="wf-step-answer"><small>输出</small><Content value={state.output} />
+          {node.kind === 'publish' && state.output.wechatFile && state.output.slug &&
+            <button type="button" className="wf-export-open" disabled={busy} onClick={() => act({ action: 'openWechatExport', slug: state.output.slug })}>打开公众号排版</button>}
+        </div>}
         {!!run.reviews?.[node.id]?.length && <details className="wf-review-history"><summary>评审记录 · {run.reviews[node.id].length} 轮</summary>{run.reviews[node.id].map(r => <section key={r.round}><strong>第 {r.round} 轮 · {r.accepted ? '通过' : '需要修订'}</strong><Content value={r.output} /></section>)}</details>}
         {state.status === 'needs_attention' && node.repeat && <p role="status">已达到 {node.repeat.maxRounds} 轮评审上限。请检查评审记录，修改输入后通过步骤运行按钮开始新一轮。</p>}
         {state.status === 'stale' && <p className="wf-muted">输出已过期，等待重跑。</p>}

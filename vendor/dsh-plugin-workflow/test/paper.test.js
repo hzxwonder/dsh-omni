@@ -16,7 +16,12 @@ test('four-stage paper workflow revises, isolates reader input, exports article 
     agent: async (node, input) => {
       calls.push(node.id);
       if (node.id === 'source') return { text: 'ORIGINAL_PRIVATE_MARKER ' + ('Section 3 describes a concrete method; Section 5 provides measured comparisons. ').repeat(8), title: 'Paper', sourceUrl: 'https://example.org/paper', complete: true };
-      if (node.id === 'article') return { title: 'Paper explained', slug: 'paper-explained', text: ('Clear reader article with one concrete example. ').repeat(8) };
+      if (node.id === 'article') return { title: 'Paper explained', slug: 'paper-explained', text: ('Clear reader article with one concrete example. ').repeat(8), overview: { title: 'Paper logic', steps: [
+        { label: 'Problem', title: 'A real bottleneck', detail: 'Measure the bottleneck.' },
+        { label: 'Method', title: 'A concrete choice', detail: 'Choose an approach.' },
+        { label: 'Mechanism', title: 'How it works', detail: 'Follow the data.' },
+        { label: 'Result', title: 'Observed outcome', detail: 'Compare against baseline.' },
+      ], evidence: 'The experiment reports a measured result.', boundary: 'The setup limits generalization.' } };
       if (node.id === 'ask') return { text: 'Explain the example.' };
       if (node.id === 'answer') { assert(!JSON.stringify(input).includes('ORIGINAL_PRIVATE_MARKER')); assert.deepEqual(Object.keys(input).sort(), ['article', 'questions']); return { text: 'The article explains the example.' }; }
       if (node.id === 'judge') return { score: ++round === 1 ? 70 : 92, text: 'Evidence and reader understanding checked.' };

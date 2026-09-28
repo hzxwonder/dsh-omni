@@ -293,7 +293,6 @@
   font-weight: 600;
   line-height: 18px;
 }
-.wf-nav-button.is-active .wf-nav-count { background: transparent; color: var(--wf-accent); }
 .wf-workflow-icon {
   display: inline-flex;
   align-items: center;
@@ -966,6 +965,8 @@
 .wf-interaction p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .wf-interaction small { color: var(--wf-muted); }
 .wf-interaction button { justify-self: start; }
+.wf-export-open { margin-top: 12px; padding: 7px 12px; border: 1px solid var(--wf-accent); border-radius: 8px; background: var(--wf-accent); color: white; font-weight: 600; cursor: pointer; }
+.wf-export-open:disabled { opacity: .55; cursor: not-allowed; }
 
 /* ------------------------------------------------------------ responsive */
 @media (max-width: 1100px) {

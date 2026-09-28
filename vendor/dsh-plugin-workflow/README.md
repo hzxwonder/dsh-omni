@@ -47,7 +47,7 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 - 步骤面板集中展示模型设置；Provider、Model 和推理强度可继承会话或逐步指定
 - 交互节点：在绑定会话里向用户提问，用户回答后继续。`交互一次` 收一条回答（例如论文 PDF 或链接）；`交互目标` 由判定 Agent 反复追问，直到它理解用户意图并请用户确认后才进入下一步，可用 `maxTurns` 限定轮次；“已有材料时跳过提问”让已经带上材料的消息直接进入下一步。交互节点需要真人，定时无人值守的运行会以 `INTERACTION_UNATTENDED` 失败
 - 节点级 executor、provider、model、effort、skills、工具白名单和输出 Schema
-- 附件材料自动提取；论文精读模板按获取论文、撰写解读、读者问答评审、Halo 发布四个阶段执行
+- 附件材料自动提取；论文精读模板按获取论文、撰写解读、读者问答评审、Halo 发布四个阶段执行。文章正文使用独立论文信息、短段落、可渲染的 MathML 公式和 Q：/A：问答；发布时生成 SVG 总览图、可编辑 Excalidraw 源文件与公众号排版本地 HTML。
 
 ## 论文解读与评审循环
 
@@ -59,7 +59,7 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 
 工作流定义通过 `repeat` 指定返回步骤、条件和轮数，以及延续原会话或新建会话。子代理支持 `dependsOn` 和独立 `input` 映射，无依赖成员继续并行执行。`repeat` 是有界回到上游步骤的评审循环。每轮文章与评审分别保存。
 
-Halo 发布使用服务器已有发布脚本。管理员在 `$DSH_HOME/workflow-studio/halo-destination.json` 配置 `sshHost`、`helper` 和 `category`，将 `scripts/halo-publish.py` 放入站点 `scripts/` 目录。站点凭据留在服务器，仓库与工作流定义不包含凭据。先使用发布适配器的 `dryRun` 完成渲染预检；正式发布返回文章标识与网址，并核实公开页面响应。更新原文章时，在运行输入中提供 `publication: {slug, postId}`；发布前校验目标并备份原正文，返回相同文章标识。站点需具备 Markdown 渲染与发布脚本；公式和图片需要目标站点支持，不能将生成的文本路径视为已上传附件。
+Halo 发布使用服务器已有发布脚本。管理员在 `$DSH_HOME/workflow-studio/halo-destination.json` 配置 `sshHost`、`helper` 和 `category`，将 `scripts/halo-publish.py` 放入站点 `scripts/` 目录。站点凭据留在服务器，仓库与工作流定义不包含凭据。先使用发布适配器的 `dryRun` 完成渲染预检；正式发布返回文章标识与网址，并核实公开页面响应。更新原文章时，在运行输入中提供 `publication: {slug, postId}`；发布前校验目标并备份原正文，返回相同文章标识。公式由插件转为 MathML，总览 SVG 上传到站点资产目录；本地导出目录为 `$DSH_HOME/workflow-studio/exports/<slug>/`，包含公众号排版 HTML、SVG 和 Excalidraw 源文件。运行时间线提供「打开公众号排版」按钮。
 - 本地 Host 持久化定时任务，支持 IANA 时区、夏令时、错过执行和重叠策略
 - SQLite WAL、乐观并发控制、运行事件、产物下载、暂停/恢复和权限检查
 

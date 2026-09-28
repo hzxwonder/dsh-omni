@@ -1,6 +1,8 @@
-import { join } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { homedir } from "node:os";
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile, realpath, stat } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { defineTool } from "@deepseek-ai/dsh-tools";
 import { Store, uid } from "./lib/store.js";
 import { Engine } from "./lib/engine.js";
@@ -12,6 +14,7 @@ import { harnessAdapter, materialInput } from "./lib/harness.js";
 import { WorkflowResources } from './lib/resources.js';
 
 export const name = "dsh-plugin-workflow";
+const execFileAsync = promisify(execFile);
 export const inject = [
   "connection",
   "agents",
@@ -362,6 +365,18 @@ export async function apply(ctx, config = {}) {
           .filter((x) => x.runId === a.id)
           .map(({ path, ...x }) => x),
       };
+    if (action === "openWechatExport") {
+      if (typeof a.slug !== "string" || !/^[a-z0-9][a-z0-9-]{2,100}$/.test(a.slug)) fail("PUBLISH_ARTICLE_INVALID");
+      const exportsRoot = resolve(directory, "exports");
+      const target = resolve(exportsRoot, a.slug, "wechat.html");
+      if (!target.startsWith(exportsRoot + sep)) fail("PUBLISH_ARTICLE_INVALID");
+      const [rootPath, filePath] = await Promise.all([realpath(exportsRoot), realpath(target)]);
+      if (!filePath.startsWith(rootPath + sep) || !(await stat(filePath)).isFile()) fail("PUBLISH_EXPORT_NOT_FOUND");
+      if (process.platform === "darwin") await execFileAsync("open", [filePath]);
+      else if (process.platform === "win32") await execFileAsync("cmd", ["/c", "start", "", filePath]);
+      else await execFileAsync("xdg-open", [filePath]);
+      return { opened: true, path: filePath };
+    }
     if (action === "artifact") {
       const artifact = store.get("artifact", a.id);
       if (!artifact) fail("ARTIFACT_NOT_FOUND");

@@ -24,6 +24,13 @@ def main():
     # Do not render active HTML or local file references supplied by generated text.
     if re.search(r'<\s*(script|iframe|style|link|object|embed|form)\b|\bon\w+\s*=|javascript:|file://|/Users/|/home/', text, re.I):
         raise ValueError('unsupported article content')
+    rendered_html = data.get('renderedHtml')
+    if rendered_html is not None and (not isinstance(rendered_html, str) or len(rendered_html) > 4 * 1024 * 1024 or re.search(r'<\s*(script|iframe|style|link|object|embed|form)\b|\bon\w+\s*=|javascript:|file://', rendered_html, re.I)):
+        raise ValueError('invalid rendered article')
+    overview = data.get('overview')
+    if overview is not None:
+        if not isinstance(overview, dict) or not re.fullmatch(r'[a-z0-9-]+\.svg', overview.get('file', '')) or not isinstance(overview.get('svg'), str) or len(overview['svg']) > 1024 * 1024 or not overview['svg'].startswith('<svg ') or re.search(r'<\s*script\b|\bon\w+\s*=|javascript:', overview['svg'], re.I):
+            raise ValueError('invalid overview asset')
     root = Path(__file__).resolve().parent.parent
     expected_post = data.get('expectedPostId')
     if expected_post and not re.fullmatch(r'[a-zA-Z0-9-]+', expected_post):
@@ -54,18 +61,27 @@ def main():
         html = folder / (digest + '.html')
         md.write_text(text)
         os.chmod(md, 0o600)
-        subprocess.run([str(root / 'scripts/render-markdown.sh'), str(md), str(html)], check=True, capture_output=True, timeout=120)
-        body = html.read_text()
+        if rendered_html is None:
+            subprocess.run([str(root / 'scripts/render-markdown.sh'), str(md), str(html)], check=True, capture_output=True, timeout=120)
+            body = html.read_text()
+        else:
+            body = rendered_html
         # Give headings stable anchors for the site's table of contents.
         number = [0]
         def heading(match):
             number[0] += 1
-            return '<h' + match[1] + ' id="section-' + str(number[0]) + '">'
-        body = re.sub(r'<h([2-6])>', heading, body)
+            return match[0] if ' id=' in match[0] else '<h' + match[1] + ' id="section-' + str(number[0]) + '">'
+        body = re.sub(r'<h([2-6])(?: id="[a-zA-Z0-9_-]+")?>', heading, body)
         html.write_text(body)
         if data.get('dryRun'):
             print(json.dumps({'status': 'validated', 'slug': slug, 'headings': number[0]}))
             return
+        if overview is not None:
+            asset_dir = root / 'labs' / 'assets' / 'paper-overviews'
+            asset_dir.mkdir(parents=True, exist_ok=True)
+            asset = asset_dir / overview['file']
+            asset.write_text(overview['svg'])
+            os.chmod(asset, 0o644)
         receipt = folder / (digest + '.json')
         result = None
         if expected_post and post.get('content', {}).get('raw') == text and post.get('spec', {}).get('title') == title and category in post.get('spec', {}).get('categories', []) and post.get('status', {}).get('phase') == 'PUBLISHED':

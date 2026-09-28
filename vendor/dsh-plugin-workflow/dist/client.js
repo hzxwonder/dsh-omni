@@ -10396,7 +10396,6 @@ var style_default4 = `/* Workflow Studio surfaces.
   font-weight: 600;
   line-height: 18px;
 }
-.wf-nav-button.is-active .wf-nav-count { background: transparent; color: var(--wf-accent); }
 .wf-workflow-icon {
   display: inline-flex;
   align-items: center;
@@ -11069,6 +11068,8 @@ var style_default4 = `/* Workflow Studio surfaces.
 .wf-interaction p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .wf-interaction small { color: var(--wf-muted); }
 .wf-interaction button { justify-self: start; }
+.wf-export-open { margin-top: 12px; padding: 7px 12px; border: 1px solid var(--wf-accent); border-radius: 8px; background: var(--wf-accent); color: white; font-weight: 600; cursor: pointer; }
+.wf-export-open:disabled { opacity: .55; cursor: not-allowed; }
 
 /* ------------------------------------------------------------ responsive */
 @media (max-width: 1100px) {
@@ -12689,7 +12690,8 @@ function RunTimeline({ ctx, api, runId, openSession, onChange, embedded = false,
         focusNodeId && children2,
         state.output && !focusNodeId && /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "wf-step-answer", children: [
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("small", { children: "\u8F93\u51FA" }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Content, { value: state.output })
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Content, { value: state.output }),
+          node.kind === "publish" && state.output.wechatFile && state.output.slug && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { type: "button", className: "wf-export-open", disabled: busy2, onClick: () => act({ action: "openWechatExport", slug: state.output.slug }), children: "\u6253\u5F00\u516C\u4F17\u53F7\u6392\u7248" })
         ] }),
         !!run.reviews?.[node.id]?.length && /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("details", { className: "wf-review-history", children: [
           /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("summary", { children: [

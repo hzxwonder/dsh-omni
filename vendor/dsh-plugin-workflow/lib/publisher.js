@@ -1,6 +1,11 @@
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { dirname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { fail } from './definition.js';
+import { renderPaperOverview } from './paper-overview.js';
+import { insertPaperOverview, renderPaperMarkdown, renderWechatPage } from './paper-render.js';
 
 export async function publishHalo(input, configPath, signal) {
   let destination;
@@ -13,9 +18,21 @@ export async function publishHalo(input, configPath, signal) {
   const publication = input.request?.publication;
   if (publication?.slug && article.slug !== publication.slug) fail('PUBLISH_TARGET_MISMATCH');
   if (publication?.postId && !/^[a-zA-Z0-9-]+$/.test(publication.postId)) fail('PUBLISH_TARGET_INVALID');
-  const payload = JSON.stringify({ title: article.title, slug: article.slug, text: article.text, category: destination.category, expectedPostId: publication?.postId, dryRun: Boolean(input.dryRun) });
+  let overview;
+  let rendered;
+  let publishText = article.text;
+  if (article.overview) {
+    overview = await renderPaperOverview(article.overview);
+    const digest = createHash('sha256').update(overview.svg).digest('hex').slice(0, 12);
+    overview.file = `${article.slug}-${digest}.svg`;
+    publishText = insertPaperOverview(publishText, `/lab/assets/paper-overviews/${overview.file}`);
+    rendered = renderPaperMarkdown(publishText);
+  }
+  const payload = JSON.stringify({ title: article.title, slug: article.slug, text: publishText, renderedHtml: rendered?.html,
+    overview: overview ? { file: overview.file, svg: overview.svg } : undefined,
+    category: destination.category, expectedPostId: publication?.postId, dryRun: Boolean(input.dryRun) });
   if (Buffer.byteLength(payload) > 4 * 1024 * 1024) fail('PUBLISH_SIZE_LIMIT');
-  return await new Promise((resolve, reject) => {
+  const result = await new Promise((resolve, reject) => {
     const child = spawn('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', destination.sshHost, `python3 ${destination.helper}`], { signal, stdio: ['pipe', 'pipe', 'pipe'] });
     let out = '';
     child.stdout.on('data', d => { out += d; if (out.length > 65536) child.kill(); });
@@ -33,4 +50,18 @@ export async function publishHalo(input, configPath, signal) {
     });
     child.stdin.end(payload);
   });
+  if (overview && !input.dryRun) {
+    const folder = join(dirname(configPath), 'exports', article.slug);
+    await mkdir(folder, { recursive: true, mode: 0o700 });
+    const svg = join(folder, overview.file);
+    const source = join(folder, `${article.slug}.excalidraw`);
+    const wechat = join(folder, 'wechat.html');
+    await Promise.all([
+      writeFile(svg, overview.svg, { mode: 0o600 }),
+      writeFile(source, JSON.stringify(overview.scene, null, 2) + '\n', { mode: 0o600 }),
+      writeFile(wechat, renderWechatPage({ title: article.title, html: rendered.html, overviewSvg: overview.svg }), { mode: 0o600 }),
+    ]);
+    return { ...result, wechatFile: wechat, wechatUrl: pathToFileURL(wechat).href, overviewSvg: svg, overviewSource: source };
+  }
+  return result;
 }
