@@ -9,6 +9,7 @@ import { schema, fail, checkData } from "./lib/definition.js";
 import { blankTemplate } from "./lib/templates.js";
 import { reviewedPaperTemplate as paperTemplate } from './lib/paper-workflow.js';
 import { harnessAdapter, materialInput } from "./lib/harness.js";
+import { WorkflowResources } from './lib/resources.js';
 
 export const name = "dsh-plugin-workflow";
 export const inject = [
@@ -45,7 +46,8 @@ export async function apply(ctx, config = {}) {
     throw error;
   }
   const adapter = harnessAdapter(ctx, { haloConfigPath: join(directory, 'halo-destination.json') });
-  const engine = new Engine(store, adapter, join(directory, "artifacts"));
+  const resources = new WorkflowResources(workflowWorkspaceRoot, directory);
+  const engine = new Engine(store, adapter, join(directory, "artifacts"), resources);
   const sessionUploadedFiles = (parent) => {
     try {
       const events = parent?.session?.snapshotEvents?.() ?? [];
@@ -305,6 +307,12 @@ export async function apply(ctx, config = {}) {
       if (!item) fail('SKILL_UNAVAILABLE',a.name);
       return {name:a.name,content:item.content};
     }
+    if (action === 'resourceRead') return resources.readText(a.blob);
+    if (action === 'resourcePaths') {
+      const snapshot = store.get('revision', `${a.id}:${a.revision}`);
+      if (!snapshot) fail('REVISION_NOT_FOUND');
+      return resources.paths(snapshot.definition, snapshot.revision);
+    }
     if (action === "describe")
       return { schema, templates: [paperTemplate(), blankTemplate("custom")] };
     if (action === "read") {
@@ -399,13 +407,16 @@ export async function apply(ctx, config = {}) {
       await mkdir(path, { recursive: true });
       return { path };
     }
+    if (action === 'resourceUpload') return resources.upload(a.base64);
     if (action === "authorStart") {
       const sessionId = parent?.session.id ?? a.sessionId;
       if (!sessionId) fail("SESSION_REQUIRED");
       return store.put("authoring", sessionId, { sessionId });
     }
     if (action === "save") {
+      await resources.verifyBlobs(a.definition);
       const saved = store.save(a.definition, a.expectedRevision);
+      await resources.materialize(store.get('revision', `${saved.id}:${saved.revision}`));
       if (parent) {
         // A modification conversation carries an author-mode binding, not an
         // authoring marker: after saving, that binding must follow the new
@@ -477,7 +488,9 @@ export async function apply(ctx, config = {}) {
         }
         fail("EDITS_INVALID");
       }
+      await resources.verifyBlobs(definition);
       const saved = store.save(definition, wf.revision);
+      await resources.materialize(store.get('revision', `${saved.id}:${saved.revision}`));
       if (binding?.workflowId === wf.id)
         store.put("binding", binding.sessionId, {
           ...binding,
@@ -502,7 +515,10 @@ export async function apply(ctx, config = {}) {
       const definition = structuredClone(snapshot.definition);
       definition.id = uid("workflow");
       definition.name = a.name?.trim() || `${source.name} 副本`;
-      return store.save(definition, 0);
+      await resources.verifyBlobs(definition);
+      const saved = store.save(definition, 0);
+      await resources.materialize(store.get('revision', `${saved.id}:${saved.revision}`));
+      return saved;
     }
     if (action === "publish") return store.publish(a.id, a.revision);
     if (action === "archive") {
@@ -740,6 +756,8 @@ export async function apply(ctx, config = {}) {
           "runRead",
           "artifact",
           "schedulePreview",
+          "resourceRead",
+          "resourcePaths",
         ].includes(a.action),
       async execute(a, exec) {
         return {
@@ -908,9 +926,11 @@ Fast path for an accepted change: call workflow_studio edit with edits:[{"node":
     async fetch(request) {
       try {
         const body = await request.text();
-        if (Buffer.byteLength(body) > 2 * 1024 * 1024)
+        if (Buffer.byteLength(body) > 12 * 1024 * 1024)
           fail("REQUEST_SIZE_LIMIT");
         const args = JSON.parse(body);
+        if (!['resourceUpload', 'save', 'edit'].includes(args.action) && Buffer.byteLength(body) > 2 * 1024 * 1024)
+          fail('REQUEST_SIZE_LIMIT');
         const parent = args.sessionId
           ? await agentFor(args.sessionId)
           : undefined;

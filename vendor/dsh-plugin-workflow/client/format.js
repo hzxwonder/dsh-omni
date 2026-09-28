@@ -3,6 +3,16 @@
 // stream becomes a timeline a person can scan.
 
 const ERROR_HINTS = [
+  [/^RESOURCE_PATH_PLACEMENT_REQUIRED/i, "请在目标步骤的 Prompt 中选择位置并插入已连线的资源路径"],
+  [/^SKILL_NAME_INVALID/i, "Skill 名称只能使用小写英文、数字和连字符"],
+  [/^SKILL_NAME_DUPLICATE/i, "同一工作流中的 Skill 名称不能重复"],
+  [/^SKILL_DESCRIPTION_REQUIRED/i, "请填写 Skill 的用途说明"],
+  [/^SKILL_INSTRUCTIONS_REQUIRED/i, "请填写 SKILL.md 正文"],
+  [/^SKILL_FILE_PATH_INVALID|^RESOURCE_PATH_INVALID/i, "文件路径无效；请使用目录内的相对路径"],
+  [/^FILE_NAME_REQUIRED|^FILE_NAME_INVALID/i, "请填写有效的文件名"],
+  [/^RESOURCE_BLOB_MISSING/i, "导入的文件已不可用；请重新选择本地文件"],
+  [/^RESOURCE_UPLOAD_TOO_LARGE/i, "单个文件不能超过 8 MB"],
+  [/^RESOURCE_REVISION_CHANGED|^RESOURCE_REVISION_CONFLICT/i, "工作流版本文件已变化；请保存为新的版本"],
   [/^NODE_EXECUTION_FAILED:\s*aborted/i, "执行被中断（可能是手动停止或会话中断）"],
   [/^NODE_EXECUTION_FAILED/i, "步骤执行失败"],
   [/^REVIEW_LIMIT/i, "已达到评审轮数上限，保留了现场"],

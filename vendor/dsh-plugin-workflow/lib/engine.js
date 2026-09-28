@@ -86,10 +86,11 @@ const judgeSchema = (node) => ({
 });
 
 export class Engine {
-  constructor(store, adapter, directory) {
+  constructor(store, adapter, directory, resources) {
     this.store = store;
     this.adapter = adapter;
     this.directory = directory;
+    this.resources = resources;
     this.active = new Map();
     this.starting = new Set();
     this.checkpoints = new Checkpoints(join(directory, "checkpoints"));
@@ -106,6 +107,7 @@ export class Engine {
       routes: {},
       skills: {},
       children: {},
+      resources: this.resources ? await this.resources.materialize(snapshot) : {},
     };
     for (const node of def.nodes) {
       if (
@@ -124,6 +126,14 @@ export class Engine {
           signal,
         );
         prepared.skills[node.id] = prepared.skills[node.id].map(skill => node.skillOverrides?.[skill.name] === undefined ? skill : {...skill, content:node.skillOverrides[skill.name], hash:hash(node.skillOverrides[skill.name])});
+        for (const ref of Object.values(node.input ?? {})) {
+          if (ref?.resourceKind !== 'skill') continue;
+          const source = def.nodes.find(candidate => candidate.id === ref.nodeId);
+          if (!source || source.kind !== 'skill') fail('SKILL_REFERENCE_INVALID', node.id);
+          prepared.skills[node.id] = prepared.skills[node.id].filter(skill => skill.name !== source.skill.name);
+          prepared.skills[node.id].push({ name: source.skill.name, content: source.skill.instructions,
+            path: prepared.resources[source.id], hash: hash(source.skill) });
+        }
       }
       if (node.subagents?.length) {
         prepared.teams ??= {};
@@ -613,7 +623,11 @@ export class Engine {
         // Container steps delegate checkpoints to their leaf steps to avoid overlapping patches.
         before = await this.checkpoints.begin(node.kind === 'subworkflow' ? null : parent.session.header?.cwd, record.folder, { prompt: node.prompt ?? "", material: input });
         let output;
-        if (node.kind === "agent") {
+        if (node.kind === 'skill' || node.kind === 'file') {
+          const path = prepared.resources[node.id];
+          if (!path) fail('RESOURCE_PATH_MISSING', node.id);
+          output = { path, name: node.kind === 'skill' ? node.skill.name : node.file.name };
+        } else if (node.kind === "agent") {
           if (prepared.teams?.[node.id]?.length) {
             state.subagents = {};
             const remaining = new Set(prepared.teams[node.id].map(m => m.node.id));

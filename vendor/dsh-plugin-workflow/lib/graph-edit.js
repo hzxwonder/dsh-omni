@@ -1,6 +1,7 @@
 export const tokenFor = (key) => `{{input.${key}}}`;
 export function canConnect(def, from, to) {
   if (from === to || !def.nodes.some(n => n.id === from) || !def.nodes.some(n => n.id === to)) return false;
+  if (['skill', 'file'].includes(def.nodes.find(n => n.id === to)?.kind)) return false;
   const seen = new Set();
   const visit = id => {
     if (id === from) return true;
@@ -17,7 +18,10 @@ export function connectReference(def, from, to, append = true, on) {
   const existing = Object.entries(target.input ?? {}).find(([, r]) => r.source === "node" && r.nodeId === from);
   let key = existing?.[0] ?? (target.kind === "artifact" && !target.input?.content ? "content" : from);
   while (!existing && Object.hasOwn(target.input ?? {}, key)) key += "_output";
-  const ref = existing?.[1] ?? { source: "node", nodeId: from, path: source.kind === "agent" && !source.outputSchema ? "/text" : "" };
+  const ref = existing?.[1] ?? { source: "node", nodeId: from,
+    path: ['skill', 'file'].includes(source.kind) ? '/path' : source.kind === "agent" && !source.outputSchema ? "/text" : "",
+    ...(['skill', 'file'].includes(source.kind) ? { resourceKind: source.kind } : {}),
+  };
   const token = tokenFor(key);
   return { definition: { ...def,
     edges: def.edges.some(e => e.from === from && e.to === to) ? def.edges : [...def.edges, { from, to, ...(on ? { on } : {}) }],
@@ -56,11 +60,11 @@ export function pasteNodes(def, copied) {
   const edges = copied.edges.filter(e => ids.has(e.to) && (ids.has(e.from) || def.nodes.some(n => n.id === e.from))).map(e => ({...e, from: ids.get(e.from) ?? e.from, to: ids.get(e.to)}));
   return { ...def, nodes: [...def.nodes, ...nodes], edges: [...def.edges, ...edges] };
 }
-export function renderPrompt(prompt = "", input = {}) {
+export function renderPrompt(prompt = "", input = {}, rawKeys = new Set()) {
   return prompt.replace(/\{\{(?:input|node)\.([a-zA-Z0-9_-]+)\}\}/g, (_, key) => {
     if (!Object.hasOwn(input, key)) throw new Error(`PROMPT_INPUT_MISSING: ${key}`);
     const value = input[key];
-    return JSON.stringify(value);
+    return rawKeys.has(key) && typeof value === 'string' ? value : JSON.stringify(value);
   });
 }
 // A question shown to a person reads as prose, so interpolated values are

@@ -15,6 +15,8 @@ export const kinds = [
   "artifact",
   "publish",
   "multithread",
+  "skill",
+  "file",
 ];
 export const containers = ["multithread"];
 export const interactions = ["once", "goal"];
@@ -100,6 +102,8 @@ export const schema = {
             uniqueItems: true,
           },
           skillOverrides: {type:"object",additionalProperties:{type:"string",maxLength:200000}},
+          skill: { type: "object" },
+          file: { type: "object" },
           skills: {
             type: "array",
             items: { type: "string" },
@@ -283,6 +287,7 @@ export function validateDefinition(def) {
     if (!graph.hasNode(edge.from) || !graph.hasNode(edge.to))
       fail("UNKNOWN_EDGE_NODE");
     if (graph.hasEdge(edge.from, edge.to)) fail("DUPLICATE_EDGE");
+    if (['skill', 'file'].includes(def.nodes.find(node => node.id === edge.to)?.kind)) fail('RESOURCE_SOURCE_ONLY', edge.to);
     if (
       edge.on &&
       edge.on !== "success" &&
@@ -317,6 +322,14 @@ export function validateDefinition(def) {
       validateReference(ref);
       if (ref.source === "node" && !ancestors(node.id).has(ref.nodeId))
         fail("INPUT_DEPENDENCY_REQUIRED", `${node.id} <- ${ref.nodeId}`);
+    }
+    for (const [key, ref] of Object.entries(node.input ?? {})) {
+      if (!ref?.resourceKind) continue;
+      const source = def.nodes.find(candidate => candidate.id === ref.nodeId);
+      if (ref.source !== 'node' || !source || source.kind !== ref.resourceKind || !['skill', 'file'].includes(source.kind) || ref.path !== '/path')
+        fail('RESOURCE_REFERENCE_INVALID', `${node.id}.${key}`);
+      if (node.prompt?.trim() && !node.prompt.includes(`{{input.${key}}}`))
+        fail('RESOURCE_PATH_PLACEMENT_REQUIRED', `${node.id}.${key}`);
     }
     if (node.provided !== undefined) {
       validateReference(node.provided);

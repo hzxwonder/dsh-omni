@@ -9,6 +9,7 @@ const descriptions = {
  artifact: '保存结果与文件', publish: '发布审核通过的内容', tool: '调用指定工具',
  condition: '按条件选择后续步骤', join: '汇总前序结果',
  subworkflow: '调用另一工作流', approval: '等待用户确认',
+ skill: '编写并引用标准 Skill 文件夹', file: '创建或导入供下游引用的文件',
 };
 export function StepOutline({definition, selected, onSelect, onDelete, onRename}) {
  return <section className="wf-outline" aria-label="工作流步骤列表">
@@ -19,7 +20,7 @@ export function StepOutline({definition, selected, onSelect, onDelete, onRename}
    const output = definition.edges.some(e=>e.from===node.id);
    return <div key={node.id} className="wf-outline-row"><button className="wf-outline-step" aria-pressed={selected===node.id} onClick={()=>onSelect(node.id)}>
     <span className="wf-outline-number">{String(index+1).padStart(2,'0')}</span>
-    <span className="wf-outline-copy"><InlineName value={node.name} onRename={(name) => onRename?.(node.id, name)} /><span>{displayPrompt(node.prompt) || descriptions[node.kind] || '配置步骤任务'}</span>
+    <span className="wf-outline-copy"><InlineName value={node.name} onRename={(name) => onRename?.(node.id, name)} /><span>{node.kind === 'skill' ? node.skill?.name : node.kind === 'file' ? node.file?.name : displayPrompt(node.prompt) || descriptions[node.kind] || '配置步骤任务'}</span>
      <small>材料：{inputs.length ? inputs.join('、') : '本次任务输入'}{!output ? ' · 形成最终结果' : ''}</small>
      {node.repeat && <small>评审未通过时返回修订 · 最多 {node.repeat.maxRounds} 轮</small>}
     </span><ChevronRight size={16} aria-hidden="true" />

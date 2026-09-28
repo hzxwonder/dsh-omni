@@ -57,6 +57,7 @@ import css from "./style.css";
 import { canConnect, connectReference, pasteNodes, removeGraphItems } from "../lib/graph-edit.js";
 import { RunTimeline, EventTimeline } from "./run-timeline.jsx";
 import { StepPrompt } from "./step-prompt.jsx";
+import { SkillResourceEditor, FileResourceEditor, uploadResource } from './resource-editor.jsx';
 import { shortError, describeRunError, displayPrompt } from "./format.js";
 
 export const name = "dsh-plugin-workflow";
@@ -81,6 +82,8 @@ const labels = {
   publish: "发布",
   script: "脚本",
   multithread: "Multithread",
+  skill: "Skill",
+  file: "文件",
 };
 const statuses = {
   queued: "等待执行",
@@ -115,6 +118,7 @@ const glyphs = {
   publish: Send,
   script: Code,
   multithread: Layers,
+  skill: BookOpen,
 };
 const glyphFor = (glyph, size) => {
   const Glyph = glyphs[glyph] ?? GitBranch;
@@ -249,7 +253,7 @@ export function apply(ctx) {
       signal,
     });
     const result = await response.json();
-    if (!result.ok) throw new Error(result.detail ?? result.error);
+    if (!result.ok) throw new Error(shortError(result.detail ?? result.error));
     return result.value;
   };
   let refreshing;
@@ -418,7 +422,7 @@ export function apply(ctx) {
     const id = sessionId ?? (await newSession(tmp.workspaceId));
     await api({ action: "authorStart", sessionId: id });
     await ctx.sessions.refresh();
-    ctx.sessions.open(id);
+    openSession(id);
     ctx.layout.selectPanel(null);
     setPanelOpen(false);
     closePicker();
@@ -650,7 +654,7 @@ export function apply(ctx) {
       const detail = view.summary || view.references.length > 0 || view.repeat;
       return (
       <div className={`wf-node-card wf-step-${view.kind} ${active ? "is-selected" : ""}`} onMouseDown={(event) => { if (event.button === 0) { window.getSelection?.()?.removeAllRanges(); event.preventDefault(); } }}>
-        {view.kind !== 'input' && <Handle type="target" position={Position.Top} />}
+        {!['input', 'skill', 'file'].includes(view.kind) && <Handle type="target" position={Position.Top} />}
         <div className="wf-step-heading">
           <span className="wf-step-glyph" aria-hidden="true">{glyphFor(view.kind, 15)}</span>
           <span className="wf-step-copy">
@@ -718,6 +722,7 @@ export function apply(ctx) {
     const data = useData();
     const draftKey = `${record.id}:${record.revision}`;
     const [definition, setDefinition] = useState(drafts.get(draftKey) ?? record.snapshot.definition);
+    const definitionRef = React.useRef(definition);
     const [selected, setSelected] = useState(definition.nodes[0]?.id);
     const [dirty, setDirty] = useState(drafts.has(draftKey));
     const [panelTab, setPanelTab] = useState("step");
@@ -729,6 +734,9 @@ export function apply(ctx) {
     const [run, setRun] = useState(null);
     const [assetsOpen, setAssetsOpen] = useState(false);
     const [skillEdit, setSkillEdit] = useState(null);
+    const [resourcePaths, setResourcePaths] = useState({});
+    const [fileDrag, setFileDrag] = useState(false);
+    const dragDepth = React.useRef(0);
     const [selectedEdge, setSelectedEdge] = useState(null);
     const flow = React.useRef();
     const flowElement = React.useRef();
@@ -744,8 +752,11 @@ export function apply(ctx) {
       return () => { observer.disconnect(); cancelAnimationFrame(frame); };
     }, [raw, editorView]);
     useEffect(() => {
-      setDefinition(drafts.get(draftKey) ?? record.snapshot.definition);
+      const next = drafts.get(draftKey) ?? record.snapshot.definition;
+      definitionRef.current = next;
+      setDefinition(next);
       setDirty(drafts.has(draftKey));
+      api({ action: 'resourcePaths', id: record.id, revision: record.revision }).then(setResourcePaths).catch(() => setResourcePaths({}));
     }, [record]);
     useEffect(() => {
       const fn = (e) => {
@@ -759,7 +770,8 @@ export function apply(ctx) {
     }, [dirty]);
     const change = (value) => {
       drafts.set(draftKey, value);
-      setHistory((old) => [...old.slice(-29), definition]);
+      setHistory((old) => [...old.slice(-29), definitionRef.current]);
+      definitionRef.current = value;
       setDefinition(value);
       setDirty(true);
     };
@@ -806,13 +818,15 @@ export function apply(ctx) {
       window.addEventListener("keydown", onKey);
       return () => window.removeEventListener("keydown", onKey);
     }, [node, clipboard, definition, history, selected, dirty]);
-    const update = (patch) =>
+    const update = (patch) => {
+      const current = definitionRef.current;
       change({
-        ...definition,
-        nodes: definition.nodes.map((n) =>
+        ...current,
+        nodes: current.nodes.map((n) =>
           n.id === selected ? { ...n, ...patch } : n,
         ),
       });
+    };
     // 落点命中的外壳容器（拖入新步骤 / 拖动既有步骤共用）。
     const containerAt = (pos) => definition.nodes.find(n => containerKinds.includes(n.kind) && n.position && n.size &&
       pos.x >= n.position.x && pos.x <= n.position.x + n.size.width &&
@@ -846,13 +860,13 @@ export function apply(ctx) {
             ? flow.current.screenToFlowPosition({ x: host.left + host.width / 2, y: host.top + host.height / 2 })
             : null;
           const offset = (definition.nodes.length % 5) * 28;
-          pos = anchor
+          pos = anchor?.position
             ? { x: anchor.position.x, y: anchor.position.y + sizeOf(anchor).h + 56 }
             : center
               ? { x: center.x - 120 + offset, y: center.y - 60 + offset }
               : { x: 100 + (definition.nodes.length % 3) * 400, y: 100 + Math.floor(definition.nodes.length / 3) * 300 };
           for (let guard = 0; guard < 40; guard++) {
-            const hit = definition.nodes.filter(m => !m.parentId).find(m => {
+            const hit = definition.nodes.filter(m => !m.parentId && m.position).find(m => {
               const s = sizeOf(m);
               return pos.x < m.position.x + s.w + 28 && pos.x + 232 + 28 > m.position.x &&
                 pos.y < m.position.y + s.h + 28 && pos.y + 150 + 28 > m.position.y;
@@ -875,6 +889,10 @@ export function apply(ctx) {
         n.tools = [];
         n.skills = [];
       }
+      if (kind === 'skill') {
+        n.skill = { name: `workflow-skill-${id.slice(-8)}`, description: '说明这个 Skill 适用的任务和触发条件。', instructions: '写出完成任务时应遵循的步骤。', files: [] };
+      }
+      if (kind === 'file') n.file = { name: 'notes.md', content: '' };
       if (kind === "input") {
         n.prompt = "请提供本次任务需要的材料。";
         n.input = { text: { source: "workflow", path: "/text" } };
@@ -919,6 +937,7 @@ export function apply(ctx) {
       if (!history.length) return;
       const previous = history.at(-1);
       drafts.set(draftKey, previous);
+      definitionRef.current = previous;
       setDefinition(previous);
       setHistory(h => h.slice(0, -1));
       setSelected(previous.nodes.some(n => n.id === selected) ? selected : previous.nodes.at(-1)?.id ?? null);
@@ -955,7 +974,7 @@ export function apply(ctx) {
         repeat: n.repeat,
         title: n.name,
         model: n.model?.mode === "explicit" ? n.model.id : "会话模型",
-        summary: displayPrompt(n.prompt) || "",
+        summary: n.kind === 'skill' ? `${n.skill?.name ?? ''} · ${n.skill?.description ?? ''}` : n.kind === 'file' ? n.file?.name ?? '' : displayPrompt(n.prompt) || "",
         onRename: (name) => change({ ...definition, nodes: definition.nodes.map(x => x.id === n.id ? { ...x, name } : x) }),
         mode: n.kind === 'interact' ? (n.interaction === 'goal' ? '交互目标' : '交互一次') : undefined,
         references: Object.values(n.input ?? {}).filter(r => r.source === 'node').map(r => definition.nodes.find(x => x.id === r.nodeId)).filter(Boolean),
@@ -1051,12 +1070,12 @@ export function apply(ctx) {
       <div className="wf-editor">
         <div className="wf-editor-viewbar"><div className="wf-segmented" role="tablist" aria-label="步骤展示方式">{[["steps","步骤列表"],["graph","流程图"]].map(([id,label])=><button key={id} role="tab" aria-selected={editorView===id} onClick={()=>{setEditorView(id);setRaw(false);localStorage.setItem("workflow-studio:editor-view",id);}}>{label}</button>)}</div></div>
         {skillEdit && <Modal title={`编辑 skill · ${skillEdit.name}`} close={()=>setSkillEdit(null)}><textarea className="wf-skill-content" aria-label="Skill 内容" value={skillEdit.content} onChange={e=>setSkillEdit({...skillEdit,content:e.target.value})}/><button className="wf-primary" onClick={()=>{update({skillOverrides:{...node.skillOverrides,[skillEdit.name]:skillEdit.content}});setSkillEdit(null);}}>应用到步骤</button></Modal>}
-        {assetsOpen && <Modal title="添加步骤" close={()=>setAssetsOpen(false)}><div className="wf-modal-body"><div className="wf-step-picker" role="menu" aria-label="更多步骤选项">{Object.entries(labels).filter(([kind])=>!["input","interact","agent","artifact"].includes(kind)).map(([kind,label])=><button key={kind} role="menuitem" className={`wf-step-${kind}`} onClick={()=>{setAssetsOpen(false);add(kind);}}><span className="wf-step-glyph" aria-hidden="true">{glyphFor(kind,15)}</span><span>{label}</span></button>)}</div></div></Modal>}
+        {assetsOpen && <Modal title="添加步骤" close={()=>setAssetsOpen(false)}><div className="wf-modal-body"><div className="wf-step-picker" role="menu" aria-label="更多步骤选项">{Object.entries(labels).filter(([kind])=>!["input","interact","agent","artifact","skill","file"].includes(kind)).map(([kind,label])=><button key={kind} role="menuitem" className={`wf-step-${kind}`} onClick={()=>{setAssetsOpen(false);add(kind);}}><span className="wf-step-glyph" aria-hidden="true">{glyphFor(kind,15)}</span><span>{label}</span></button>)}</div></div></Modal>}
         <div className="wf-editor-body">
           <div className="wf-stage">
             <div className="wf-canvas">
               <div className="wf-addbar" role="toolbar" aria-label="添加步骤">
-                {Object.entries(labels).filter(([kind]) => ["input", "interact", "agent", "artifact"].includes(kind)).map(([kind, label]) => (
+                {Object.entries(labels).filter(([kind]) => ["input", "interact", "agent", "skill", "file", "artifact"].includes(kind)).map(([kind, label]) => (
                   <button
                     key={kind}
                     className={`wf-add wf-step-${kind}`}
@@ -1097,9 +1116,26 @@ export function apply(ctx) {
                 <div
                   className="wf-flow"
                   ref={flowElement}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
+                  onDragEnter={(e) => { if (e.dataTransfer.types.includes('Files')) { dragDepth.current++; setFileDrag(true); } }}
+                  onDragLeave={(e) => { if (e.dataTransfer.types.includes('Files')) { dragDepth.current = Math.max(0, dragDepth.current - 1); if (!dragDepth.current) setFileDrag(false); } }}
+                  onDragOver={(e) => { if (e.dataTransfer.types.includes('Files') || e.dataTransfer.types.includes('application/workflow-node')) e.preventDefault(); }}
+                  onDrop={async (e) => {
                     e.preventDefault();
+                    dragDepth.current = 0; setFileDrag(false);
+                    if (e.dataTransfer.files?.length) {
+                      try {
+                        const at = flow.current?.screenToFlowPosition({ x: e.clientX, y: e.clientY }) ?? { x: 120, y: 120 };
+                        const added = [];
+                        for (const [index, file] of [...e.dataTransfer.files].entries()) {
+                          const id = `node_${crypto.randomUUID().slice(0, 8)}`;
+                          added.push({ id, kind: 'file', name: file.name, position: { x: at.x + index * 24, y: at.y + index * 28 },
+                            file: { name: file.name, ...await uploadResource(file, api) } });
+                        }
+                        change({ ...definition, nodes: [...definition.nodes, ...added] });
+                        setSelected(added.at(-1).id); setPanelTab('step');
+                      } catch (error) { setError(error.message); }
+                      return;
+                    }
                     const kind = e.dataTransfer.getData("application/workflow-node");
                     if (!labels[kind]) return;
                     const pos = flow.current?.screenToFlowPosition({ x: e.clientX, y: e.clientY });
@@ -1195,12 +1231,14 @@ export function apply(ctx) {
                       try {
                         const on = connection.sourceHandle === "yes" ? "true" : connection.sourceHandle === "no" ? "false" : undefined;
                         change(connectReference(definition, connection.source, connection.target, false, on).definition);
+                        if (['skill', 'file'].includes(definition.nodes.find(item => item.id === connection.source)?.kind)) { setSelected(connection.target); setPanelTab('step'); }
                       } catch (e) { setError(e.message); }
                     }}
                   >
                     <Controls />
 
                   </ReactFlow>
+                  {fileDrag && <div className="wf-file-drop-overlay" aria-hidden="true"><strong>松开以创建文件模块</strong><span>文件会复制到此工作流的版本目录</span></div>}
                 </div>
               )}
               <div className="wf-canvas-tools">
@@ -1369,6 +1407,10 @@ export function apply(ctx) {
                 )}
 
               </div>
+            ) : node?.kind === 'skill' ? (
+              <div className="wf-panel-body"><SkillResourceEditor key={node.id} node={node} update={update} api={api} onError={setError} savedPath={dirty ? null : resourcePaths[node.id]} /></div>
+            ) : node?.kind === 'file' ? (
+              <div className="wf-panel-body"><FileResourceEditor key={node.id} node={node} update={update} api={api} onError={setError} savedPath={dirty ? null : resourcePaths[node.id]} /></div>
             ) : node ? (
               <div className="wf-panel-body">
                 {(() => {

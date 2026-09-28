@@ -39,7 +39,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
         return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
       }
       function useSyncExternalStore$2(subscribe, getSnapshot) {
-        didWarnOld18Alpha || void 0 === React9.startTransition || (didWarnOld18Alpha = true, console.error(
+        didWarnOld18Alpha || void 0 === React10.startTransition || (didWarnOld18Alpha = true, console.error(
           "You are using an outdated, pre-release alpha of React 18 that does not support useSyncExternalStore. The use-sync-external-store shim will not work correctly. Upgrade to a newer pre-release."
         ));
         var value = getSnapshot();
@@ -49,7 +49,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
             "The result of getSnapshot should be cached to avoid an infinite loop"
           ), didWarnUncachedGetSnapshot = true);
         }
-        cachedValue = useState9({
+        cachedValue = useState10({
           inst: { value, getSnapshot }
         });
         var inst = cachedValue[0].inst, forceUpdate = cachedValue[1];
@@ -61,7 +61,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
           },
           [subscribe, value, getSnapshot]
         );
-        useEffect6(
+        useEffect7(
           function() {
             checkIfSnapshotChanged(inst) && forceUpdate({ inst });
             return subscribe(function() {
@@ -87,8 +87,8 @@ var require_use_sync_external_store_shim_development = __commonJS({
         return getSnapshot();
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React9 = require("react"), objectIs = "function" === typeof Object.is ? Object.is : is, useState9 = React9.useState, useEffect6 = React9.useEffect, useLayoutEffect3 = React9.useLayoutEffect, useDebugValue2 = React9.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-      exports.useSyncExternalStore = void 0 !== React9.useSyncExternalStore ? React9.useSyncExternalStore : shim;
+      var React10 = require("react"), objectIs = "function" === typeof Object.is ? Object.is : is, useState10 = React10.useState, useEffect7 = React10.useEffect, useLayoutEffect3 = React10.useLayoutEffect, useDebugValue2 = React10.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+      exports.useSyncExternalStore = void 0 !== React10.useSyncExternalStore ? React10.useSyncExternalStore : shim;
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
     })();
   }
@@ -115,9 +115,9 @@ var require_with_selector_development = __commonJS({
         return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React9 = require("react"), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore2 = shim.useSyncExternalStore, useRef5 = React9.useRef, useEffect6 = React9.useEffect, useMemo3 = React9.useMemo, useDebugValue2 = React9.useDebugValue;
+      var React10 = require("react"), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore2 = shim.useSyncExternalStore, useRef6 = React10.useRef, useEffect7 = React10.useEffect, useMemo3 = React10.useMemo, useDebugValue2 = React10.useDebugValue;
       exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-        var instRef = useRef5(null);
+        var instRef = useRef6(null);
         if (null === instRef.current) {
           var inst = { hasValue: false, value: null };
           instRef.current = inst;
@@ -158,7 +158,7 @@ var require_with_selector_development = __commonJS({
           [getSnapshot, getServerSnapshot, selector, isEqual]
         );
         var value = useSyncExternalStore2(subscribe, instRef[0], instRef[1]);
-        useEffect6(
+        useEffect7(
           function() {
             inst.hasValue = true;
             inst.value = value;
@@ -196,6 +196,16 @@ module.exports = __toCommonJS(index_exports);
 
 // client/format.js
 var ERROR_HINTS = [
+  [/^RESOURCE_PATH_PLACEMENT_REQUIRED/i, "\u8BF7\u5728\u76EE\u6807\u6B65\u9AA4\u7684 Prompt \u4E2D\u9009\u62E9\u4F4D\u7F6E\u5E76\u63D2\u5165\u5DF2\u8FDE\u7EBF\u7684\u8D44\u6E90\u8DEF\u5F84"],
+  [/^SKILL_NAME_INVALID/i, "Skill \u540D\u79F0\u53EA\u80FD\u4F7F\u7528\u5C0F\u5199\u82F1\u6587\u3001\u6570\u5B57\u548C\u8FDE\u5B57\u7B26"],
+  [/^SKILL_NAME_DUPLICATE/i, "\u540C\u4E00\u5DE5\u4F5C\u6D41\u4E2D\u7684 Skill \u540D\u79F0\u4E0D\u80FD\u91CD\u590D"],
+  [/^SKILL_DESCRIPTION_REQUIRED/i, "\u8BF7\u586B\u5199 Skill \u7684\u7528\u9014\u8BF4\u660E"],
+  [/^SKILL_INSTRUCTIONS_REQUIRED/i, "\u8BF7\u586B\u5199 SKILL.md \u6B63\u6587"],
+  [/^SKILL_FILE_PATH_INVALID|^RESOURCE_PATH_INVALID/i, "\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\uFF1B\u8BF7\u4F7F\u7528\u76EE\u5F55\u5185\u7684\u76F8\u5BF9\u8DEF\u5F84"],
+  [/^FILE_NAME_REQUIRED|^FILE_NAME_INVALID/i, "\u8BF7\u586B\u5199\u6709\u6548\u7684\u6587\u4EF6\u540D"],
+  [/^RESOURCE_BLOB_MISSING/i, "\u5BFC\u5165\u7684\u6587\u4EF6\u5DF2\u4E0D\u53EF\u7528\uFF1B\u8BF7\u91CD\u65B0\u9009\u62E9\u672C\u5730\u6587\u4EF6"],
+  [/^RESOURCE_UPLOAD_TOO_LARGE/i, "\u5355\u4E2A\u6587\u4EF6\u4E0D\u80FD\u8D85\u8FC7 8 MB"],
+  [/^RESOURCE_REVISION_CHANGED|^RESOURCE_REVISION_CONFLICT/i, "\u5DE5\u4F5C\u6D41\u7248\u672C\u6587\u4EF6\u5DF2\u53D8\u5316\uFF1B\u8BF7\u4FDD\u5B58\u4E3A\u65B0\u7684\u7248\u672C"],
   [/^NODE_EXECUTION_FAILED:\s*aborted/i, "\u6267\u884C\u88AB\u4E2D\u65AD\uFF08\u53EF\u80FD\u662F\u624B\u52A8\u505C\u6B62\u6216\u4F1A\u8BDD\u4E2D\u65AD\uFF09"],
   [/^NODE_EXECUTION_FAILED/i, "\u6B65\u9AA4\u6267\u884C\u5931\u8D25"],
   [/^REVIEW_LIMIT/i, "\u5DF2\u8FBE\u5230\u8BC4\u5BA1\u8F6E\u6570\u4E0A\u9650\uFF0C\u4FDD\u7559\u4E86\u73B0\u573A"],
@@ -779,7 +789,9 @@ var descriptions = {
   condition: "\u6309\u6761\u4EF6\u9009\u62E9\u540E\u7EED\u6B65\u9AA4",
   join: "\u6C47\u603B\u524D\u5E8F\u7ED3\u679C",
   subworkflow: "\u8C03\u7528\u53E6\u4E00\u5DE5\u4F5C\u6D41",
-  approval: "\u7B49\u5F85\u7528\u6237\u786E\u8BA4"
+  approval: "\u7B49\u5F85\u7528\u6237\u786E\u8BA4",
+  skill: "\u7F16\u5199\u5E76\u5F15\u7528\u6807\u51C6 Skill \u6587\u4EF6\u5939",
+  file: "\u521B\u5EFA\u6216\u5BFC\u5165\u4F9B\u4E0B\u6E38\u5F15\u7528\u7684\u6587\u4EF6"
 };
 function StepOutline({ definition, selected: selected2, onSelect, onDelete, onRename }) {
   return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("section", { className: "wf-outline", "aria-label": "\u5DE5\u4F5C\u6D41\u6B65\u9AA4\u5217\u8868", children: [
@@ -793,7 +805,7 @@ function StepOutline({ definition, selected: selected2, onSelect, onDelete, onRe
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "wf-outline-number", children: String(index2 + 1).padStart(2, "0") }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "wf-outline-copy", children: [
             /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(InlineName, { value: node.name, onRename: (name2) => onRename?.(node.id, name2) }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: displayPrompt(node.prompt) || descriptions[node.kind] || "\u914D\u7F6E\u6B65\u9AA4\u4EFB\u52A1" }),
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: node.kind === "skill" ? node.skill?.name : node.kind === "file" ? node.file?.name : displayPrompt(node.prompt) || descriptions[node.kind] || "\u914D\u7F6E\u6B65\u9AA4\u4EFB\u52A1" }),
             /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("small", { children: [
               "\u6750\u6599\uFF1A",
               inputs.length ? inputs.join("\u3001") : "\u672C\u6B21\u4EFB\u52A1\u8F93\u5165",
@@ -1266,7 +1278,7 @@ function createGallery({ ctx, api, refresh, openSession, openEditor, bind, begin
 }
 
 // client/index.jsx
-var import_react12 = __toESM(require("react"), 1);
+var import_react13 = __toESM(require("react"), 1);
 var import_dsh_client_ui_primitives3 = require("@deepseek-ai/dsh-client-ui-primitives");
 
 // node_modules/@xyflow/react/dist/esm/index.js
@@ -10345,8 +10357,6 @@ var style_default4 = `/* Workflow Studio surfaces.
   padding: 0 0 4px;
   background: transparent;
 }
-/* The single sidebar entry: a borderless row that reads as part of the rail and
-   highlights while the workflow panel owns the main area. */
 .wf-nav-button {
   display: flex;
   width: calc(100% - 4px);
@@ -10688,13 +10698,15 @@ var style_default4 = `/* Workflow Studio surfaces.
 }
 .wf-canvas-tools button { min-height: 28px; height: 28px; width: 28px; padding: 4px; border: 0; border-radius: 8px; background: transparent; }
 .wf-canvas-tools button[aria-pressed="true"] { background: var(--wf-accent-soft); color: var(--wf-accent); }
-.wf-flow { flex: 1; min-height: 0; }
+.wf-flow { position:relative; flex: 1; min-height: 0; }
 .wf-json { flex: 1; min-height: 0; padding: 16px; overflow: auto; }
 
 /* ---------------------------------------------------------- step cards */
 .wf .wf-step-input { --step-tint: #f4edd4; --step-ink: #8a6a12; --step-body: #f4edd4; }
 .wf .wf-step-interact { --step-tint: #d9f3ee; --step-ink: #0f6e64; --step-body: #d9f3ee; }
 .wf .wf-step-agent { --step-tint: #e7e9fb; --step-ink: #3d4db5; --step-body: #e7e9fb; }
+.wf .wf-step-skill { --step-tint: #e8e4fa; --step-ink: #5745a2; --step-body: #e8e4fa; }
+.wf .wf-step-file { --step-tint: #e1edf7; --step-ink: #285f89; --step-body: #e1edf7; }
 .wf .wf-step-tool { --step-tint: #fde8d0; --step-ink: #9a5410; --step-body: #fde8d0; }
 .wf .wf-step-condition { --step-tint: #fde2ec; --step-ink: #a33b5c; --step-body: #fde2ec; }
 .wf .wf-step-join { --step-tint: #ece9fb; --step-ink: #5346a0; --step-body: #ece9fb; }
@@ -11101,6 +11113,8 @@ var style_default4 = `/* Workflow Studio surfaces.
   body[data-ds-dark-theme] .wf .wf-add-input .wf-add-glyph { --step-tint: #3a341c; --step-ink: #e6d7a2; }
   body[data-ds-dark-theme] .wf .wf-step-interact { --step-tint: #143833; --step-ink: #9ee6d8; }
   body[data-ds-dark-theme] .wf .wf-step-agent { --step-tint: #242c4a; --step-ink: #c5cff8; }
+  body[data-ds-dark-theme] .wf .wf-step-skill { --step-tint: #2a2445; --step-ink: #d7cafa; }
+  body[data-ds-dark-theme] .wf .wf-step-file { --step-tint: #1c3042; --step-ink: #bcdcf3; }
   body[data-ds-dark-theme] .wf .wf-step-tool { --step-tint: #3d2a16; --step-ink: #f3d0a4; }
   body[data-ds-dark-theme] .wf .wf-step-condition,
   body[data-ds-dark-theme] .wf .wf-step-join { --step-tint: #2c2748; --step-ink: #d2c8f6; }
@@ -11345,6 +11359,53 @@ var style_default4 = `/* Workflow Studio surfaces.
 @media (prefers-reduced-motion: reduce) {
   .wf-session-rail { backdrop-filter: none; }
 }
+
+/* Resource inspectors keep the directory visible while each file has a focused editor. */
+.wf-resource-editor { display:grid; gap:14px; padding:4px 0 24px; }
+.wf-resource-workspace { display:grid; gap:12px; min-width:0; }
+.wf-resource-document { min-width:0; }
+.wf-resource-dialog { width:min(980px,calc(100vw - 48px)); height:min(760px,calc(100vh - 48px)); max-width:none; max-height:none; margin:auto; padding:0; border:1px solid var(--wf-line); border-radius:14px; background:var(--wf-surface); color:var(--wf-text); box-shadow:0 24px 80px rgb(0 0 0 / 28%); }
+.wf-resource-dialog::backdrop { background:rgb(16 24 40 / 52%); }
+.wf-resource-dialog > header { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:66px; padding:12px 20px; border-bottom:1px solid var(--wf-line); }
+.wf-resource-dialog > header > div { display:grid; gap:2px; }
+.wf-resource-dialog > header strong { font-size:16px; }
+.wf-resource-dialog > header span { color:var(--wf-muted); font-size:11px; }
+.wf-resource-dialog > .wf-resource-workspace { display:grid; grid-template-columns:minmax(220px,280px) minmax(0,1fr); gap:0; height:calc(100% - 66px); }
+.wf-resource-dialog .wf-resource-tree { border:0; border-right:1px solid var(--wf-line); border-radius:0; overflow:auto; padding:14px; align-content:start; }
+.wf-resource-dialog .wf-resource-document { overflow:auto; padding:20px 24px; }
+.wf-resource-dialog .wf-resource-instructions,.wf-resource-dialog .wf-resource-content textarea { min-height:360px!important; }
+@media (max-width:680px) { .wf-resource-dialog > .wf-resource-workspace { grid-template-columns:1fr; grid-template-rows:minmax(130px,34%) minmax(0,1fr); } .wf-resource-dialog .wf-resource-tree { border-right:0; border-bottom:1px solid var(--wf-line); } }
+.wf-resource-summary { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.wf-resource-summary strong { font-size:13px; }
+.wf-resource-summary span { color:var(--wf-muted); font-size:11px; text-align:right; }
+.wf-resource-path { display:flex; align-items:center; gap:6px; border:1px solid var(--wf-line); border-radius:9px; padding:6px; background:var(--wf-surface-subtle); }
+.wf-resource-path code { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:11px/1.5 ui-monospace,monospace; }
+.wf .wf-resource-path button { flex:none; min-height:28px; font-size:11px; }
+.wf-resource-tree { display:grid; gap:5px; padding:8px; border:1px solid var(--wf-line); border-radius:11px; background:var(--wf-surface-subtle); }
+.wf .wf-resource-tree > button,.wf .wf-resource-folder > button { display:flex; justify-content:space-between; width:100%; min-height:32px; border:0; text-align:left; overflow-wrap:anywhere; }
+.wf-resource-tree button.is-selected { background:var(--wf-accent-soft)!important; color:var(--wf-accent); }
+.wf-resource-tree button span,.wf-resource-tree summary span { color:var(--wf-muted); font-size:11px; font-weight:400; }
+.wf-resource-tree details { border-top:1px solid var(--wf-line); padding-top:3px; }
+.wf-resource-tree summary { display:flex; justify-content:space-between; gap:8px; padding:6px 9px; cursor:pointer; font-weight:600; }
+.wf-resource-folder { display:grid; gap:3px; padding:0 2px 7px 15px; }
+.wf-resource-actions,.wf-resource-create { display:flex; align-items:center; flex-wrap:wrap; gap:5px; }
+.wf .wf-resource-actions button,.wf .wf-resource-create button { min-height:27px; padding:3px 7px; font-size:11px; }
+.wf .wf-resource-create input { flex:1; min-width:120px; }
+.wf-resource-fields,.wf-resource-file-editor,.wf-resource-content { display:grid; gap:11px; min-width:0; }
+.wf-resource-field { display:grid; gap:5px; font-weight:600; font-size:12px; }
+.wf-resource-field small { font-weight:400; }
+.wf .wf-resource-field textarea { min-height:86px; }
+.wf .wf-resource-field .wf-resource-instructions { min-height:210px; }
+.wf .wf-resource-content textarea { min-height:210px; }
+.wf-resource-file-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.wf-resource-file-head strong { min-width:0; overflow-wrap:anywhere; font:600 12px/1.5 ui-monospace,monospace; }
+.wf-resource-delete { display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:8px; border-radius:8px; border:1px solid var(--wf-line); }
+.wf-resource-pending { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px; padding:8px; border-radius:9px; background:var(--wf-accent-soft); color:var(--wf-text); font-size:11px; }
+.wf-resource-pending span { flex-basis:100%; }
+.wf .wf-resource-pending button { min-height:28px; padding:4px 7px; border-color:var(--wf-accent); color:var(--wf-text); background:var(--wf-surface); }
+.wf-file-drop-overlay { position:absolute; z-index:8; inset:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; pointer-events:none; border:2px dashed var(--wf-accent); border-radius:14px; background:color-mix(in srgb, var(--wf-surface) 94%, transparent); color:var(--wf-text); }
+.wf-file-drop-overlay strong { font-size:16px; }
+.wf-file-drop-overlay span { color:var(--wf-muted); font-size:12px; }
 body[data-ds-dark-theme] .wf-session-rail[data-mode="run"] {
   background: color-mix(in srgb, #2f9e6b 16%, transparent);
 }
@@ -12147,6 +12208,7 @@ body[data-ds-dark-theme] .wf-canvas > .wf-addbar { background: var(--wf-surface)
 var tokenFor = (key) => `{{input.${key}}}`;
 function canConnect(def, from, to) {
   if (from === to || !def.nodes.some((n) => n.id === from) || !def.nodes.some((n) => n.id === to)) return false;
+  if (["skill", "file"].includes(def.nodes.find((n) => n.id === to)?.kind)) return false;
   const seen = /* @__PURE__ */ new Set();
   const visit = (id2) => {
     if (id2 === from) return true;
@@ -12163,7 +12225,12 @@ function connectReference(def, from, to, append = true, on) {
   const existing = Object.entries(target.input ?? {}).find(([, r]) => r.source === "node" && r.nodeId === from);
   let key = existing?.[0] ?? (target.kind === "artifact" && !target.input?.content ? "content" : from);
   while (!existing && Object.hasOwn(target.input ?? {}, key)) key += "_output";
-  const ref = existing?.[1] ?? { source: "node", nodeId: from, path: source.kind === "agent" && !source.outputSchema ? "/text" : "" };
+  const ref = existing?.[1] ?? {
+    source: "node",
+    nodeId: from,
+    path: ["skill", "file"].includes(source.kind) ? "/path" : source.kind === "agent" && !source.outputSchema ? "/text" : "",
+    ...["skill", "file"].includes(source.kind) ? { resourceKind: source.kind } : {}
+  };
   const token = tokenFor(key);
   return { definition: {
     ...def,
@@ -12759,7 +12826,7 @@ function StepPrompt({ node, definition, onChange, onReference }) {
   const insertAtCaret = (el) => {
     const selection2 = window.getSelection();
     const range = savedRange.current ?? (selection2?.rangeCount ? selection2.getRangeAt(0) : null);
-    if (!range) {
+    if (!range || !editor.current.contains(range.startContainer)) {
       editor.current.append(el);
     } else {
       range.deleteContents();
@@ -12769,6 +12836,16 @@ function StepPrompt({ node, definition, onChange, onReference }) {
       selection2?.removeAllRanges();
       selection2?.addRange(range);
     }
+  };
+  const rememberRange = () => {
+    const selection2 = window.getSelection();
+    if (selection2?.rangeCount && editor.current?.contains(selection2.anchorNode)) savedRange.current = selection2.getRangeAt(0).cloneRange();
+  };
+  const insertConnected = (key) => {
+    editor.current?.focus();
+    insertAtCaret(makeChip(key));
+    savedRange.current = null;
+    sync();
   };
   const caretOffset = () => {
     const selection2 = window.getSelection();
@@ -12856,6 +12933,7 @@ function StepPrompt({ node, definition, onChange, onReference }) {
   const matched = definition.nodes.filter((n) => canConnect(definition, n.id, node.id) && n.name.startsWith(query.trim()));
   const popupOpen = atIndex >= 0;
   const activeIndex = Math.min(active, Math.max(0, matched.length - 1));
+  const pendingResources = Object.entries(node.input ?? {}).filter(([key, ref]) => ["skill", "file"].includes(ref?.resourceKind) && !(node.prompt ?? "").includes(`{{input.${key}}}`));
   const onKeyDown = (e) => {
     e.stopPropagation();
     if (e.isComposing) return;
@@ -12936,6 +13014,17 @@ function StepPrompt({ node, definition, onChange, onReference }) {
     sync();
   };
   return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "wf-prompt-composer", children: [
+    pendingResources.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "wf-resource-pending", role: "status", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { children: "\u9009\u62E9 Prompt \u4E2D\u7684\u4F4D\u7F6E\uFF0C\u518D\u63D2\u5165\u5F15\u7528\u8DEF\u5F84\uFF1A" }),
+      pendingResources.map(([key, ref]) => {
+        const source = definition.nodes.find((item) => item.id === ref.nodeId);
+        return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("button", { type: "button", onMouseDown: (event) => event.preventDefault(), onClick: () => insertConnected(key), children: [
+          "\u63D2\u5165 ",
+          source?.name ?? key,
+          " \u8DEF\u5F84"
+        ] }, key);
+      })
+    ] }),
     /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
       "div",
       {
@@ -12951,12 +13040,17 @@ function StepPrompt({ node, definition, onChange, onReference }) {
         onKeyDown,
         onPaste,
         onCopy,
+        onMouseUp: rememberRange,
+        onKeyUp: rememberRange,
         onDragStart,
         onDragOver: (e) => {
           if (e.dataTransfer.types.includes("application/wf-reference")) e.preventDefault();
         },
         onDrop,
-        onBlur: () => setAtIndex(-1)
+        onBlur: () => {
+          rememberRange();
+          setAtIndex(-1);
+        }
       }
     ),
     popupOpen && /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
@@ -12988,8 +13082,267 @@ function StepPrompt({ node, definition, onChange, onReference }) {
   ] });
 }
 
-// client/index.jsx
+// client/resource-editor.jsx
+var import_react12 = __toESM(require("react"), 1);
 var import_jsx_runtime9 = require("react/jsx-runtime");
+var folders = [
+  ["assets", "\u7D20\u6750"],
+  ["references", "\u53C2\u8003\u8D44\u6599"],
+  ["scripts", "\u811A\u672C"]
+];
+var textName = (name2) => /\.(?:md|txt|json|jsonc|yaml|yml|js|jsx|ts|tsx|py|sh|css|html|csv|xml|svg)$/i.test(name2);
+var safeName = (name2) => name2 && !name2.includes("\\") && !name2.split("/").some((part) => !part || part === "." || part === ".." || part.startsWith("."));
+async function encodeFile(file) {
+  if (file.size > 8 * 1024 * 1024) throw new Error("\u5355\u4E2A\u6587\u4EF6\u4E0D\u80FD\u8D85\u8FC7 8 MB");
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1]);
+    reader.onerror = () => reject(reader.error ?? new Error("\u8BFB\u53D6\u6587\u4EF6\u5931\u8D25"));
+    reader.readAsDataURL(file);
+  });
+}
+async function uploadResource(file, api) {
+  const { blob, bytes } = await api({ action: "resourceUpload", base64: await encodeFile(file) });
+  return { blob, bytes, mediaType: file.type || "application/octet-stream" };
+}
+function TextOrBlob({ entry, update, replace, api, label }) {
+  const [loaded, setLoaded] = (0, import_react12.useState)(null);
+  const [readError, setReadError] = (0, import_react12.useState)("");
+  const replaceInput = (0, import_react12.useRef)();
+  (0, import_react12.useEffect)(() => {
+    let active = true;
+    setLoaded(null);
+    setReadError("");
+    if (entry.content !== void 0 || !entry.blob) return;
+    api({ action: "resourceRead", blob: entry.blob }).then((result) => {
+      if (active) setLoaded(result.content);
+    }).catch((error) => {
+      if (active) setReadError(error.message);
+    });
+    return () => {
+      active = false;
+    };
+  }, [entry.blob, entry.content]);
+  const editable = entry.content !== void 0 || loaded !== null;
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-content", children: [
+    editable ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { className: "wf-resource-field", children: [
+      label,
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        "textarea",
+        {
+          spellCheck: false,
+          value: entry.content ?? loaded ?? "",
+          onChange: (event) => update({ ...entry, content: event.target.value, blob: void 0, bytes: void 0 })
+        }
+      )
+    ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-note", children: readError ? "\u6B64\u6587\u4EF6\u4EE5\u4E8C\u8FDB\u5236\u5F62\u5F0F\u4FDD\u5B58\uFF0C\u53EF\u7528\u66FF\u6362\u6587\u4EF6\u66F4\u65B0\u3002" : "\u6B63\u5728\u8BFB\u53D6\u6587\u4EF6\u2026" }),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("input", { ref: replaceInput, type: "file", hidden: true, "aria-label": `\u66FF\u6362 ${label}`, onChange: async (event) => {
+      const file = event.target.files?.[0];
+      event.target.value = "";
+      if (file) await replace(file);
+    } }),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => replaceInput.current?.click(), children: entry.blob || entry.content ? "\u4ECE\u672C\u5730\u66FF\u6362" : "\u9009\u62E9\u672C\u5730\u6587\u4EF6" })
+  ] });
+}
+function SkillResourceEditor({ node, update, api, onError, savedPath }) {
+  const skill = node.skill;
+  const [selected2, setSelected] = (0, import_react12.useState)("SKILL.md");
+  const [creating, setCreating] = (0, import_react12.useState)("");
+  const [newName, setNewName] = (0, import_react12.useState)("");
+  const [deletePath, setDeletePath] = (0, import_react12.useState)("");
+  const [expanded, setExpanded] = (0, import_react12.useState)(false);
+  const dialog = (0, import_react12.useRef)(null);
+  (0, import_react12.useEffect)(() => {
+    if (expanded) dialog.current?.showModal();
+  }, [expanded]);
+  const imports = (0, import_react12.useRef)({});
+  const entry = skill.files.find((file) => file.path === selected2);
+  const patch = (next) => update({ skill: { ...skill, ...next } });
+  const setEntry = (value) => patch({ files: skill.files.map((file) => file.path === selected2 ? value : file) });
+  const addImported = async (folder, fileList, replacing) => {
+    try {
+      const added = [];
+      for (const file of [...fileList]) {
+        const path = replacing || `${folder}/${file.name}`;
+        if (!safeName(path) || !path.startsWith(folder + "/")) throw new Error("\u6587\u4EF6\u540D\u4E0D\u7B26\u5408\u76EE\u5F55\u89C4\u5219");
+        if (!replacing && skill.files.some((item) => item.path === path)) throw new Error(`${path} \u5DF2\u5B58\u5728`);
+        added.push({ path, ...await uploadResource(file, api) });
+      }
+      const files = replacing ? skill.files.map((item) => item.path === replacing ? added[0] : item) : [...skill.files, ...added];
+      patch({ files });
+      if (added[0]) setSelected(added[0].path);
+    } catch (error) {
+      onError(error.message);
+    }
+  };
+  const create2 = () => {
+    const path = `${creating}/${newName.trim()}`;
+    if (!safeName(path) || !textName(path)) {
+      onError("\u8BF7\u8F93\u5165\u8BE5\u76EE\u5F55\u4E0B\u7684\u6587\u672C\u6587\u4EF6\u540D\uFF0C\u4F8B\u5982 guide.md");
+      return;
+    }
+    if (skill.files.some((file) => file.path === path)) {
+      onError("\u8BE5\u6587\u4EF6\u5DF2\u5B58\u5728");
+      return;
+    }
+    patch({ files: [...skill.files, { path, content: "" }] });
+    setSelected(path);
+    setCreating("");
+    setNewName("");
+  };
+  const workspace = /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-workspace", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-tree", "aria-label": "Skill \u6587\u4EF6\u7ED3\u6784", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("button", { type: "button", className: selected2 === "SKILL.md" ? "is-selected" : "", onClick: () => setSelected("SKILL.md"), children: [
+        "SKILL.md ",
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: "\u8BF4\u660E" })
+      ] }),
+      folders.map(([folder, title]) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("details", { open: true, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("summary", { children: [
+          folder,
+          "/ ",
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { children: [
+            title,
+            " \xB7 ",
+            skill.files.filter((file) => file.path.startsWith(folder + "/")).length,
+            " \u4E2A\u6587\u4EF6"
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-folder", children: [
+          skill.files.filter((file) => file.path.startsWith(folder + "/")).map((file) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", className: selected2 === file.path ? "is-selected" : "", onClick: () => setSelected(file.path), children: file.path.slice(folder.length + 1) }, file.path)),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-actions", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => {
+              setCreating(folder);
+              setNewName("");
+            }, children: "\u65B0\u5EFA\u6587\u4EF6" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => imports.current[folder]?.click(), children: "\u5BFC\u5165\u6587\u4EF6" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              "input",
+              {
+                type: "file",
+                multiple: true,
+                hidden: true,
+                ref: (element) => {
+                  imports.current[folder] = element;
+                },
+                "aria-label": `\u5411 ${folder} \u5BFC\u5165\u6587\u4EF6`,
+                onChange: (event) => {
+                  void addImported(folder, event.target.files);
+                  event.target.value = "";
+                }
+              }
+            )
+          ] }),
+          creating === folder && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-create", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              "input",
+              {
+                autoFocus: true,
+                "aria-label": `${folder} \u65B0\u6587\u4EF6\u540D`,
+                placeholder: "\u4F8B\u5982 guide.md",
+                value: newName,
+                onChange: (event) => setNewName(event.target.value),
+                onKeyDown: (event) => {
+                  if (event.key === "Enter") create2();
+                  if (event.key === "Escape") setCreating("");
+                }
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: create2, children: "\u521B\u5EFA" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => setCreating(""), children: "\u53D6\u6D88" })
+          ] })
+        ] })
+      ] }, folder))
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-resource-document", children: selected2 === "SKILL.md" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-fields", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { className: "wf-resource-field", children: [
+        "\u540D\u79F0 ",
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("small", { children: "\u5C0F\u5199\u82F1\u6587\u3001\u6570\u5B57\u548C\u8FDE\u5B57\u7B26" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("input", { value: skill.name, onChange: (event) => patch({ name: event.target.value }), placeholder: "my-skill" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { className: "wf-resource-field", children: [
+        "\u7528\u9014\u8BF4\u660E ",
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("small", { children: "\u8BF4\u660E\u4F55\u65F6\u5E94\u4F7F\u7528\u8FD9\u4E2A Skill" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("textarea", { rows: 3, value: skill.description, onChange: (event) => patch({ description: event.target.value }) })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { className: "wf-resource-field", children: [
+        "SKILL.md \u6B63\u6587",
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("textarea", { className: "wf-resource-instructions", spellCheck: false, value: skill.instructions, onChange: (event) => patch({ instructions: event.target.value }) })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-note", children: "\u540D\u79F0\u548C\u7528\u9014\u8BF4\u660E\u5C06\u5199\u5165 SKILL.md \u7684 YAML \u5934\u90E8\u3002\u811A\u672C\u4EC5\u4F5C\u4E3A\u6587\u4EF6\u4FDD\u5B58\uFF0C\u7531\u6B65\u9AA4\u6388\u6743\u7684\u5DE5\u5177\u51B3\u5B9A\u662F\u5426\u8FD0\u884C\u3002" })
+    ] }) : entry ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-file-editor", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-file-head", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("strong", { children: entry.path }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => setDeletePath(entry.path), children: "\u5220\u9664\u6587\u4EF6" })
+      ] }),
+      deletePath === entry.path && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-delete", children: [
+        "\u5220\u9664\u6B64\u6587\u4EF6\uFF1F",
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => {
+          patch({ files: skill.files.filter((file) => file.path !== entry.path) });
+          setSelected("SKILL.md");
+          setDeletePath("");
+        }, children: "\u786E\u8BA4\u5220\u9664" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => setDeletePath(""), children: "\u53D6\u6D88" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TextOrBlob, { entry, label: entry.path, update: setEntry, api, replace: (file) => addImported(entry.path.split("/")[0], [file], entry.path) })
+    ] }) : null })
+  ] });
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-editor", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-summary", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("strong", { children: "Skill \u6587\u4EF6\u5939" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: "\u4FDD\u5B58\u540E\u751F\u6210\u6807\u51C6\u76EE\u5F55" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => setExpanded(true), children: "\u5C55\u5F00\u6587\u4EF6\u7F16\u8F91\u5668" }),
+      savedPath && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-path", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("code", { children: savedPath }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => navigator.clipboard.writeText(savedPath), children: "\u590D\u5236\u8DEF\u5F84" })
+      ] }),
+      !expanded && workspace
+    ] }),
+    expanded && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("dialog", { ref: dialog, className: "wf-resource-dialog wf", onCancel: (event) => {
+      event.preventDefault();
+      setExpanded(false);
+    }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("strong", { children: node.name }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: "Skill \u6587\u4EF6\u5939" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => setExpanded(false), children: "\u5B8C\u6210\u7F16\u8F91" })
+      ] }),
+      workspace
+    ] })
+  ] });
+}
+function FileResourceEditor({ node, update, api, onError, savedPath }) {
+  const file = node.file;
+  const patch = (next) => update({ file: { ...file, ...next } });
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-editor", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-summary", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("strong", { children: "\u6587\u4EF6" }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: "\u8FDE\u7EBF\u540E\u5728\u4E0B\u6E38\u6B65\u9AA4\u4E2D\u63D2\u5165\u8DEF\u5F84" })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { className: "wf-resource-field", children: [
+      "\u6587\u4EF6\u540D",
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("input", { value: file.name, onChange: (event) => patch({ name: event.target.value }), placeholder: "notes.md" })
+    ] }),
+    savedPath && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-path", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("code", { children: savedPath }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => navigator.clipboard.writeText(savedPath), children: "\u590D\u5236\u8DEF\u5F84" })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TextOrBlob, { entry: file, label: "\u6587\u4EF6\u5185\u5BB9", update: patch, api, replace: async (selected2) => {
+      try {
+        patch({ name: selected2.name, content: void 0, ...await uploadResource(selected2, api) });
+      } catch (error) {
+        onError(error.message);
+      }
+    } }),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-note", children: "Prompt \u4E2D\u53EA\u63D2\u5165\u6587\u4EF6\u8DEF\u5F84\u3002\u6B63\u6587\u4FDD\u5B58\u5728\u5DE5\u4F5C\u6D41\u7684\u7248\u672C\u76EE\u5F55\u4E2D\uFF0C\u4F9B\u4E0B\u6E38\u6B65\u9AA4\u6309\u9700\u8BFB\u53D6\u3002" })
+  ] });
+}
+
+// client/index.jsx
+var import_jsx_runtime10 = require("react/jsx-runtime");
 var name = "dsh-plugin-workflow";
 var inject = [
   "slots",
@@ -13011,7 +13364,9 @@ var labels = {
   artifact: "\u8F93\u51FA",
   publish: "\u53D1\u5E03",
   script: "\u811A\u672C",
-  multithread: "Multithread"
+  multithread: "Multithread",
+  skill: "Skill",
+  file: "\u6587\u4EF6"
 };
 var statuses = {
   queued: "\u7B49\u5F85\u6267\u884C",
@@ -13045,11 +13400,12 @@ var glyphs = {
   artifact: FileText,
   publish: Send,
   script: Code,
-  multithread: Layers
+  multithread: Layers,
+  skill: BookOpen
 };
 var glyphFor = (glyph, size) => {
   const Glyph = glyphs[glyph] ?? GitBranch;
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Glyph, { size });
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Glyph, { size });
 };
 var containerKinds = ["multithread"];
 var pretty2 = (value) => JSON.stringify(value, null, 2);
@@ -13063,7 +13419,7 @@ var download = (name2, content, type = "application/json") => {
   setTimeout(() => URL.revokeObjectURL(url), 1e3);
 };
 function Icon2({ label, icon: Symbol2, className, size = 16, ...props }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
     "button",
     {
       type: "button",
@@ -13071,21 +13427,21 @@ function Icon2({ label, icon: Symbol2, className, size = 16, ...props }) {
       title: label,
       "aria-label": label,
       ...props,
-      children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Symbol2, { size })
+      children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Symbol2, { size })
     }
   );
 }
 function Field({ label, children: children2 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-field", role: "group", "aria-label": label, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: label }),
-    import_react12.default.Children.map(children2, (child) => import_react12.default.isValidElement(child) && ["input", "textarea", "select"].includes(child.type) ? import_react12.default.cloneElement(child, { "aria-label": child.props["aria-label"] ?? label }) : child)
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-field", role: "group", "aria-label": label, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: label }),
+    import_react13.default.Children.map(children2, (child) => import_react13.default.isValidElement(child) && ["input", "textarea", "select"].includes(child.type) ? import_react13.default.cloneElement(child, { "aria-label": child.props["aria-label"] ?? label }) : child)
   ] });
 }
 function JsonField({ label, value, change, rows = 5 }) {
-  const [text, setText] = (0, import_react12.useState)(pretty2(value ?? {}));
-  const [error, setError] = (0, import_react12.useState)("");
-  const last = import_react12.default.useRef(pretty2(value ?? {}));
-  (0, import_react12.useEffect)(() => {
+  const [text, setText] = (0, import_react13.useState)(pretty2(value ?? {}));
+  const [error, setError] = (0, import_react13.useState)("");
+  const last = import_react13.default.useRef(pretty2(value ?? {}));
+  (0, import_react13.useEffect)(() => {
     const next = pretty2(value ?? {});
     if (next !== last.current) {
       last.current = next;
@@ -13093,8 +13449,8 @@ function JsonField({ label, value, change, rows = 5 }) {
       setError("");
     }
   }, [value]);
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Field, { label, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(Field, { label, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       "textarea",
       {
         rows,
@@ -13114,20 +13470,20 @@ function JsonField({ label, value, change, rows = 5 }) {
         }
       }
     ),
-    error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("small", { role: "alert", children: error })
+    error && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("small", { role: "alert", children: error })
   ] });
 }
 function Modal({ title, close, children: children2 }) {
-  const ref = import_react12.default.useRef();
-  (0, import_react12.useEffect)(() => {
+  const ref = import_react13.default.useRef();
+  (0, import_react13.useEffect)(() => {
     const el = ref.current;
     el.showModal();
     return () => el.close();
   }, []);
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("dialog", { className: "wf-modal wf", ref, onCancel: close, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h2", { children: title }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Icon2, { label: "\u5173\u95ED", icon: X, onClick: close })
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("dialog", { className: "wf-modal wf", ref, onCancel: close, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("header", { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h2", { children: title }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Icon2, { label: "\u5173\u95ED", icon: X, onClick: close })
     ] }),
     children2
   ] });
@@ -13171,7 +13527,7 @@ function apply(ctx) {
       signal
     });
     const result = await response.json();
-    if (!result.ok) throw new Error(result.detail ?? result.error);
+    if (!result.ok) throw new Error(shortError(result.detail ?? result.error));
     return result.value;
   };
   let refreshing;
@@ -13205,18 +13561,18 @@ function apply(ctx) {
     });
     return refreshing;
   };
-  const useData = () => (0, import_react12.useSyncExternalStore)(
+  const useData = () => (0, import_react13.useSyncExternalStore)(
     (fn) => {
       listeners.add(fn);
       return () => listeners.delete(fn);
     },
     () => snapshot
   );
-  const useSessions = () => (0, import_react12.useSyncExternalStore)(
+  const useSessions = () => (0, import_react13.useSyncExternalStore)(
     ctx.sessions.list.subscribe,
     ctx.sessions.list.getSnapshot
   );
-  const usePanel = () => (0, import_react12.useSyncExternalStore)(
+  const usePanel = () => (0, import_react13.useSyncExternalStore)(
     (fn) => {
       panelListeners.add(fn);
       return () => panelListeners.delete(fn);
@@ -13323,7 +13679,7 @@ function apply(ctx) {
     const id2 = sessionId ?? await newSession(tmp.workspaceId);
     await api({ action: "authorStart", sessionId: id2 });
     await ctx.sessions.refresh();
-    ctx.sessions.open(id2);
+    openSession(id2);
     ctx.layout.selectPanel(null);
     setPanelOpen(false);
     closePicker();
@@ -13341,7 +13697,7 @@ function apply(ctx) {
     headerDraft = next;
     headerListeners.forEach((listener) => listener());
   };
-  const useHeaderDraft = () => (0, import_react12.useSyncExternalStore)(
+  const useHeaderDraft = () => (0, import_react13.useSyncExternalStore)(
     (fn) => {
       headerListeners.add(fn);
       return () => headerListeners.delete(fn);
@@ -13351,7 +13707,7 @@ function apply(ctx) {
   const Gallery = createGallery({ ctx, api, refresh, openSession, openEditor, bind, beginAuthorSession, useSessions, Icon: Icon2, glyphFor, timestamp });
   function Tree({ wide = true, usePanelInfo }) {
     const data = useData();
-    const fallback = (0, import_react12.useSyncExternalStore)(
+    const fallback = (0, import_react13.useSyncExternalStore)(
       (fn) => {
         panelListeners.add(fn);
         return () => panelListeners.delete(fn);
@@ -13360,7 +13716,7 @@ function apply(ctx) {
     );
     const active = typeof usePanelInfo === "function" ? usePanelInfo((info) => info.activePanelId === "workflow-studio") : fallback;
     const count = data.workflows.filter((w) => !w.archived).length;
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf wf-tree", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf wf-tree", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
       "button",
       {
         type: "button",
@@ -13378,15 +13734,15 @@ function apply(ctx) {
           }
         },
         children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(GitBranch, { size: 16, strokeWidth: 1.8, "aria-hidden": "true" }),
-          wide && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: "\u5DE5\u4F5C\u6D41" }),
-          wide && count > 0 && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-nav-count", children: count })
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(GitBranch, { size: 16, strokeWidth: 1.8, "aria-hidden": "true" }),
+          wide && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: "\u5DE5\u4F5C\u6D41" }),
+          wide && count > 0 && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-nav-count", children: count })
         ]
       }
     ) });
   }
   function Picker() {
-    const value = (0, import_react12.useSyncExternalStore)(
+    const value = (0, import_react13.useSyncExternalStore)(
       (fn) => {
         pickerListeners.add(fn);
         return () => pickerListeners.delete(fn);
@@ -13394,10 +13750,10 @@ function apply(ctx) {
       () => picker
     );
     const data = useData();
-    const [query, setQuery] = (0, import_react12.useState)("");
-    const [busy2, setBusy2] = (0, import_react12.useState)(false);
-    const [error, setError] = (0, import_react12.useState)("");
-    (0, import_react12.useEffect)(() => {
+    const [query, setQuery] = (0, import_react13.useState)("");
+    const [busy2, setBusy2] = (0, import_react13.useState)(false);
+    const [error, setError] = (0, import_react13.useState)("");
+    (0, import_react13.useEffect)(() => {
       setError("");
       setQuery("");
     }, [value]);
@@ -13413,11 +13769,11 @@ function apply(ctx) {
         setBusy2(false);
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Modal, { title: "\u9009\u62E9\u5DE5\u4F5C\u6D41", close: closePicker, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-modal-body", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-search", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Search, { size: 16 }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Modal, { title: "\u9009\u62E9\u5DE5\u4F5C\u6D41", close: closePicker, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-modal-body", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-search", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Search, { size: 16 }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "input",
             {
               "aria-label": "\u641C\u7D22\u5DE5\u4F5C\u6D41",
@@ -13426,18 +13782,18 @@ function apply(ctx) {
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-picker-list", children: data.workflows.filter((w) => !w.archived && w.name.includes(query)).map((w) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-picker-list", children: data.workflows.filter((w) => !w.archived && w.name.includes(query)).map((w) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "button",
           {
             disabled: busy2,
             onClick: () => act(() => bind(w, value.sessionId)),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(GitBranch, { size: 18 }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("strong", { children: w.name }),
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("small", { children: w.description })
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(GitBranch, { size: 18 }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("strong", { children: w.name }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("small", { children: w.description })
               ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { children: [
                 "v",
                 w.published ?? w.revision
               ] })
@@ -13445,19 +13801,19 @@ function apply(ctx) {
           },
           w.id
         )) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("button", { onClick: () => act(() => beginAuthorSession(value.sessionId)), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Plus, { size: 16 }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("button", { onClick: () => act(() => beginAuthorSession(value.sessionId)), children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Plus, { size: 16 }),
           "\u521B\u5EFA\u5DE5\u4F5C\u6D41"
         ] })
       ] }),
-      error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-error", role: "alert", children: error })
+      error && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-error", role: "alert", children: error })
     ] }) });
   }
   function Routing({ node, update, caps }) {
-    const [info, setInfo] = (0, import_react12.useState)(null);
+    const [info, setInfo] = (0, import_react13.useState)(null);
     const provider = node.provider?.mode === "explicit" ? node.provider.id : "";
     const model = node.model?.mode === "explicit" ? node.model.id : "";
-    (0, import_react12.useEffect)(() => {
+    (0, import_react13.useEffect)(() => {
       let live = true;
       setInfo(null);
       if (provider && model)
@@ -13474,8 +13830,8 @@ function apply(ctx) {
     const route = (field, value) => update({
       [field]: value ? { mode: "explicit", id: value } : { mode: "inherit" }
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "Provider", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "Provider", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
         "select",
         {
           value: provider,
@@ -13488,13 +13844,13 @@ function apply(ctx) {
             });
           },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "", children: "\u7EE7\u627F\u4F1A\u8BDD" }),
-            providers.map((p) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: p.id, children: p.name }, p.id))
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "", children: "\u7EE7\u627F\u4F1A\u8BDD" }),
+            providers.map((p) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: p.id, children: p.name }, p.id))
           ]
         }
       ) }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Field, { label: "Model", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(Field, { label: "Model", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             list: "wf-models",
@@ -13503,10 +13859,10 @@ function apply(ctx) {
             onChange: (e) => route("model", e.target.value)
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("datalist", { id: "wf-models", children: models.map((m) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: m.id, children: m.name }, m.id)) })
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("datalist", { id: "wf-models", children: models.map((m) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: m.id, children: m.name }, m.id)) })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Field, { label: "\u63A8\u7406\u5F3A\u5EA6", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(Field, { label: "\u63A8\u7406\u5F3A\u5EA6", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             list: "wf-efforts",
@@ -13515,97 +13871,101 @@ function apply(ctx) {
             onChange: (e) => route("effort", e.target.value)
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("datalist", { id: "wf-efforts", children: info?.reasoning?.efforts.map((e) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: e.id, children: e.name }, e.id)) })
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("datalist", { id: "wf-efforts", children: info?.reasoning?.efforts.map((e) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: e.id, children: e.name }, e.id)) })
       ] })
     ] });
   }
   const nodeTypes = {
     workflowNode: ({ data: view, selected: active }) => {
       const detail = view.summary || view.references.length > 0 || view.repeat;
-      return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: `wf-node-card wf-step-${view.kind} ${active ? "is-selected" : ""}`, onMouseDown: (event) => {
+      return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: `wf-node-card wf-step-${view.kind} ${active ? "is-selected" : ""}`, onMouseDown: (event) => {
         if (event.button === 0) {
           window.getSelection?.()?.removeAllRanges();
           event.preventDefault();
         }
       }, children: [
-        view.kind !== "input" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Handle, { type: "target", position: Position.Top }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-step-heading", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-step-glyph", "aria-hidden": "true", children: glyphFor(view.kind, 15) }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "wf-step-copy", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(InlineName, { value: view.title, onRename: view.onRename }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "wf-step-meta", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-node-order", children: view.order }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("em", { children: labels[view.kind] }),
-              view.kind === "agent" && view.model && view.model !== "\u4F1A\u8BDD\u6A21\u578B" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-step-model", children: view.model }),
-              view.kind === "interact" && view.mode && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-step-model", children: view.mode })
+        !["input", "skill", "file"].includes(view.kind) && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { type: "target", position: Position.Top }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-step-heading", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-step-glyph", "aria-hidden": "true", children: glyphFor(view.kind, 15) }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "wf-step-copy", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(InlineName, { value: view.title, onRename: view.onRename }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "wf-step-meta", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-node-order", children: view.order }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("em", { children: labels[view.kind] }),
+              view.kind === "agent" && view.model && view.model !== "\u4F1A\u8BDD\u6A21\u578B" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-step-model", children: view.model }),
+              view.kind === "interact" && view.mode && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-step-model", children: view.mode })
             ] })
           ] })
         ] }),
-        detail && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-step-body", children: [
-          view.references.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-step-references", children: view.references.map((ref, i) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: `wf-inline-reference wf-step-${ref.kind}`, children: ref.name }, `${ref.id}-${i}`)) }),
-          view.summary && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: view.summary }),
-          view.repeat && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "wf-step-model", children: [
+        detail && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-step-body", children: [
+          view.references.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-step-references", children: view.references.map((ref, i) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: `wf-inline-reference wf-step-${ref.kind}`, children: ref.name }, `${ref.id}-${i}`)) }),
+          view.summary && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { children: view.summary }),
+          view.repeat && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "wf-step-model", children: [
             "\u672A\u901A\u8FC7\u8FD4\u56DE\u4FEE\u8BA2 \xB7 \u6700\u591A ",
             view.repeat.maxRounds,
             " \u8F6E"
           ] })
         ] }),
-        view.kind === "condition" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Handle, { id: "yes", type: "source", position: Position.Bottom, style: { left: "32%" }, className: "wf-port-yes" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Handle, { id: "no", type: "source", position: Position.Bottom, style: { left: "68%" }, className: "wf-port-no" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-port-label wf-port-yes-label", children: "\u662F" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-port-label wf-port-no-label", children: "\u5426" })
-        ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Handle, { type: "source", position: Position.Bottom }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Handle, { id: "retry-in", type: "target", position: Position.Right, isConnectable: false }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Handle, { id: "retry-out", type: "source", position: Position.Right, isConnectable: false })
+        view.kind === "condition" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { id: "yes", type: "source", position: Position.Bottom, style: { left: "32%" }, className: "wf-port-yes" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { id: "no", type: "source", position: Position.Bottom, style: { left: "68%" }, className: "wf-port-no" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-port-label wf-port-yes-label", children: "\u662F" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-port-label wf-port-no-label", children: "\u5426" })
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { type: "source", position: Position.Bottom }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { id: "retry-in", type: "target", position: Position.Right, isConnectable: false }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { id: "retry-out", type: "source", position: Position.Right, isConnectable: false })
         ] })
       ] });
     },
-    containerNode: ({ data: view, selected: active }) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: `wf-shell-card wf-shell-${view.kind} ${active ? "is-selected" : ""}`, onMouseDown: (event) => {
+    containerNode: ({ data: view, selected: active }) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: `wf-shell-card wf-shell-${view.kind} ${active ? "is-selected" : ""}`, onMouseDown: (event) => {
       if (event.button === 0) {
         window.getSelection?.()?.removeAllRanges();
         event.preventDefault();
       }
     }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-shell-head", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-step-glyph", "aria-hidden": "true", children: glyphFor(view.kind, 15) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "wf-step-copy", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(InlineName, { value: view.title, onRename: view.onRename }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "wf-step-meta", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("em", { children: view.badge ?? labels[view.kind] }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "wf-shell-count", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-shell-head", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-step-glyph", "aria-hidden": "true", children: glyphFor(view.kind, 15) }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "wf-step-copy", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(InlineName, { value: view.title, onRename: view.onRename }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "wf-step-meta", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("em", { children: view.badge ?? labels[view.kind] }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "wf-shell-count", children: [
               view.childrenCount,
               " \u4E2A\u5B50\u6B65\u9AA4"
             ] })
           ] })
         ] })
       ] }),
-      view.childrenCount === 0 && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-shell-empty", children: "\u4ECE\u4E0A\u65B9\u6B65\u9AA4\u680F\u62D6\u5165\u300C\u751F\u6210\u300D\u6B65\u9AA4\uFF0C\u5728\u6B64\u5E76\u884C\u6267\u884C" }),
-      view.kind !== "input" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Handle, { type: "target", position: Position.Top }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Handle, { type: "source", position: Position.Bottom })
+      view.childrenCount === 0 && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-shell-empty", children: "\u4ECE\u4E0A\u65B9\u6B65\u9AA4\u680F\u62D6\u5165\u300C\u751F\u6210\u300D\u6B65\u9AA4\uFF0C\u5728\u6B64\u5E76\u884C\u6267\u884C" }),
+      view.kind !== "input" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { type: "target", position: Position.Top }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { type: "source", position: Position.Bottom })
     ] })
   };
   function Editor({ record, caps, save }) {
     const data = useData();
     const draftKey = `${record.id}:${record.revision}`;
-    const [definition, setDefinition] = (0, import_react12.useState)(drafts.get(draftKey) ?? record.snapshot.definition);
-    const [selected2, setSelected] = (0, import_react12.useState)(definition.nodes[0]?.id);
-    const [dirty, setDirty] = (0, import_react12.useState)(drafts.has(draftKey));
-    const [panelTab, setPanelTab] = (0, import_react12.useState)("step");
-    const [raw, setRaw] = (0, import_react12.useState)(false);
-    const [editorView, setEditorView] = (0, import_react12.useState)(() => localStorage.getItem("workflow-studio:editor-view") || "steps");
-    const [error, setError] = (0, import_react12.useState)("");
-    const [history, setHistory] = (0, import_react12.useState)([]);
-    const [clipboard, setClipboard] = (0, import_react12.useState)(null);
-    const [run, setRun] = (0, import_react12.useState)(null);
-    const [assetsOpen, setAssetsOpen] = (0, import_react12.useState)(false);
-    const [skillEdit, setSkillEdit] = (0, import_react12.useState)(null);
-    const [selectedEdge, setSelectedEdge] = (0, import_react12.useState)(null);
-    const flow = import_react12.default.useRef();
-    const flowElement = import_react12.default.useRef();
-    const importInput = import_react12.default.useRef();
-    (0, import_react12.useEffect)(() => {
+    const [definition, setDefinition] = (0, import_react13.useState)(drafts.get(draftKey) ?? record.snapshot.definition);
+    const definitionRef = import_react13.default.useRef(definition);
+    const [selected2, setSelected] = (0, import_react13.useState)(definition.nodes[0]?.id);
+    const [dirty, setDirty] = (0, import_react13.useState)(drafts.has(draftKey));
+    const [panelTab, setPanelTab] = (0, import_react13.useState)("step");
+    const [raw, setRaw] = (0, import_react13.useState)(false);
+    const [editorView, setEditorView] = (0, import_react13.useState)(() => localStorage.getItem("workflow-studio:editor-view") || "steps");
+    const [error, setError] = (0, import_react13.useState)("");
+    const [history, setHistory] = (0, import_react13.useState)([]);
+    const [clipboard, setClipboard] = (0, import_react13.useState)(null);
+    const [run, setRun] = (0, import_react13.useState)(null);
+    const [assetsOpen, setAssetsOpen] = (0, import_react13.useState)(false);
+    const [skillEdit, setSkillEdit] = (0, import_react13.useState)(null);
+    const [resourcePaths, setResourcePaths] = (0, import_react13.useState)({});
+    const [fileDrag, setFileDrag] = (0, import_react13.useState)(false);
+    const dragDepth = import_react13.default.useRef(0);
+    const [selectedEdge, setSelectedEdge] = (0, import_react13.useState)(null);
+    const flow = import_react13.default.useRef();
+    const flowElement = import_react13.default.useRef();
+    const importInput = import_react13.default.useRef();
+    (0, import_react13.useEffect)(() => {
       if (!flowElement.current) return;
       let frame2;
       const observer = new ResizeObserver(() => {
@@ -13618,11 +13978,14 @@ function apply(ctx) {
         cancelAnimationFrame(frame2);
       };
     }, [raw, editorView]);
-    (0, import_react12.useEffect)(() => {
-      setDefinition(drafts.get(draftKey) ?? record.snapshot.definition);
+    (0, import_react13.useEffect)(() => {
+      const next = drafts.get(draftKey) ?? record.snapshot.definition;
+      definitionRef.current = next;
+      setDefinition(next);
       setDirty(drafts.has(draftKey));
+      api({ action: "resourcePaths", id: record.id, revision: record.revision }).then(setResourcePaths).catch(() => setResourcePaths({}));
     }, [record]);
-    (0, import_react12.useEffect)(() => {
+    (0, import_react13.useEffect)(() => {
       const fn = (e) => {
         if (dirty) {
           e.preventDefault();
@@ -13634,11 +13997,12 @@ function apply(ctx) {
     }, [dirty]);
     const change = (value) => {
       drafts.set(draftKey, value);
-      setHistory((old) => [...old.slice(-29), definition]);
+      setHistory((old) => [...old.slice(-29), definitionRef.current]);
+      definitionRef.current = value;
       setDefinition(value);
       setDirty(true);
     };
-    (0, import_react12.useEffect)(() => {
+    (0, import_react13.useEffect)(() => {
       setHeaderDraft({
         key: draftKey,
         definition,
@@ -13647,12 +14011,12 @@ function apply(ctx) {
         save: () => save(definition, record.revision)
       });
     }, [definition, dirty, draftKey]);
-    (0, import_react12.useEffect)(
+    (0, import_react13.useEffect)(
       () => () => setHeaderDraft({ key: null, definition: null, dirty: false }),
       []
     );
     const node = definition.nodes.find((n) => n.id === selected2);
-    (0, import_react12.useEffect)(() => {
+    (0, import_react13.useEffect)(() => {
       const onKey = (e) => {
         const mod = e.metaKey || e.ctrlKey;
         if (mod && e.key.toLowerCase() === "s") {
@@ -13681,12 +14045,15 @@ function apply(ctx) {
       window.addEventListener("keydown", onKey);
       return () => window.removeEventListener("keydown", onKey);
     }, [node, clipboard, definition, history, selected2, dirty]);
-    const update = (patch) => change({
-      ...definition,
-      nodes: definition.nodes.map(
-        (n) => n.id === selected2 ? { ...n, ...patch } : n
-      )
-    });
+    const update = (patch) => {
+      const current2 = definitionRef.current;
+      change({
+        ...current2,
+        nodes: current2.nodes.map(
+          (n) => n.id === selected2 ? { ...n, ...patch } : n
+        )
+      });
+    };
     const containerAt = (pos) => definition.nodes.find((n) => containerKinds.includes(n.kind) && n.position && n.size && pos.x >= n.position.x && pos.x <= n.position.x + n.size.width && pos.y >= n.position.y && pos.y <= n.position.y + n.size.height);
     const childAllowed = (shell, kind) => shell && !containerKinds.includes(kind) && kind === "agent";
     const add = (kind, position, parentId) => {
@@ -13711,9 +14078,9 @@ function apply(ctx) {
           const host = flowElement.current?.getBoundingClientRect();
           const center = flow.current && host ? flow.current.screenToFlowPosition({ x: host.left + host.width / 2, y: host.top + host.height / 2 }) : null;
           const offset = definition.nodes.length % 5 * 28;
-          pos = anchor ? { x: anchor.position.x, y: anchor.position.y + sizeOf(anchor).h + 56 } : center ? { x: center.x - 120 + offset, y: center.y - 60 + offset } : { x: 100 + definition.nodes.length % 3 * 400, y: 100 + Math.floor(definition.nodes.length / 3) * 300 };
+          pos = anchor?.position ? { x: anchor.position.x, y: anchor.position.y + sizeOf(anchor).h + 56 } : center ? { x: center.x - 120 + offset, y: center.y - 60 + offset } : { x: 100 + definition.nodes.length % 3 * 400, y: 100 + Math.floor(definition.nodes.length / 3) * 300 };
           for (let guard = 0; guard < 40; guard++) {
-            const hit = definition.nodes.filter((m) => !m.parentId).find((m) => {
+            const hit = definition.nodes.filter((m) => !m.parentId && m.position).find((m) => {
               const s = sizeOf(m);
               return pos.x < m.position.x + s.w + 28 && pos.x + 232 + 28 > m.position.x && pos.y < m.position.y + s.h + 28 && pos.y + 150 + 28 > m.position.y;
             });
@@ -13735,6 +14102,10 @@ function apply(ctx) {
         n.tools = [];
         n.skills = [];
       }
+      if (kind === "skill") {
+        n.skill = { name: `workflow-skill-${id2.slice(-8)}`, description: "\u8BF4\u660E\u8FD9\u4E2A Skill \u9002\u7528\u7684\u4EFB\u52A1\u548C\u89E6\u53D1\u6761\u4EF6\u3002", instructions: "\u5199\u51FA\u5B8C\u6210\u4EFB\u52A1\u65F6\u5E94\u9075\u5FAA\u7684\u6B65\u9AA4\u3002", files: [] };
+      }
+      if (kind === "file") n.file = { name: "notes.md", content: "" };
       if (kind === "input") {
         n.prompt = "\u8BF7\u63D0\u4F9B\u672C\u6B21\u4EFB\u52A1\u9700\u8981\u7684\u6750\u6599\u3002";
         n.input = { text: { source: "workflow", path: "/text" } };
@@ -13780,12 +14151,13 @@ function apply(ctx) {
       if (!history.length) return;
       const previous = history.at(-1);
       drafts.set(draftKey, previous);
+      definitionRef.current = previous;
       setDefinition(previous);
       setHistory((h) => h.slice(0, -1));
       setSelected(previous.nodes.some((n) => n.id === selected2) ? selected2 : previous.nodes.at(-1)?.id ?? null);
       setDirty(true);
     };
-    (0, import_react12.useEffect)(() => {
+    (0, import_react13.useEffect)(() => {
       const keydown = (e) => {
         if (!e.target.closest(".wf-editor") || e.target.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return;
         if (e.key === "Delete" || e.key === "Backspace") {
@@ -13802,7 +14174,7 @@ function apply(ctx) {
       window.addEventListener("keydown", keydown);
       return () => window.removeEventListener("keydown", keydown);
     }, [definition, selected2, selectedEdge]);
-    const graphNodes = import_react12.default.useMemo(() => {
+    const graphNodes = import_react13.default.useMemo(() => {
       const ranks = Object.fromEntries(definition.nodes.map((n) => [n.id, 0]));
       for (let pass = 0; pass < definition.nodes.length; pass++) for (const e of definition.edges) if (e.from in ranks && e.to in ranks) ranks[e.to] = Math.max(ranks[e.to], ranks[e.from] + 1);
       const lanes = {};
@@ -13820,7 +14192,7 @@ function apply(ctx) {
             repeat: n.repeat,
             title: n.name,
             model: n.model?.mode === "explicit" ? n.model.id : "\u4F1A\u8BDD\u6A21\u578B",
-            summary: displayPrompt(n.prompt) || "",
+            summary: n.kind === "skill" ? `${n.skill?.name ?? ""} \xB7 ${n.skill?.description ?? ""}` : n.kind === "file" ? n.file?.name ?? "" : displayPrompt(n.prompt) || "",
             onRename: (name2) => change({ ...definition, nodes: definition.nodes.map((x) => x.id === n.id ? { ...x, name: name2 } : x) }),
             mode: n.kind === "interact" ? n.interaction === "goal" ? "\u4EA4\u4E92\u76EE\u6807" : "\u4EA4\u4E92\u4E00\u6B21" : void 0,
             references: Object.values(n.input ?? {}).filter((r) => r.source === "node").map((r) => definition.nodes.find((x) => x.id === r.nodeId)).filter(Boolean),
@@ -13837,11 +14209,11 @@ function apply(ctx) {
         };
       });
     }, [definition, selected2]);
-    const [liveNodes, setLiveNodes] = (0, import_react12.useState)([]);
-    (0, import_react12.useEffect)(() => {
+    const [liveNodes, setLiveNodes] = (0, import_react13.useState)([]);
+    (0, import_react13.useEffect)(() => {
       setLiveNodes(graphNodes);
     }, [graphNodes]);
-    const graphEdges = import_react12.default.useMemo(() => {
+    const graphEdges = import_react13.default.useMemo(() => {
       const visibleEdges = definition.edges.filter((edge) => {
         if (edge.on && edge.on !== "success") return true;
         const target = definition.nodes.find((n) => n.id === edge.to);
@@ -13880,7 +14252,7 @@ function apply(ctx) {
       }).concat(definition.nodes.filter((n) => n.repeat?.target).map((n) => ({ id: `repeat:${n.id}`, source: n.id, target: n.repeat.target, sourceHandle: "retry-out", targetHandle: "retry-in", type: "smoothstep", label: `\u672A\u901A\u8FC7\uFF0C\u8FD4\u56DE\u4FEE\u6539 \xB7 \u6700\u591A ${n.repeat.maxRounds} \u8F6E`, className: "wf-edge-loop", deletable: false })));
     }, [definition, selectedEdge]);
     const latestRun = data.runs.find((item) => item.workflowId === record.id);
-    (0, import_react12.useEffect)(() => {
+    (0, import_react13.useEffect)(() => {
       let live = true;
       if (!latestRun) {
         setRun(null);
@@ -13917,30 +14289,30 @@ function apply(ctx) {
         setError(e.message);
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-editor", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-editor-viewbar", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-segmented", role: "tablist", "aria-label": "\u6B65\u9AA4\u5C55\u793A\u65B9\u5F0F", children: [["steps", "\u6B65\u9AA4\u5217\u8868"], ["graph", "\u6D41\u7A0B\u56FE"]].map(([id2, label]) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { role: "tab", "aria-selected": editorView === id2, onClick: () => {
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-editor", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-editor-viewbar", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-segmented", role: "tablist", "aria-label": "\u6B65\u9AA4\u5C55\u793A\u65B9\u5F0F", children: [["steps", "\u6B65\u9AA4\u5217\u8868"], ["graph", "\u6D41\u7A0B\u56FE"]].map(([id2, label]) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("button", { role: "tab", "aria-selected": editorView === id2, onClick: () => {
         setEditorView(id2);
         setRaw(false);
         localStorage.setItem("workflow-studio:editor-view", id2);
       }, children: label }, id2)) }) }),
-      skillEdit && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Modal, { title: `\u7F16\u8F91 skill \xB7 ${skillEdit.name}`, close: () => setSkillEdit(null), children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("textarea", { className: "wf-skill-content", "aria-label": "Skill \u5185\u5BB9", value: skillEdit.content, onChange: (e) => setSkillEdit({ ...skillEdit, content: e.target.value }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { className: "wf-primary", onClick: () => {
+      skillEdit && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(Modal, { title: `\u7F16\u8F91 skill \xB7 ${skillEdit.name}`, close: () => setSkillEdit(null), children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("textarea", { className: "wf-skill-content", "aria-label": "Skill \u5185\u5BB9", value: skillEdit.content, onChange: (e) => setSkillEdit({ ...skillEdit, content: e.target.value }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("button", { className: "wf-primary", onClick: () => {
           update({ skillOverrides: { ...node.skillOverrides, [skillEdit.name]: skillEdit.content } });
           setSkillEdit(null);
         }, children: "\u5E94\u7528\u5230\u6B65\u9AA4" })
       ] }),
-      assetsOpen && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Modal, { title: "\u6DFB\u52A0\u6B65\u9AA4", close: () => setAssetsOpen(false), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-modal-body", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-step-picker", role: "menu", "aria-label": "\u66F4\u591A\u6B65\u9AA4\u9009\u9879", children: Object.entries(labels).filter(([kind]) => !["input", "interact", "agent", "artifact"].includes(kind)).map(([kind, label]) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("button", { role: "menuitem", className: `wf-step-${kind}`, onClick: () => {
+      assetsOpen && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Modal, { title: "\u6DFB\u52A0\u6B65\u9AA4", close: () => setAssetsOpen(false), children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-modal-body", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-step-picker", role: "menu", "aria-label": "\u66F4\u591A\u6B65\u9AA4\u9009\u9879", children: Object.entries(labels).filter(([kind]) => !["input", "interact", "agent", "artifact", "skill", "file"].includes(kind)).map(([kind, label]) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("button", { role: "menuitem", className: `wf-step-${kind}`, onClick: () => {
         setAssetsOpen(false);
         add(kind);
       }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-step-glyph", "aria-hidden": "true", children: glyphFor(kind, 15) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: label })
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-step-glyph", "aria-hidden": "true", children: glyphFor(kind, 15) }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: label })
       ] }, kind)) }) }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-editor-body", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-stage", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-canvas", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-addbar", role: "toolbar", "aria-label": "\u6DFB\u52A0\u6B65\u9AA4", children: [
-            Object.entries(labels).filter(([kind]) => ["input", "interact", "agent", "artifact"].includes(kind)).map(([kind, label]) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-editor-body", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-stage", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-canvas", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-addbar", role: "toolbar", "aria-label": "\u6DFB\u52A0\u6B65\u9AA4", children: [
+            Object.entries(labels).filter(([kind]) => ["input", "interact", "agent", "skill", "file", "artifact"].includes(kind)).map(([kind, label]) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
               "button",
               {
                 className: `wf-add wf-step-${kind}`,
@@ -13948,19 +14320,19 @@ function apply(ctx) {
                 onDragStart: (e) => e.dataTransfer.setData("application/workflow-node", kind),
                 onClick: () => add(kind),
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-add-glyph", "aria-hidden": "true", children: glyphFor(kind, 13) }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-add-glyph", "aria-hidden": "true", children: glyphFor(kind, 13) }),
                   label
                 ]
               },
               kind
             )),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-addbar-divider", "aria-hidden": "true" }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("button", { "aria-label": "\u66F4\u591A\u6B65\u9AA4", "aria-expanded": assetsOpen, onClick: () => setAssetsOpen(true), children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-add-glyph", "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Plus, { size: 13 }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-addbar-divider", "aria-hidden": "true" }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("button", { "aria-label": "\u66F4\u591A\u6B65\u9AA4", "aria-expanded": assetsOpen, onClick: () => setAssetsOpen(true), children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-add-glyph", "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Plus, { size: 13 }) }),
               "\u66F4\u591A\u6B65\u9AA4"
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "input",
             {
               ref: importInput,
@@ -13974,7 +14346,7 @@ function apply(ctx) {
               }
             }
           ),
-          raw ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-json", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          raw ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-json", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             JsonField,
             {
               label: "\u5DE5\u4F5C\u6D41\u5B9A\u4E49",
@@ -13982,18 +14354,56 @@ function apply(ctx) {
               change,
               rows: 30
             }
-          ) }) : editorView === "steps" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(StepOutline, { definition, selected: selected2, onDelete: remove2, onRename: (id2, name2) => change({ ...definition, nodes: definition.nodes.map((n) => n.id === id2 ? { ...n, name: name2 } : n) }), onSelect: (id2) => {
+          ) }) : editorView === "steps" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(StepOutline, { definition, selected: selected2, onDelete: remove2, onRename: (id2, name2) => change({ ...definition, nodes: definition.nodes.map((n) => n.id === id2 ? { ...n, name: name2 } : n) }), onSelect: (id2) => {
             setSelectedEdge(null);
             setSelected(id2);
             setPanelTab("step");
-          } }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+          } }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
             "div",
             {
               className: "wf-flow",
               ref: flowElement,
-              onDragOver: (e) => e.preventDefault(),
-              onDrop: (e) => {
+              onDragEnter: (e) => {
+                if (e.dataTransfer.types.includes("Files")) {
+                  dragDepth.current++;
+                  setFileDrag(true);
+                }
+              },
+              onDragLeave: (e) => {
+                if (e.dataTransfer.types.includes("Files")) {
+                  dragDepth.current = Math.max(0, dragDepth.current - 1);
+                  if (!dragDepth.current) setFileDrag(false);
+                }
+              },
+              onDragOver: (e) => {
+                if (e.dataTransfer.types.includes("Files") || e.dataTransfer.types.includes("application/workflow-node")) e.preventDefault();
+              },
+              onDrop: async (e) => {
                 e.preventDefault();
+                dragDepth.current = 0;
+                setFileDrag(false);
+                if (e.dataTransfer.files?.length) {
+                  try {
+                    const at = flow.current?.screenToFlowPosition({ x: e.clientX, y: e.clientY }) ?? { x: 120, y: 120 };
+                    const added = [];
+                    for (const [index2, file] of [...e.dataTransfer.files].entries()) {
+                      const id2 = `node_${crypto.randomUUID().slice(0, 8)}`;
+                      added.push({
+                        id: id2,
+                        kind: "file",
+                        name: file.name,
+                        position: { x: at.x + index2 * 24, y: at.y + index2 * 28 },
+                        file: { name: file.name, ...await uploadResource(file, api) }
+                      });
+                    }
+                    change({ ...definition, nodes: [...definition.nodes, ...added] });
+                    setSelected(added.at(-1).id);
+                    setPanelTab("step");
+                  } catch (error2) {
+                    setError(error2.message);
+                  }
+                  return;
+                }
                 const kind = e.dataTransfer.getData("application/workflow-node");
                 if (!labels[kind]) return;
                 const pos = flow.current?.screenToFlowPosition({ x: e.clientX, y: e.clientY });
@@ -14005,11 +14415,11 @@ function apply(ctx) {
                 add(kind, pos);
               },
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("svg", { className: "wf-sketch-defs", "aria-hidden": "true", focusable: "false", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("filter", { id: "wf-sketch-line", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("feTurbulence", { type: "fractalNoise", baseFrequency: "0.015", numOctaves: "2", seed: "8", result: "warp" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("feDisplacementMap", { in: "SourceGraphic", in2: "warp", scale: "2.6", xChannelSelector: "R", yChannelSelector: "G" })
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("svg", { className: "wf-sketch-defs", "aria-hidden": "true", focusable: "false", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("filter", { id: "wf-sketch-line", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("feTurbulence", { type: "fractalNoise", baseFrequency: "0.015", numOctaves: "2", seed: "8", result: "warp" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("feDisplacementMap", { in: "SourceGraphic", in2: "warp", scale: "2.6", xChannelSelector: "R", yChannelSelector: "G" })
                 ] }) }),
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                   index,
                   {
                     onInit: (instance) => {
@@ -14094,19 +14504,27 @@ function apply(ctx) {
                       try {
                         const on = connection.sourceHandle === "yes" ? "true" : connection.sourceHandle === "no" ? "false" : void 0;
                         change(connectReference(definition, connection.source, connection.target, false, on).definition);
+                        if (["skill", "file"].includes(definition.nodes.find((item) => item.id === connection.source)?.kind)) {
+                          setSelected(connection.target);
+                          setPanelTab("step");
+                        }
                       } catch (e) {
                         setError(e.message);
                       }
                     },
-                    children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Controls, {})
+                    children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Controls, {})
                   }
-                )
+                ),
+                fileDrag && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-file-drop-overlay", "aria-hidden": "true", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("strong", { children: "\u677E\u5F00\u4EE5\u521B\u5EFA\u6587\u4EF6\u6A21\u5757" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: "\u6587\u4EF6\u4F1A\u590D\u5236\u5230\u6B64\u5DE5\u4F5C\u6D41\u7684\u7248\u672C\u76EE\u5F55" })
+                ] })
               ]
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-canvas-tools", children: [
-            editorView === "graph" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { onClick: () => flow.current?.fitView({ padding: 0.22, duration: 0 }), children: "\u67E5\u770B\u5168\u56FE" }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-canvas-tools", children: [
+            editorView === "graph" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("button", { onClick: () => flow.current?.fitView({ padding: 0.22, duration: 0 }), children: "\u67E5\u770B\u5168\u56FE" }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
               Icon2,
               {
                 label: "\u590D\u5236\u8282\u70B9",
@@ -14115,7 +14533,7 @@ function apply(ctx) {
                 onClick: () => node && setClipboard({ nodes: [structuredClone(node)], edges: definition.edges.filter((e) => e.from === node.id || e.to === node.id) })
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
               Icon2,
               {
                 label: "\u7C98\u8D34\u8282\u70B9",
@@ -14130,7 +14548,7 @@ function apply(ctx) {
                 }
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
               Icon2,
               {
                 label: "\u64A4\u9500",
@@ -14139,7 +14557,7 @@ function apply(ctx) {
                 onClick: undo
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
               Icon2,
               {
                 label: raw ? "\u8FD4\u56DE\u753B\u5E03" : "\u7F16\u8F91 JSON",
@@ -14150,8 +14568,8 @@ function apply(ctx) {
             )
           ] })
         ] }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("aside", { className: "wf-inspector", "aria-label": "\u6B65\u9AA4\u8BBE\u7F6E", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-panel-tabs", role: "tablist", "aria-label": "\u6B65\u9AA4\u9762\u677F", children: [["step", "\u6B65\u9AA4"], ["preview", "\u9884\u89C8"], ["console", "\u63A7\u5236\u53F0"], ["theme", "\u4E3B\u9898"]].map(([key, label]) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("aside", { className: "wf-inspector", "aria-label": "\u6B65\u9AA4\u8BBE\u7F6E", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-panel-tabs", role: "tablist", "aria-label": "\u6B65\u9AA4\u9762\u677F", children: [["step", "\u6B65\u9AA4"], ["preview", "\u9884\u89C8"], ["console", "\u63A7\u5236\u53F0"], ["theme", "\u4E3B\u9898"]].map(([key, label]) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "button",
             {
               role: "tab",
@@ -14161,17 +14579,17 @@ function apply(ctx) {
             },
             key
           )) }),
-          panelTab !== "theme" && node && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: `wf-panel-head wf-step-${node.kind}`, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-step-glyph", children: glyphFor(node.kind, 14) }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(InlineName, { value: node.name, onRename: (name2) => update({ name: name2 }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("em", { children: labels[node.kind] }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("button", { className: "wf-delete-step", "aria-label": "\u5220\u9664\u8282\u70B9", title: "\u5220\u9664\u6B64\u6B65\u9AA4\uFF0C\u53EF\u64A4\u9500\u6062\u590D", onClick: () => remove2(), children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Trash2, { size: 15 }),
+          panelTab !== "theme" && node && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: `wf-panel-head wf-step-${node.kind}`, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-step-glyph", children: glyphFor(node.kind, 14) }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(InlineName, { value: node.name, onRename: (name2) => update({ name: name2 }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("em", { children: labels[node.kind] }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("button", { className: "wf-delete-step", "aria-label": "\u5220\u9664\u8282\u70B9", title: "\u5220\u9664\u6B64\u6B65\u9AA4\uFF0C\u53EF\u64A4\u9500\u6062\u590D", onClick: () => remove2(), children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Trash2, { size: 15 }),
               "\u5220\u9664"
             ] })
           ] }),
-          panelTab === "theme" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-panel-body", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u5DE5\u4F5C\u6D41\u56FE\u6807", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-icon-picker", children: ["workflow", "book", "search", "code", "file", "sparkles"].map((name2) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          panelTab === "theme" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-panel-body", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5DE5\u4F5C\u6D41\u56FE\u6807", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-icon-picker", children: ["workflow", "book", "search", "code", "file", "sparkles"].map((name2) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
               "button",
               {
                 type: "button",
@@ -14182,35 +14600,35 @@ function apply(ctx) {
               },
               name2
             )) }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u6B65\u9AA4\u914D\u8272", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-swatches", children: Object.entries(labels).map(([kind, label]) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: `wf-swatch wf-step-${kind}`, children: label }, kind)) }) })
-          ] }) : panelTab === "preview" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-panel-body", children: !run ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-empty", children: "\u8FD8\u6CA1\u6709\u8FD0\u884C\u8BB0\u5F55" }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("p", { className: "wf-panel-note", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u6B65\u9AA4\u914D\u8272", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-swatches", children: Object.entries(labels).map(([kind, label]) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: `wf-swatch wf-step-${kind}`, children: label }, kind)) }) })
+          ] }) : panelTab === "preview" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-panel-body", children: !run ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-empty", children: "\u8FD8\u6CA1\u6709\u8FD0\u884C\u8BB0\u5F55" }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("p", { className: "wf-panel-note", children: [
               "\u6700\u8FD1\u4E00\u6B21\u8FD0\u884C \xB7 ",
               statuses[run.run.status] ?? run.run.status,
               " \xB7 ",
               timestamp(run.run.createdAt)
             ] }),
-            stepRun ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-note", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: `wf-status ${stepRun.status}`, children: statuses[stepRun.status] ?? stepRun.status }) }),
-              stepRun.error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-error", children: stepRun.error }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("pre", { className: "wf-output", children: typeof stepRun.output === "string" ? stepRun.output : pretty2(stepRun.output ?? null) })
-            ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-empty", children: "\u8BE5\u6B65\u9AA4\u8FD8\u6CA1\u6709\u8F93\u51FA" })
-          ] }) }) : panelTab === "console" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-panel-body", children: [
-            stepEvents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-empty", children: "\u6682\u65E0\u8BE5\u6B65\u9AA4\u7684\u4E8B\u4EF6" }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("ul", { className: "wf-console", children: stepEvents.map((event, index2) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("li", { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("time", { children: timestamp(event.at ?? event.createdAt) }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { children: [
+            stepRun ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-note", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: `wf-status ${stepRun.status}`, children: statuses[stepRun.status] ?? stepRun.status }) }),
+              stepRun.error && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-error", children: stepRun.error }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("pre", { className: "wf-output", children: typeof stepRun.output === "string" ? stepRun.output : pretty2(stepRun.output ?? null) })
+            ] }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-empty", children: "\u8BE5\u6B65\u9AA4\u8FD8\u6CA1\u6709\u8F93\u51FA" })
+          ] }) }) : panelTab === "console" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-panel-body", children: [
+            stepEvents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-empty", children: "\u6682\u65E0\u8BE5\u6B65\u9AA4\u7684\u4E8B\u4EF6" }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("ul", { className: "wf-console", children: stepEvents.map((event, index2) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("li", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("time", { children: timestamp(event.at ?? event.createdAt) }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { children: [
                 event.type ?? event.kind ?? "event",
                 event.error ? ` \xB7 ${event.error}` : ""
               ] })
             ] }, `${event.type ?? "event"}-${index2}`)) }),
-            run?.run?.nodes && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("details", { className: "wf-advanced", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("summary", { children: "\u8FD0\u884C\u8BE6\u60C5" }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("pre", { className: "wf-output", children: pretty2(run.run.nodes) })
+            run?.run?.nodes && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { className: "wf-advanced", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("summary", { children: "\u8FD0\u884C\u8BE6\u60C5" }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("pre", { className: "wf-output", children: pretty2(run.run.nodes) })
             ] })
-          ] }) : node && containerKinds.includes(node.kind) ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-panel-body", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-note", children: "\u5916\u58F3\u5BB9\u5668\uFF1A\u628A\u8981\u4E00\u8D77\u6267\u884C\u7684\u6B65\u9AA4\u62D6\u5165\u753B\u5E03\u4E0A\u7684\u6846\u5185\uFF0C\u5BB9\u5668\u672C\u8EAB\u4E0D\u8FD0\u884C\u5BF9\u8BDD\u3002" }),
-            node.kind === "multithread" && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u5E76\u53D1\u6570\uFF08\u540C\u65F6\u6267\u884C\u7684\u5B50\u6B65\u9AA4\u6570\uFF09", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          ] }) : node && containerKinds.includes(node.kind) ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-panel-body", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-note", children: "\u5916\u58F3\u5BB9\u5668\uFF1A\u628A\u8981\u4E00\u8D77\u6267\u884C\u7684\u6B65\u9AA4\u62D6\u5165\u753B\u5E03\u4E0A\u7684\u6846\u5185\uFF0C\u5BB9\u5668\u672C\u8EAB\u4E0D\u8FD0\u884C\u5BF9\u8BDD\u3002" }),
+            node.kind === "multithread" && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5E76\u53D1\u6570\uFF08\u540C\u65F6\u6267\u884C\u7684\u5B50\u6B65\u9AA4\u6570\uFF09", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 "input",
                 {
                   type: "number",
@@ -14220,8 +14638,8 @@ function apply(ctx) {
                   onChange: (e) => update({ concurrency: Math.min(8, Math.max(1, Number(e.target.value) || 1)) })
                 }
               ) }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { className: "wf-check-row", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("label", { className: "wf-check-row", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                   "input",
                   {
                     type: "checkbox",
@@ -14231,7 +14649,7 @@ function apply(ctx) {
                 ),
                 "\u628A\u4E0B\u9762\u7684 Prompt \u5206\u53D1\u7ED9\u6BCF\u4E2A\u5B50\u6B65\u9AA4"
               ] }),
-              node.distributePrompt ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u5206\u53D1\u7684 Prompt", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              node.distributePrompt ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5206\u53D1\u7684 Prompt", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 "textarea",
                 {
                   rows: 4,
@@ -14239,20 +14657,20 @@ function apply(ctx) {
                   placeholder: "\u5199\u6E05\u695A\u6BCF\u4E2A\u5E76\u884C\u5B50\u6B65\u9AA4\u8981\u505A\u4EC0\u4E48\u3002",
                   onChange: (e) => update({ prompt: e.target.value })
                 }
-              ) }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-note", children: "\u672A\u52FE\u9009\u65F6\uFF0C\u5404\u5B50\u6B65\u9AA4\u4F7F\u7528\u5404\u81EA\u7684 Prompt\u3002" })
+              ) }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-note", children: "\u672A\u52FE\u9009\u65F6\uFF0C\u5404\u5B50\u6B65\u9AA4\u4F7F\u7528\u5404\u81EA\u7684 Prompt\u3002" })
             ] })
-          ] }) : node ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-panel-body", children: [
+          ] }) : node?.kind === "skill" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-panel-body", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(SkillResourceEditor, { node, update, api, onError: setError, savedPath: dirty ? null : resourcePaths[node.id] }, node.id) }) : node?.kind === "file" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-panel-body", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(FileResourceEditor, { node, update, api, onError: setError, savedPath: dirty ? null : resourcePaths[node.id] }, node.id) }) : node ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-panel-body", children: [
             (() => {
               const shell = node.parentId ? definition.nodes.find((x) => x.id === node.parentId) : void 0;
               if (shell?.kind === "multithread" && shell.distributePrompt) {
-                return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-note", children: "Prompt \u7531 Multithread \u5916\u58F3\u7EDF\u4E00\u5206\u53D1\uFF1B\u5982\u9700\u5355\u72EC\u8BBE\u7F6E\uFF0C\u8BF7\u5728\u5916\u58F3\u4E2D\u53D6\u6D88\u52FE\u9009\u5206\u53D1\u3002" });
+                return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-note", children: "Prompt \u7531 Multithread \u5916\u58F3\u7EDF\u4E00\u5206\u53D1\uFF1B\u5982\u9700\u5355\u72EC\u8BBE\u7F6E\uFF0C\u8BF7\u5728\u5916\u58F3\u4E2D\u53D6\u6D88\u52FE\u9009\u5206\u53D1\u3002" });
               }
-              return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-prompt-label", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Sparkles, { size: 12 }),
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: node.kind === "interact" ? node.interaction === "goal" ? "\u4EA4\u4E92\u76EE\u6807" : "\u63D0\u95EE\u5185\u5BB9" : "\u6B65\u9AA4\u8BF4\u660E" })
+              return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-prompt-label", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Sparkles, { size: 12 }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: node.kind === "interact" ? node.interaction === "goal" ? "\u4EA4\u4E92\u76EE\u6807" : "\u63D0\u95EE\u5185\u5BB9" : "\u6B65\u9AA4\u8BF4\u660E" })
                 ] }),
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                   StepPrompt,
                   {
                     node,
@@ -14272,21 +14690,21 @@ function apply(ctx) {
                 )
               ] });
             })(),
-            node.kind === "condition" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-note", children: "\u586B\u5199\u6B65\u9AA4\u8BF4\u660E\u65F6\uFF0C\u7531\u6A21\u578B\u5224\u65AD\u5E76\u53EA\u56DE\u7B54\u300C\u662F/\u5426\u300D\uFF1B\u7559\u7A7A\u5219\u6309\u9AD8\u7EA7\u8BBE\u7F6E\u91CC\u7684\u6761\u4EF6\u8868\u8FBE\u5F0F\u672C\u5730\u5224\u65AD\u3002" }),
-            (node.kind === "agent" || node.kind === "interact" && node.interaction === "goal") && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("details", { className: "wf-routing-settings", open: true, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("summary", { children: "\u6A21\u578B" }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Routing, { node, update, caps })
+            node.kind === "condition" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-note", children: "\u586B\u5199\u6B65\u9AA4\u8BF4\u660E\u65F6\uFF0C\u7531\u6A21\u578B\u5224\u65AD\u5E76\u53EA\u56DE\u7B54\u300C\u662F/\u5426\u300D\uFF1B\u7559\u7A7A\u5219\u6309\u9AD8\u7EA7\u8BBE\u7F6E\u91CC\u7684\u6761\u4EF6\u8868\u8FBE\u5F0F\u672C\u5730\u5224\u65AD\u3002" }),
+            (node.kind === "agent" || node.kind === "interact" && node.interaction === "goal") && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { className: "wf-routing-settings", open: true, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("summary", { children: "\u6A21\u578B" }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Routing, { node, update, caps })
             ] }),
-            node.kind === "agent" && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("details", { className: "wf-settings-group", hidden: true, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("summary", { children: [
+            node.kind === "agent" && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { className: "wf-settings-group", hidden: true, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("summary", { children: [
                 "\u6280\u80FD\u4E0E\u5DE5\u5177 ",
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("small", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("small", { children: [
                   (node.skills?.length ?? 0) + (node.tools?.length ?? 0),
                   " \u9879"
                 ] })
               ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Field, { label: "\u6280\u80FD", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(Field, { label: "\u6280\u80FD", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                   "input",
                   {
                     list: "wf-skills",
@@ -14296,9 +14714,9 @@ function apply(ctx) {
                     })
                   }
                 ),
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("datalist", { id: "wf-skills", children: (caps?.skills ?? []).map((s) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: s.name }, s.name)) })
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("datalist", { id: "wf-skills", children: (caps?.skills ?? []).map((s) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: s.name }, s.name)) })
               ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-skill-edit-links", children: (node.skills ?? []).map((name2) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("button", { onClick: async () => {
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-skill-edit-links", children: (node.skills ?? []).map((name2) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("button", { onClick: async () => {
                 try {
                   const result = await api({ action: "skillRead", name: name2 });
                   setSkillEdit({ name: name2, content: node.skillOverrides?.[name2] ?? result.content });
@@ -14306,11 +14724,11 @@ function apply(ctx) {
                   setError(e.message);
                 }
               }, children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Pencil, { size: 14 }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Pencil, { size: 14 }),
                 "\u7F16\u8F91 ",
                 name2
               ] }, name2)) }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u5DE5\u5177", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5DE5\u5177", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 "input",
                 {
                   list: "wf-tools",
@@ -14321,7 +14739,7 @@ function apply(ctx) {
                 }
               ) })
             ] }),
-            node.kind === "tool" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "Tool", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            node.kind === "tool" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "Tool", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
               "input",
               {
                 list: "wf-tools",
@@ -14329,8 +14747,8 @@ function apply(ctx) {
                 onChange: (e) => update({ tool: e.target.value })
               }
             ) }),
-            node.kind === "interact" && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u4EA4\u4E92\u65B9\u5F0F", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+            node.kind === "interact" && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u4EA4\u4E92\u65B9\u5F0F", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
                 "select",
                 {
                   value: node.interaction ?? "once",
@@ -14339,12 +14757,12 @@ function apply(ctx) {
                     ...e.target.value === "once" ? { maxTurns: void 0 } : {}
                   }),
                   children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "once", children: "\u4EA4\u4E92\u4E00\u6B21\uFF1A\u7528\u6237\u56DE\u7B54\u4E00\u6B21\u540E\u7EE7\u7EED" }),
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "goal", children: "\u4EA4\u4E92\u76EE\u6807\uFF1A\u53CD\u590D\u6F84\u6E05\u76F4\u5230\u786E\u8BA4\u7406\u89E3" })
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "once", children: "\u4EA4\u4E92\u4E00\u6B21\uFF1A\u7528\u6237\u56DE\u7B54\u4E00\u6B21\u540E\u7EE7\u7EED" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "goal", children: "\u4EA4\u4E92\u76EE\u6807\uFF1A\u53CD\u590D\u6F84\u6E05\u76F4\u5230\u786E\u8BA4\u7406\u89E3" })
                   ]
                 }
               ) }),
-              node.interaction === "goal" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u6700\u591A\u56DE\u7B54\u8F6E\u6B21", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              node.interaction === "goal" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u6700\u591A\u56DE\u7B54\u8F6E\u6B21", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 "input",
                 {
                   type: "number",
@@ -14354,7 +14772,7 @@ function apply(ctx) {
                   onChange: (e) => update({ maxTurns: Number(e.target.value) })
                 }
               ) }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u5DF2\u6709\u6750\u6599\u65F6\u8DF3\u8FC7\u63D0\u95EE", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5DF2\u6709\u6750\u6599\u65F6\u8DF3\u8FC7\u63D0\u95EE", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
                 "select",
                 {
                   value: node.provided ? ["/text", "/attachments"].includes(node.provided.path) ? node.provided.path : "custom" : "",
@@ -14362,22 +14780,22 @@ function apply(ctx) {
                     provided: e.target.value ? e.target.value === "custom" ? node.provided : { source: "workflow", path: e.target.value } : void 0
                   }),
                   children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "", children: "\u6BCF\u6B21\u63D0\u95EE" }),
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "/attachments", children: "\u6D88\u606F\u5DF2\u5E26\u9644\u4EF6\u65F6\u76F4\u63A5\u91C7\u7528" }),
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "/text", children: "\u6D88\u606F\u6587\u672C\u5C31\u662F\u6750\u6599\u65F6\u76F4\u63A5\u91C7\u7528" }),
-                    node.provided && !["/text", "/attachments"].includes(node.provided.path) && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "custom", children: "\u81EA\u5B9A\u4E49\u5F15\u7528" })
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "", children: "\u6BCF\u6B21\u63D0\u95EE" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "/attachments", children: "\u6D88\u606F\u5DF2\u5E26\u9644\u4EF6\u65F6\u76F4\u63A5\u91C7\u7528" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "/text", children: "\u6D88\u606F\u6587\u672C\u5C31\u662F\u6750\u6599\u65F6\u76F4\u63A5\u91C7\u7528" }),
+                    node.provided && !["/text", "/attachments"].includes(node.provided.path) && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "custom", children: "\u81EA\u5B9A\u4E49\u5F15\u7528" })
                   ]
                 }
               ) })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("datalist", { id: "wf-tools", children: (caps?.tools ?? []).map((t) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: t }, t)) }),
-            node.kind === "agent" && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("details", { className: "wf-review-settings", hidden: true, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("summary", { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: "\u8BC4\u5BA1\u4E0E\u5FAA\u73AF" }),
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-setting-value", children: node.repeat ? "\u5DF2\u5F00\u542F" : "\u672A\u5F00\u542F" })
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("datalist", { id: "wf-tools", children: (caps?.tools ?? []).map((t) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: t }, t)) }),
+            node.kind === "agent" && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { className: "wf-review-settings", hidden: true, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("summary", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: "\u8BC4\u5BA1\u4E0E\u5FAA\u73AF" }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-setting-value", children: node.repeat ? "\u5DF2\u5F00\u542F" : "\u672A\u5F00\u542F" })
               ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("input", { type: "checkbox", checked: Boolean(node.repeat), onChange: (e) => {
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("label", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("input", { type: "checkbox", checked: Boolean(node.repeat), onChange: (e) => {
                   if (e.target.checked) update({ repeat: { target: definition.nodes.find((n) => n.id !== node.id && n.kind === "agent")?.id ?? "", until: { ">=": [{ var: "score" }, 85] }, maxRounds: 3, sessionMode: "new" } });
                   else {
                     const next = { ...node };
@@ -14387,23 +14805,23 @@ function apply(ctx) {
                 } }),
                 "\u6839\u636E\u7ED3\u679C\u8FD4\u56DE\u4FEE\u8BA2"
               ] }),
-              node.repeat && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u8FD4\u56DE\u6B65\u9AA4", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("select", { value: node.repeat.target, onChange: (e) => update({ repeat: { ...node.repeat, target: e.target.value } }), children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "", children: "\u9009\u62E9\u4E0A\u6E38\u6B65\u9AA4" }),
-                  definition.nodes.filter((n) => n.id !== node.id && n.kind === "agent").map((n) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: n.id, children: n.name }, n.id))
+              node.repeat && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u8FD4\u56DE\u6B65\u9AA4", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("select", { value: node.repeat.target, onChange: (e) => update({ repeat: { ...node.repeat, target: e.target.value } }), children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "", children: "\u9009\u62E9\u4E0A\u6E38\u6B65\u9AA4" }),
+                  definition.nodes.filter((n) => n.id !== node.id && n.kind === "agent").map((n) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: n.id, children: n.name }, n.id))
                 ] }) }),
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u6BCF\u8F6E\u4F1A\u8BDD", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("select", { value: node.repeat.sessionMode, onChange: (e) => update({ repeat: { ...node.repeat, sessionMode: e.target.value } }), children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "new", children: "\u65B0\u5EFA\u4F1A\u8BDD\uFF0C\u4F20\u5165\u6750\u6599\u4E0E\u53CD\u9988" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "continue", children: "\u63A5\u7740\u4E0A\u6B21\u4F1A\u8BDD\u7EE7\u7EED" })
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u6BCF\u8F6E\u4F1A\u8BDD", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("select", { value: node.repeat.sessionMode, onChange: (e) => update({ repeat: { ...node.repeat, sessionMode: e.target.value } }), children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "new", children: "\u65B0\u5EFA\u4F1A\u8BDD\uFF0C\u4F20\u5165\u6750\u6599\u4E0E\u53CD\u9988" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "continue", children: "\u63A5\u7740\u4E0A\u6B21\u4F1A\u8BDD\u7EE7\u7EED" })
                 ] }) }),
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u6700\u591A\u8BC4\u5BA1\u8F6E\u6570", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("input", { type: "number", min: "1", max: "20", value: node.repeat.maxRounds, onChange: (e) => update({ repeat: { ...node.repeat, maxRounds: Number(e.target.value) } }) }) }),
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(JsonField, { label: "\u901A\u8FC7\u6761\u4EF6", value: node.repeat.until, change: (until) => update({ repeat: { ...node.repeat, until } }) })
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u6700\u591A\u8BC4\u5BA1\u8F6E\u6570", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("input", { type: "number", min: "1", max: "20", value: node.repeat.maxRounds, onChange: (e) => update({ repeat: { ...node.repeat, maxRounds: Number(e.target.value) } }) }) }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(JsonField, { label: "\u901A\u8FC7\u6761\u4EF6", value: node.repeat.until, change: (until) => update({ repeat: { ...node.repeat, until } }) })
               ] })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("details", { className: "wf-advanced", hidden: true, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("summary", { children: "\u9AD8\u7EA7\u8BBE\u7F6E" }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u6B65\u9AA4\u6807\u8BC6", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("input", { value: node.id, readOnly: true }) }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { className: "wf-advanced", hidden: true, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("summary", { children: "\u9AD8\u7EA7\u8BBE\u7F6E" }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u6B65\u9AA4\u6807\u8BC6", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("input", { value: node.id, readOnly: true }) }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 JsonField,
                 {
                   label: "\u8F93\u5165\u6620\u5C04",
@@ -14411,7 +14829,7 @@ function apply(ctx) {
                   change: (input) => update({ input })
                 }
               ),
-              node.kind === "condition" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              node.kind === "condition" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 JsonField,
                 {
                   label: "\u6761\u4EF6",
@@ -14419,7 +14837,7 @@ function apply(ctx) {
                   change: (condition) => update({ condition })
                 }
               ),
-              !(node.kind === "interact" && node.interaction !== "goal") && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              !(node.kind === "interact" && node.interaction !== "goal") && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 JsonField,
                 {
                   label: "\u8F93\u51FA\u6570\u636E\u7ED3\u6784",
@@ -14427,7 +14845,7 @@ function apply(ctx) {
                   change: (outputSchema) => update({ outputSchema })
                 }
               ),
-              node.kind === "subworkflow" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              node.kind === "subworkflow" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 JsonField,
                 {
                   label: "\u5B50\u5DE5\u4F5C\u6D41\u7248\u672C",
@@ -14435,7 +14853,7 @@ function apply(ctx) {
                   change: (workflow) => update({ workflow })
                 }
               ),
-              node.kind !== "interact" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u8D85\u65F6\uFF08\u79D2\uFF09", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              node.kind !== "interact" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u8D85\u65F6\uFF08\u79D2\uFF09", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 "input",
                 {
                   type: "number",
@@ -14445,11 +14863,11 @@ function apply(ctx) {
                   onChange: (e) => update({ timeoutSeconds: Number(e.target.value) })
                 }
               ) }),
-              definition.edges.filter((e) => e.from === node.id).map((e) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              definition.edges.filter((e) => e.from === node.id).map((e) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 Field,
                 {
                   label: `\u8FDE\u63A5\u81F3 ${definition.nodes.find((n) => n.id === e.to)?.name}`,
-                  children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+                  children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
                     "select",
                     {
                       value: e.on ?? "success",
@@ -14460,10 +14878,10 @@ function apply(ctx) {
                         )
                       }),
                       children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "success", children: "\u6210\u529F" }),
-                        node.kind === "condition" && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-                          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "true", children: "\u662F" }),
-                          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "false", children: "\u5426" })
+                        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "success", children: "\u6210\u529F" }),
+                        node.kind === "condition" && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+                          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "true", children: "\u662F" }),
+                          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "false", children: "\u5426" })
                         ] })
                       ]
                     }
@@ -14472,16 +14890,16 @@ function apply(ctx) {
                 e.to
               ))
             ] })
-          ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-panel-empty", children: "\u672A\u9009\u62E9\u6B65\u9AA4" }),
-          error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-error", role: "alert", children: error })
+          ] }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-empty", children: "\u672A\u9009\u62E9\u6B65\u9AA4" }),
+          error && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-error", role: "alert", children: error })
         ] })
       ] })
     ] });
   }
   function Runs({ id: id2 }) {
     const data = useData();
-    const [detail, setDetail] = (0, import_react12.useState)(null);
-    const [error, setError] = (0, import_react12.useState)("");
+    const [detail, setDetail] = (0, import_react13.useState)(null);
+    const [error, setError] = (0, import_react13.useState)("");
     const action = async (args) => {
       try {
         await api(args);
@@ -14492,17 +14910,17 @@ function apply(ctx) {
         setError(e.message);
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-scroll", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("table", { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("tr", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u8FD0\u884C" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u7248\u672C" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u72B6\u6001" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u65F6\u95F4" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u64CD\u4F5C" })
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-scroll", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("table", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("tr", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u8FD0\u884C" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u7248\u672C" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u72B6\u6001" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u65F6\u95F4" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u64CD\u4F5C" })
         ] }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("tbody", { children: data.runs.filter((r) => r.workflowId === id2).map((r) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("tr", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("td", { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("tbody", { children: data.runs.filter((r) => r.workflowId === id2).map((r) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("tr", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("td", { children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "button",
             {
               className: "wf-run-open",
@@ -14511,17 +14929,17 @@ function apply(ctx) {
               children: r.summary || r.id.slice(0, 18)
             }
           ) }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("td", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("td", { children: [
             "v",
             r.revision
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("td", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: `wf-status ${r.status}`, title: r.error ?? "", children: statuses[r.status] ?? r.status }),
-            r.error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("small", { className: "wf-run-error-hint", children: shortError(r.error) })
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("td", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: `wf-status ${r.status}`, title: r.error ?? "", children: statuses[r.status] ?? r.status }),
+            r.error && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("small", { className: "wf-run-error-hint", children: shortError(r.error) })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("td", { children: timestamp(r.createdAt) }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("td", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("td", { children: timestamp(r.createdAt) }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("td", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
               "button",
               {
                 className: "wf-run-action",
@@ -14530,30 +14948,30 @@ function apply(ctx) {
                   openSession(r.sessionId);
                 },
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(MessageSquare, { size: 14 }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(MessageSquare, { size: 14 }),
                   "\u5BF9\u8BDD"
                 ]
               }
             ),
-            r.status === "running" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+            r.status === "running" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
                 "button",
                 {
                   className: "wf-run-action",
                   onClick: () => action({ action: "pause", id: r.id }),
                   children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Pause, { size: 14 }),
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Pause, { size: 14 }),
                     "\u6682\u505C"
                   ]
                 }
               ),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
                 "button",
                 {
                   className: "wf-run-action",
                   onClick: () => action({ action: "cancel", id: r.id }),
                   children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Square, { size: 14 }),
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Square, { size: 14 }),
                     "\u505C\u6B62"
                   ]
                 }
@@ -14564,13 +14982,13 @@ function apply(ctx) {
               "needs_attention",
               "waiting_approval",
               "cancelled"
-            ].includes(r.status) && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+            ].includes(r.status) && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
               "button",
               {
                 className: "wf-run-action",
                 onClick: async () => setDetail(await api({ action: "runRead", id: r.id })),
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Play, { size: 14 }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Play, { size: 14 }),
                   "\u68C0\u89C6"
                 ]
               }
@@ -14578,19 +14996,19 @@ function apply(ctx) {
           ] })
         ] }, r.id)) })
       ] }),
-      !data.runs.some((r) => r.workflowId === id2) && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-muted", children: "\u6682\u65E0\u8FD0\u884C\u8BB0\u5F55" }),
-      error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { role: "alert", className: "wf-error", children: error }),
-      detail && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Modal, { title: "\u8FD0\u884C\u8BE6\u60C5", close: () => setDetail(null), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-modal-body", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("p", { children: [
+      !data.runs.some((r) => r.workflowId === id2) && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-muted", children: "\u6682\u65E0\u8FD0\u884C\u8BB0\u5F55" }),
+      error && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { role: "alert", className: "wf-error", children: error }),
+      detail && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Modal, { title: "\u8FD0\u884C\u8BE6\u60C5", close: () => setDetail(null), children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-modal-body", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("p", { children: [
           statuses[detail.run.status],
           " \xB7 v",
           detail.run.revision
         ] }),
-        detail.run.error && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-error-banner", role: "alert", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TriangleAlert, { size: 16 }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: describeRunError(detail.run, detail.events) ?? detail.run.error }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("small", { children: detail.run.error })
+        detail.run.error && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-error-banner", role: "alert", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(TriangleAlert, { size: 16 }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { children: describeRunError(detail.run, detail.events) ?? detail.run.error }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("small", { children: detail.run.error })
           ] })
         ] }),
         (() => {
@@ -14600,17 +15018,17 @@ function apply(ctx) {
           if (detail.run.status !== "waiting_input" || !entry) return null;
           const [nodeId, state] = entry;
           const info = state.interaction ?? {};
-          return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-interaction", "data-wf-interaction": nodeId, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("strong", { children: info.phase === "confirm" ? "\u7B49\u5F85\u4F60\u786E\u8BA4\u7406\u89E3" : "\u7B49\u5F85\u4F60\u7684\u56DE\u7B54" }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: info.question }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("small", { children: [
+          return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-interaction", "data-wf-interaction": nodeId, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("strong", { children: info.phase === "confirm" ? "\u7B49\u5F85\u4F60\u786E\u8BA4\u7406\u89E3" : "\u7B49\u5F85\u4F60\u7684\u56DE\u7B54" }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { children: info.question }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("small", { children: [
               "\u7B2C ",
               info.turns ?? 0,
               " / ",
               info.maxTurns ?? 1,
               " \u8F6E \xB7 \u5728\u8FD0\u884C\u4F1A\u8BDD\u91CC\u56DE\u7B54\uFF0C\u6216\u5728\u8FD9\u91CC\u8DF3\u8FC7\u53BB\u56DE\u590D"
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
               "button",
               {
                 className: "wf-primary",
@@ -14619,15 +15037,15 @@ function apply(ctx) {
                   openSession(detail.run.sessionId);
                 },
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(MessageSquare, { size: 16 }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(MessageSquare, { size: 16 }),
                   "\u53BB\u5BF9\u8BDD\u56DE\u7B54"
                 ]
               }
             )
           ] });
         })(),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(RunTimeline, { ctx, api, runId: detail.run.id, openSession, onChange: refresh, hideRunError: true }),
-        detail.artifacts.map((a) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(RunTimeline, { ctx, api, runId: detail.run.id, openSession, onChange: refresh, hideRunError: true }),
+        detail.artifacts.map((a) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "button",
           {
             onClick: async () => {
@@ -14642,7 +15060,7 @@ function apply(ctx) {
               );
             },
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Download, { size: 16 }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Download, { size: 16 }),
               a.name
             ]
           },
@@ -14654,9 +15072,9 @@ function apply(ctx) {
           "needs_attention",
           "waiting_approval",
           "cancelled"
-        ].includes(detail.run.status) && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: "\u6062\u590D\u4F1A\u91CD\u65B0\u6267\u884C\u672A\u5B8C\u6210\u8282\u70B9\u3002" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        ].includes(detail.run.status) && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { children: "\u6062\u590D\u4F1A\u91CD\u65B0\u6267\u884C\u672A\u5B8C\u6210\u8282\u70B9\u3002" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
             "button",
             {
               className: "wf-primary",
@@ -14668,18 +15086,18 @@ function apply(ctx) {
                 background: true
               }),
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Play, { size: 16 }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Play, { size: 16 }),
                 "\u786E\u8BA4\u5E76\u6062\u590D"
               ]
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("details", { className: "wf-events", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("summary", { children: "\u4E8B\u4EF6\u8BB0\u5F55" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(EventTimeline, { events: detail.events, nodes: detail.run.nodes }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("details", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("summary", { children: "\u539F\u59CB\u4E8B\u4EF6 JSON" }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("pre", { children: pretty2(detail.events) })
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { className: "wf-events", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("summary", { children: "\u4E8B\u4EF6\u8BB0\u5F55" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(EventTimeline, { events: detail.events, nodes: detail.run.nodes }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("summary", { children: "\u539F\u59CB\u4E8B\u4EF6 JSON" }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("pre", { children: pretty2(detail.events) })
           ] })
         ] })
       ] }) })
@@ -14687,9 +15105,9 @@ function apply(ctx) {
   }
   function Schedules({ record, caps }) {
     const data = useData();
-    const [plan, setPlan] = (0, import_react12.useState)(null);
-    const [preview, setPreview] = (0, import_react12.useState)([]);
-    const [error, setError] = (0, import_react12.useState)("");
+    const [plan, setPlan] = (0, import_react13.useState)(null);
+    const [preview, setPreview] = (0, import_react13.useState)([]);
+    const [error, setError] = (0, import_react13.useState)("");
     const perform = async (fn, label = "") => {
       if (busy) return;
       if (label) setBusy(label);
@@ -14704,11 +15122,11 @@ function apply(ctx) {
       }
     };
     const update = (patch) => setPlan((p) => ({ ...p, ...patch }));
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-scroll", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-toolbar", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h3", { children: "\u5B9A\u65F6\u4EFB\u52A1" }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-spacer" }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-scroll", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-toolbar", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h3", { children: "\u5B9A\u65F6\u4EFB\u52A1" }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-spacer" }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "button",
           {
             onClick: () => setPlan({
@@ -14726,33 +15144,33 @@ function apply(ctx) {
               tools: []
             }),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Plus, { size: 16 }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Plus, { size: 16 }),
               "\u6DFB\u52A0\u5B9A\u65F6\u4EFB\u52A1"
             ]
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("table", { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("tr", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u65F6\u95F4" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u4E0B\u6B21\u6267\u884C" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u7248\u672C" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u72B6\u6001" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u64CD\u4F5C" })
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("table", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("tr", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u65F6\u95F4" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u4E0B\u6B21\u6267\u884C" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u7248\u672C" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u72B6\u6001" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u64CD\u4F5C" })
         ] }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("tbody", { children: data.schedules.filter((p) => p.workflowId === record.id).map((p) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("tr", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("td", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("tbody", { children: data.schedules.filter((p) => p.workflowId === record.id).map((p) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("tr", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("td", { children: [
             p.cron ?? p.at ?? `${p.seconds}s`,
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("small", { children: p.timezone })
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("small", { children: p.timezone })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("td", { children: timestamp(p.nextAt) }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("td", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("td", { children: timestamp(p.nextAt) }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("td", { children: [
             "v",
             p.workflowRevision
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("td", { children: p.enabled ? "\u542F\u7528" : "\u505C\u7528" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("td", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("td", { children: p.enabled ? "\u542F\u7528" : "\u505C\u7528" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("td", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
               Icon2,
               {
                 label: "\u7F16\u8F91\u5B9A\u65F6\u4EFB\u52A1",
@@ -14760,7 +15178,7 @@ function apply(ctx) {
                 onClick: () => setPlan(p)
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
               Icon2,
               {
                 label: "\u5220\u9664\u5B9A\u65F6\u4EFB\u52A1",
@@ -14773,43 +15191,43 @@ function apply(ctx) {
           ] })
         ] }, p.id)) })
       ] }),
-      error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { role: "alert", className: "wf-error", children: error }),
-      plan && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Modal, { title: "\u5B9A\u65F6\u4EFB\u52A1", close: () => setPlan(null), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-modal-body", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u7C7B\u578B", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+      error && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { role: "alert", className: "wf-error", children: error }),
+      plan && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Modal, { title: "\u5B9A\u65F6\u4EFB\u52A1", close: () => setPlan(null), children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-modal-body", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u7C7B\u578B", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "select",
           {
             value: plan.kind,
             onChange: (e) => update({ kind: e.target.value }),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "cron", children: "\u56FA\u5B9A\u65E5\u7A0B" }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "once", children: "\u5355\u6B21" }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "interval", children: "\u56FA\u5B9A\u95F4\u9694" })
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "cron", children: "\u56FA\u5B9A\u65E5\u7A0B" }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "once", children: "\u5355\u6B21" }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "interval", children: "\u56FA\u5B9A\u95F4\u9694" })
             ]
           }
         ) }),
-        plan.kind === "cron" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "Cron", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        plan.kind === "cron" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "Cron", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "input",
             {
               value: plan.cron ?? "",
               onChange: (e) => update({ cron: e.target.value })
             }
           ) }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u65F6\u533A", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u65F6\u533A", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "input",
             {
               value: plan.timezone ?? "",
               onChange: (e) => update({ timezone: e.target.value })
             }
           ) })
-        ] }) : plan.kind === "once" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u6267\u884C\u65F6\u95F4\uFF08\u542B\u65F6\u533A\uFF09", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        ] }) : plan.kind === "once" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u6267\u884C\u65F6\u95F4\uFF08\u542B\u65F6\u533A\uFF09", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             value: plan.at ?? "",
             placeholder: "2026-09-14T09:00:00+08:00",
             onChange: (e) => update({ at: e.target.value })
           }
-        ) }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u95F4\u9694\uFF08\u79D2\uFF09", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        ) }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u95F4\u9694\uFF08\u79D2\uFF09", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             type: "number",
@@ -14818,14 +15236,14 @@ function apply(ctx) {
             onChange: (e) => update({ seconds: Number(e.target.value) })
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u5DE5\u4F5C\u76EE\u5F55", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5DE5\u4F5C\u76EE\u5F55", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             value: plan.cwd,
             onChange: (e) => update({ cwd: e.target.value })
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u56FA\u5B9A\u7248\u672C", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u56FA\u5B9A\u7248\u672C", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             type: "number",
@@ -14835,7 +15253,7 @@ function apply(ctx) {
             onChange: (e) => update({ workflowRevision: Number(e.target.value) })
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "Provider", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "Provider", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "select",
           {
             value: plan.rootRoute.provider,
@@ -14843,12 +15261,12 @@ function apply(ctx) {
               rootRoute: { provider: e.target.value, model: "" }
             }),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "", children: "\u9009\u62E9 Provider" }),
-              caps?.providers?.map((p) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: p.id, children: p.name }, p.id))
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "", children: "\u9009\u62E9 Provider" }),
+              caps?.providers?.map((p) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: p.id, children: p.name }, p.id))
             ]
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "Model", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "Model", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             value: plan.rootRoute.model,
@@ -14857,7 +15275,7 @@ function apply(ctx) {
             })
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u63A8\u7406\u5F3A\u5EA6", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u63A8\u7406\u5F3A\u5EA6", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             value: plan.rootRoute.reasoningEffort ?? "",
@@ -14869,7 +15287,7 @@ function apply(ctx) {
             })
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           JsonField,
           {
             label: "\u8F93\u5165",
@@ -14877,29 +15295,29 @@ function apply(ctx) {
             change: (input) => update({ input })
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u9519\u8FC7\u6267\u884C", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u9519\u8FC7\u6267\u884C", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "select",
           {
             value: plan.missed,
             onChange: (e) => update({ missed: e.target.value }),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "skip", children: "\u8DF3\u8FC7" }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "latest", children: "\u8865\u6267\u884C\u6700\u8FD1\u4E00\u6B21" })
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "skip", children: "\u8DF3\u8FC7" }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "latest", children: "\u8865\u6267\u884C\u6700\u8FD1\u4E00\u6B21" })
             ]
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u8FD0\u884C\u91CD\u53E0", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u8FD0\u884C\u91CD\u53E0", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "select",
           {
             value: plan.overlap,
             onChange: (e) => update({ overlap: e.target.value }),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "skip", children: "\u8DF3\u8FC7" }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("option", { value: "latest", children: "\u6392\u961F\u6700\u8FD1\u4E00\u6B21" })
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "skip", children: "\u8DF3\u8FC7" }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "latest", children: "\u6392\u961F\u6700\u8FD1\u4E00\u6B21" })
             ]
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Field, { label: "\u5141\u8BB8\u7684\u5DE5\u5177", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5141\u8BB8\u7684\u5DE5\u5177", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             value: (plan.tools ?? []).join(", "),
@@ -14908,8 +15326,8 @@ function apply(ctx) {
             })
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("label", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "input",
             {
               type: "checkbox",
@@ -14919,24 +15337,24 @@ function apply(ctx) {
           ),
           "\u542F\u7528"
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("p", { className: "wf-muted", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("p", { className: "wf-muted", children: [
           "Host \u5728\u7EBF\u65F6\u6267\u884C \xB7 ",
           plan.timezone
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "button",
           {
             onClick: () => perform(
               async () => setPreview(await api({ action: "schedulePreview", plan }))
             ),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Clock, { size: 16 }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Clock, { size: 16 }),
               "\u9884\u89C8\u6267\u884C\u65F6\u95F4"
             ]
           }
         ),
-        preview.map((at) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: timestamp(at) }, at)),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        preview.map((at) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { children: timestamp(at) }, at)),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "button",
           {
             className: "wf-primary",
@@ -14949,12 +15367,12 @@ function apply(ctx) {
               setPlan(null);
             }),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Save, { size: 16 }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Save, { size: 16 }),
               "\u4FDD\u5B58\u5B9A\u65F6\u4EFB\u52A1"
             ]
           }
         ),
-        error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { role: "alert", className: "wf-error", children: error })
+        error && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { role: "alert", className: "wf-error", children: error })
       ] }) })
     ] });
   }
@@ -14962,30 +15380,30 @@ function apply(ctx) {
     const selected2 = usePanel();
     const data = useData();
     const header = useHeaderDraft();
-    const [record, setRecord] = (0, import_react12.useState)(null);
-    const [caps, setCaps] = (0, import_react12.useState)(null);
-    const [error, setError] = (0, import_react12.useState)("");
-    const [trial, setTrial] = (0, import_react12.useState)(false);
-    const [input, setInput] = (0, import_react12.useState)({ text: "" });
-    const [versions, setVersions] = (0, import_react12.useState)([]);
-    const [archived, setArchived] = (0, import_react12.useState)(false);
-    const [moreOpen, setMoreOpen] = (0, import_react12.useState)(false);
-    const [busy2, setBusy2] = (0, import_react12.useState)("");
+    const [record, setRecord] = (0, import_react13.useState)(null);
+    const [caps, setCaps] = (0, import_react13.useState)(null);
+    const [error, setError] = (0, import_react13.useState)("");
+    const [trial, setTrial] = (0, import_react13.useState)(false);
+    const [input, setInput] = (0, import_react13.useState)({ text: "" });
+    const [versions, setVersions] = (0, import_react13.useState)([]);
+    const [archived, setArchived] = (0, import_react13.useState)(false);
+    const [moreOpen, setMoreOpen] = (0, import_react13.useState)(false);
+    const [busy2, setBusy2] = (0, import_react13.useState)("");
     const load = async () => {
       if (selected2.id)
         setRecord(await api({ action: "read", id: selected2.id }));
     };
     const revision = data.workflows.find((w) => w.id === selected2.id)?.revision;
-    (0, import_react12.useEffect)(() => {
+    (0, import_react13.useEffect)(() => {
       setRecord(null);
       setError("");
       load().catch((e) => setError(e.message));
       api({ action: "capabilities", sessionId: current() }).then(setCaps).catch((e) => setError(e.message));
     }, [selected2.id]);
-    (0, import_react12.useEffect)(() => {
+    (0, import_react13.useEffect)(() => {
       if (selected2.id) load().catch((e) => setError(e.message));
     }, [revision]);
-    (0, import_react12.useEffect)(() => {
+    (0, import_react13.useEffect)(() => {
       if (selected2.tab === "versions" && selected2.id)
         api({ action: "versions", id: selected2.id }).then(setVersions).catch((e) => setError(e.message));
     }, [selected2]);
@@ -15010,9 +15428,9 @@ function apply(ctx) {
         });
       await load();
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("main", { className: "wf wf-main", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("header", { className: "wf-appbar", children: record ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("main", { className: "wf wf-main", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("header", { className: "wf-appbar", children: record ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           Icon2,
           {
             label: "\u8FD4\u56DE\u5DE5\u4F5C\u6D41\u5217\u8868",
@@ -15020,7 +15438,7 @@ function apply(ctx) {
             onClick: () => openEditor(null)
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "span",
           {
             className: `wf-workflow-icon wf-icon-${record.icon ?? "workflow"}`,
@@ -15028,7 +15446,7 @@ function apply(ctx) {
             children: glyphFor(record.icon, 15)
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             className: "wf-appbar-name",
@@ -15038,17 +15456,17 @@ function apply(ctx) {
             onChange: (e) => draft?.rename?.(e.target.value)
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "span",
           {
             className: `wf-chip ${record.published === record.revision ? "is-published" : ""}`,
             children: record.published === record.revision ? `\u5DF2\u53D1\u5E03 v${record.revision}` : `\u8349\u7A3F v${record.revision}`
           }
         ),
-        section === "editor" && draft && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: `wf-chip ${draft.dirty ? "is-dirty" : ""}`, children: draft.dirty ? "\u672A\u4FDD\u5B58" : "\u5DF2\u4FDD\u5B58" }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-spacer" }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-segmented", role: "tablist", "aria-label": "\u5DE5\u4F5C\u6D41\u89C6\u56FE", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        section === "editor" && draft && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: `wf-chip ${draft.dirty ? "is-dirty" : ""}`, children: draft.dirty ? "\u672A\u4FDD\u5B58" : "\u5DF2\u4FDD\u5B58" }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-spacer" }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-segmented", role: "tablist", "aria-label": "\u5DE5\u4F5C\u6D41\u89C6\u56FE", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "button",
             {
               role: "tab",
@@ -15057,7 +15475,7 @@ function apply(ctx) {
               children: "\u7F16\u8F91\u5668"
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "button",
             {
               role: "tab",
@@ -15067,20 +15485,20 @@ function apply(ctx) {
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("button", { onClick: () => perform(() => bind(record, void 0, "author")), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(MessageSquare, { size: 16 }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("button", { onClick: () => perform(() => bind(record, void 0, "author")), children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(MessageSquare, { size: 16 }),
           "\u5BF9\u8BDD\u4FEE\u6539"
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { className: "wf-editor-debug", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("input", { type: "checkbox", "aria-label": "\u9010\u6B65\u8C03\u8BD5", checked: Boolean(data.workflows.find((w) => w.id === record.id)?.debug), onChange: (e) => perform(() => api({ action: "setWorkflowDebug", id: record.id, debug: e.target.checked })) }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("label", { className: "wf-editor-debug", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("input", { type: "checkbox", "aria-label": "\u9010\u6B65\u8C03\u8BD5", checked: Boolean(data.workflows.find((w) => w.id === record.id)?.debug), onChange: (e) => perform(() => api({ action: "setWorkflowDebug", id: record.id, debug: e.target.checked })) }),
           "\u9010\u6B65\u8C03\u8BD5"
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("button", { className: "wf-primary", onClick: () => setTrial(true), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Play, { size: 16 }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("button", { className: "wf-primary", onClick: () => setTrial(true), children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Play, { size: 16 }),
           "\u8BD5\u8FD0\u884C"
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Icon2, { label: "\u4FDD\u5B58\u7248\u672C", icon: Save, onClick: () => void saveFromBar() }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Icon2, { label: "\u4FDD\u5B58\u7248\u672C", icon: Save, onClick: () => void saveFromBar() }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "button",
           {
             disabled: record.published === record.revision || Boolean(draft?.dirty),
@@ -15094,21 +15512,21 @@ function apply(ctx) {
               await load();
             }),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Check, { size: 16 }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Check, { size: 16 }),
               record.published === record.revision ? "\u5DF2\u53D1\u5E03" : "\u53D1\u5E03\u7248\u672C"
             ]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           import_dsh_client_ui_primitives3.Menu,
           {
             open: moreOpen,
             onClose: () => setMoreOpen(false),
             items: [
-              { id: "export", label: "\u5BFC\u51FA\u5B9A\u4E49", icon: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Download, { size: 16 }) },
-              { id: "copy", label: "\u62F7\u8D1D\u5DE5\u4F5C\u6D41", icon: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Copy, { size: 16 }) },
-              { id: "archive", label: record.archived ? "\u6062\u590D\u5DE5\u4F5C\u6D41" : "\u5F52\u6863\u5DE5\u4F5C\u6D41", icon: record.archived ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Undo2, { size: 16 }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Archive, { size: 16 }) },
-              { id: "manage", label: "\u7BA1\u7406\u5DE5\u4F5C\u6D41", icon: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Settings2, { size: 16 }) }
+              { id: "export", label: "\u5BFC\u51FA\u5B9A\u4E49", icon: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Download, { size: 16 }) },
+              { id: "copy", label: "\u62F7\u8D1D\u5DE5\u4F5C\u6D41", icon: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Copy, { size: 16 }) },
+              { id: "archive", label: record.archived ? "\u6062\u590D\u5DE5\u4F5C\u6D41" : "\u5F52\u6863\u5DE5\u4F5C\u6D41", icon: record.archived ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Undo2, { size: 16 }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Archive, { size: 16 }) },
+              { id: "manage", label: "\u7BA1\u7406\u5DE5\u4F5C\u6D41", icon: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Settings2, { size: 16 }) }
             ],
             onSelect: (action) => {
               setMoreOpen(false);
@@ -15127,25 +15545,25 @@ function apply(ctx) {
                 );
               if (action === "manage") openEditor(null);
             },
-            anchor: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            anchor: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
               "button",
               {
                 type: "button",
                 "aria-label": "\u66F4\u591A\u5DE5\u4F5C\u6D41\u64CD\u4F5C",
                 "aria-expanded": moreOpen,
                 onClick: () => setMoreOpen((v) => !v),
-                children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Ellipsis, { size: 16 })
+                children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Ellipsis, { size: 16 })
               }
             )
           }
         )
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-workflow-icon", "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(GitBranch, { size: 15 }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h1", { children: "\u5DE5\u4F5C\u6D41" }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "wf-spacer" }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { className: "wf-import", title: "\u5BFC\u5165\u5DE5\u4F5C\u6D41", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Upload, { size: 16 }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-workflow-icon", "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(GitBranch, { size: 15 }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h1", { children: "\u5DE5\u4F5C\u6D41" }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-spacer" }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("label", { className: "wf-import", title: "\u5BFC\u5165\u5DE5\u4F5C\u6D41", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Upload, { size: 16 }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "input",
             {
               "aria-label": "\u5BFC\u5165\u5DE5\u4F5C\u6D41",
@@ -15166,7 +15584,7 @@ function apply(ctx) {
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "button",
           {
             className: "wf-primary",
@@ -15174,16 +15592,16 @@ function apply(ctx) {
             "aria-busy": busy2 === "create",
             onClick: () => perform(() => beginAuthorSession(), "create"),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Plus, { size: 16 }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Plus, { size: 16 }),
               busy2 === "create" ? "\u6B63\u5728\u521B\u5EFA\u2026" : "\u521B\u5EFA\u5DE5\u4F5C\u6D41"
             ]
           }
         )
       ] }) }),
-      (error || data.error) && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-error-bar", role: "alert", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TriangleAlert, { size: 15, "aria-hidden": "true" }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "wf-error", children: error || data.error }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+      (error || data.error) && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-error-bar", role: "alert", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(TriangleAlert, { size: 15, "aria-hidden": "true" }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-error", children: error || data.error }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "button",
           {
             type: "button",
@@ -15193,14 +15611,14 @@ function apply(ctx) {
               void refresh();
             },
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(RefreshCw, { size: 14, "aria-hidden": "true" }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(RefreshCw, { size: 14, "aria-hidden": "true" }),
               "\u91CD\u8BD5"
             ]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Icon2, { label: "\u5173\u95ED\u63D0\u793A", icon: X, onClick: () => setError("") })
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Icon2, { label: "\u5173\u95ED\u63D0\u793A", icon: X, onClick: () => setError("") })
       ] }),
-      record ? section === "editor" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      record ? section === "editor" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
         Editor,
         {
           record,
@@ -15211,12 +15629,12 @@ function apply(ctx) {
             await refresh();
           }
         }
-      ) : /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("nav", { className: "wf-tabs", "aria-label": "\u5DE5\u4F5C\u6D41\u89C6\u56FE", children: [
+      ) : /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("nav", { className: "wf-tabs", "aria-label": "\u5DE5\u4F5C\u6D41\u89C6\u56FE", children: [
           ["runs", "\u8FD0\u884C\u8BB0\u5F55"],
           ["schedules", "\u5B9A\u65F6\u4EFB\u52A1"],
           ["versions", "\u7248\u672C\u5386\u53F2"]
-        ].map(([tab, label]) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        ].map(([tab, label]) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "button",
           {
             "aria-current": selected2.tab === tab ? "page" : void 0,
@@ -15225,26 +15643,26 @@ function apply(ctx) {
           },
           tab
         )) }),
-        selected2.tab === "runs" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Runs, { id: record.id }),
+        selected2.tab === "runs" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Runs, { id: record.id }),
         " ",
-        selected2.tab === "schedules" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Schedules, { record, caps }),
+        selected2.tab === "schedules" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Schedules, { record, caps }),
         " ",
-        selected2.tab === "versions" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "wf-scroll", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("table", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("tr", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u7248\u672C" }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u540D\u79F0" }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u65F6\u95F4" }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("th", { children: "\u64CD\u4F5C" })
+        selected2.tab === "versions" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "wf-scroll", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("table", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("tr", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u7248\u672C" }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u540D\u79F0" }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u65F6\u95F4" }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u64CD\u4F5C" })
           ] }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("tbody", { children: versions.map((v) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("tr", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("td", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("tbody", { children: versions.map((v) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("tr", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("td", { children: [
               "v",
               v.revision
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("td", { children: v.definition.name }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("td", { children: timestamp(v.createdAt) }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("td", { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("td", { children: v.definition.name }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("td", { children: timestamp(v.createdAt) }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("td", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 Icon2,
                 {
                   label: `\u5BFC\u51FA v${v.revision}`,
@@ -15255,7 +15673,7 @@ function apply(ctx) {
                   )
                 }
               ),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 "button",
                 {
                   onClick: () => perform(async () => {
@@ -15273,9 +15691,9 @@ function apply(ctx) {
             ] })
           ] }, v.revision)) })
         ] }) })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Gallery, { data, onError: setError }),
-      trial && record && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Modal, { title: "\u8BD5\u8FD0\u884C", close: () => setTrial(false), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-modal-body", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Gallery, { data, onError: setError }),
+      trial && record && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Modal, { title: "\u8BD5\u8FD0\u884C", close: () => setTrial(false), children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-modal-body", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           JsonField,
           {
             label: "\u8F93\u5165\u6750\u6599",
@@ -15284,7 +15702,7 @@ function apply(ctx) {
             rows: 12
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
           "button",
           {
             className: "wf-primary",
@@ -15309,7 +15727,7 @@ function apply(ctx) {
               openEditor(record.id, "runs");
             }),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Play, { size: 16 }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Play, { size: 16 }),
               "\u6267\u884C v",
               record.revision
             ]
@@ -15336,7 +15754,7 @@ function apply(ctx) {
     const recipients = (data.stepSessions ?? []).filter((s) => s.runId === latest?.id);
     const name2 = workflow?.name ?? "\u65B0\u5DE5\u4F5C\u6D41";
     const label = authoring ? creating ? "\u6B63\u5728\u521B\u5EFA\u5DE5\u4F5C\u6D41" : "\u6B63\u5728\u4FEE\u6539\u5DE5\u4F5C\u6D41" : "\u5DE5\u4F5C\u6D41\u8FD0\u884C\u4F1A\u8BDD";
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
       "span",
       {
         className: "wf-composer-tag",
@@ -15344,7 +15762,7 @@ function apply(ctx) {
         "data-workflow-tag": binding?.workflowId ?? "new",
         title: `${label} \xB7 ${name2}`,
         children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
             "button",
             {
               type: "button",
@@ -15352,17 +15770,17 @@ function apply(ctx) {
               "aria-label": `${label}\uFF1A${name2}`,
               onClick: () => openEditor(binding?.workflowId ?? null),
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Workflow, { size: 13, "aria-hidden": "true" }),
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("strong", { children: name2 }),
-                binding && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("small", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Workflow, { size: 13, "aria-hidden": "true" }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("strong", { children: name2 }),
+                binding && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("small", { children: [
                   "v",
                   binding.revision
                 ] })
               ]
             }
           ),
-          active && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: `wf-status ${active.status}`, children: statuses[active.status] ?? active.status }),
-          binding && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          active && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: `wf-status ${active.status}`, children: statuses[active.status] ?? active.status }),
+          binding && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "button",
             {
               type: "button",
@@ -15370,7 +15788,7 @@ function apply(ctx) {
               "aria-label": "\u7ED3\u675F\u7ED1\u5B9A",
               title: "\u7ED3\u675F\u7ED1\u5B9A",
               onClick: () => void unbind(sessionId),
-              children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(X, { size: 12, "aria-hidden": "true" })
+              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(X, { size: 12, "aria-hidden": "true" })
             }
           )
         ]
@@ -15397,14 +15815,14 @@ function apply(ctx) {
       const run = data.runs.find((r) => r.sessionId === props.sessionId);
       const view = props.useStore((s) => s.view);
       const step = data.stepSessions?.find((s) => s.sessionId === props.sessionId);
-      if (step) return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(RunTimeline, { ctx, api, runId: step.runId, focusNodeId: step.nodeId, openSession, onChange: refresh, embedded: true, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Native, { ...props }) });
-      if (!run) return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Native, { ...props });
-      if (view === "trajectory") return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Native, { ...props });
-      return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(RunTimeline, { ctx, api, runId: run.id, openSession, onChange: refresh, embedded: true }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("details", { className: "wf-root-conversation", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("summary", { children: "\u603B\u4F1A\u8BDD\u4EA4\u6D41" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Native, { ...props })
+      if (step) return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(RunTimeline, { ctx, api, runId: step.runId, focusNodeId: step.nodeId, openSession, onChange: refresh, embedded: true, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Native, { ...props }) });
+      if (!run) return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Native, { ...props });
+      if (view === "trajectory") return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Native, { ...props });
+      return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(RunTimeline, { ctx, api, runId: run.id, openSession, onChange: refresh, embedded: true }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { className: "wf-root-conversation", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("summary", { children: "\u603B\u4F1A\u8BDD\u4EA4\u6D41" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Native, { ...props })
         ] })
       ] });
     };
@@ -15437,13 +15855,13 @@ function apply(ctx) {
     () => ctx.slots.register(
       { name: "sidebar.panellist", id: "workflow-studio", order: 100, label: "\u5DE5\u4F5C\u6D41" },
       ({ size, active }) => {
-        (0, import_react12.useEffect)(() => {
+        (0, import_react13.useEffect)(() => {
           if (active) {
             setPanelOpen(true);
             void refresh();
           }
         }, [active]);
-        return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(GitBranch, { size, strokeWidth: 1.8, "aria-hidden": "true" });
+        return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(GitBranch, { size, strokeWidth: 1.8, "aria-hidden": "true" });
       }
     )
   );

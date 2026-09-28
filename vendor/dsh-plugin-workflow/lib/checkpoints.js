@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { fail } from './definition.js';
 
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
-const excluded = new Set(['.git', 'node_modules', '.DS_Store', '.workflow-checkpoints']);
+const excluded = new Set(['.git', 'node_modules', '.DS_Store', '.workflow-checkpoints', '.workflow']);
 const inside = (root, path) => { const p = relative(root, path); return p === '' || (!p.startsWith('..') && !isAbsolute(p)); };
 export class Checkpoints {
   constructor(directory) { this.directory = resolve(directory); this.locks = new Map(); this.recoveryError = null; }

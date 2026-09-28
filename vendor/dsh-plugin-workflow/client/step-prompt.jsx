@@ -72,12 +72,22 @@ export function StepPrompt({node, definition, onChange, onReference}) {
   const insertAtCaret = (el) => {
     const selection = window.getSelection();
     const range = savedRange.current ?? (selection?.rangeCount ? selection.getRangeAt(0) : null);
-    if (!range) { editor.current.append(el); } else {
+    if (!range || !editor.current.contains(range.startContainer)) { editor.current.append(el); } else {
       range.deleteContents();
       range.insertNode(el);
       range.setStartAfter(el); range.collapse(true);
       selection?.removeAllRanges(); selection?.addRange(range);
     }
+  };
+  const rememberRange = () => {
+    const selection = window.getSelection();
+    if (selection?.rangeCount && editor.current?.contains(selection.anchorNode)) savedRange.current = selection.getRangeAt(0).cloneRange();
+  };
+  const insertConnected = key => {
+    editor.current?.focus();
+    insertAtCaret(makeChip(key));
+    savedRange.current = null;
+    sync();
   };
 
   const caretOffset = () => {
@@ -141,6 +151,8 @@ export function StepPrompt({node, definition, onChange, onReference}) {
     .filter(n => canConnect(definition, n.id, node.id) && n.name.startsWith(query.trim()));
   const popupOpen = atIndex >= 0;
   const activeIndex = Math.min(active, Math.max(0, matched.length - 1));
+  const pendingResources = Object.entries(node.input ?? {}).filter(([key, ref]) =>
+    ['skill', 'file'].includes(ref?.resourceKind) && !(node.prompt ?? '').includes(`{{input.${key}}}`));
 
   const onKeyDown = e => {
     e.stopPropagation();
@@ -210,11 +222,21 @@ export function StepPrompt({node, definition, onChange, onReference}) {
   };
 
   return <div className="wf-prompt-composer">
+    {pendingResources.length > 0 && <div className="wf-resource-pending" role="status">
+      <span>选择 Prompt 中的位置，再插入引用路径：</span>
+      {pendingResources.map(([key, ref]) => {
+        const source = definition.nodes.find(item => item.id === ref.nodeId);
+        return <button type="button" key={key} onMouseDown={event => event.preventDefault()} onClick={() => insertConnected(key)}>
+          插入 {source?.name ?? key} 路径
+        </button>;
+      })}
+    </div>}
     <div ref={editor} contentEditable suppressContentEditableWarning role="textbox" aria-label="Prompt" aria-multiline="true"
       className="wf-step-prompt" data-placeholder="通过@键来加入不同的输入"
       onInput={onInput} onKeyDown={onKeyDown} onPaste={onPaste} onCopy={onCopy}
+      onMouseUp={rememberRange} onKeyUp={rememberRange}
       onDragStart={onDragStart} onDragOver={e => { if (e.dataTransfer.types.includes('application/wf-reference')) e.preventDefault(); }}
-      onDrop={onDrop} onBlur={() => setAtIndex(-1)}
+      onDrop={onDrop} onBlur={() => { rememberRange(); setAtIndex(-1); }}
     />
     {popupOpen && (
       <div className="wf-reference-picker" role="listbox" aria-label="选择要引用的步骤" ref={pickerRef}

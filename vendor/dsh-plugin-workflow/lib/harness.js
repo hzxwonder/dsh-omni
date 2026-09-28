@@ -7,6 +7,7 @@ import { publishHalo } from './publisher.js';
 // Only the authored step prompt enables delegation; input materials cannot grant tools.
 export function stepTools(node) {
   const allow = [...(node.tools ?? [])];
+  if (Object.values(node.input ?? {}).some(ref => ref?.resourceKind === 'skill' || ref?.resourceKind === 'file') && !allow.includes('read')) allow.push('read');
   if (/使用\s*subagents?\b/i.test(node.prompt ?? '') && !allow.includes('subagent')) allow.push('subagent');
   return allow;
 }
@@ -60,6 +61,7 @@ export function buildAgentPrompt(node, input, skills = []) {
   const inlined = new Set(
     [...(node.prompt ?? "").matchAll(/\{\{(?:input|node)\.([a-zA-Z0-9_-]+)\}\}/g)].map((m) => m[1]),
   );
+  const resourceKeys = new Set(Object.entries(node.input ?? {}).filter(([, ref]) => ['skill', 'file'].includes(ref?.resourceKind)).map(([key]) => key));
   const material = Object.entries(fields)
     .filter(([key]) => !inlined.has(key))
     .map(([key, value]) => `${key}: ${typeof value === "string" ? value : JSON.stringify(value, null, 2)}`)
@@ -74,8 +76,8 @@ export function buildAgentPrompt(node, input, skills = []) {
     : "";
   const text = [
     material,
-    renderPrompt(node.prompt, fields),
-    ...skills.map((s) => s.content).filter(Boolean),
+    renderPrompt(node.prompt, fields, resourceKeys),
+    ...skills.map((s) => s.path ? `Skill ${s.name} is available at ${s.path}. Follow its instructions below; read supporting files only when needed.\n${s.content}` : s.content).filter(Boolean),
     fileNote,
     `This workflow step may use only these tools: ${JSON.stringify(allowedTools)}. Do not delegate, read files, or use any other tool unless it is listed. When delegating, follow the roles, material boundaries and dependencies specified in the step prompt. Give each child only its assigned material and wait for its result before completing. Work directly from the supplied material and attached files.`,
     node.outputSchema
