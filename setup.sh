@@ -11,6 +11,7 @@
 #   --home <dir>        DSH home for the Desktop app (default: $HOME/.dsh-desktop)
 #   --profile <name>    Desktop profile name (default: desktop)
 #   --app <path>        Install the application bundle from this path or .dmg
+#   --installed-app <path>  Use an existing application bundle for runtime alignment
 #   --app-dest <dir>    Application destination (default: /Applications)
 #   --skip-deps         Do not run npm install inside the vendored plugins
 #   --skip-register     Do not write launcher state or the settings template
@@ -28,6 +29,7 @@ readonly MIN_NODE_MINOR=19
 HOME_DSH="${DSH_DESKTOP_HOME:-$HOME/.dsh-desktop}"
 PROFILE_NAME="desktop"
 APP_SOURCE=""
+INSTALLED_APP=""
 APP_DEST="/Applications"
 SKIP_DEPS=0
 SKIP_REGISTER=0
@@ -43,6 +45,7 @@ while [ $# -gt 0 ]; do
     --home) HOME_DSH="${2:?--home needs a directory}"; shift 2 ;;
     --profile) PROFILE_NAME="${2:?--profile needs a name}"; shift 2 ;;
     --app) APP_SOURCE="${2:?--app needs a path}"; shift 2 ;;
+    --installed-app) INSTALLED_APP="${2:?--installed-app needs a path}"; shift 2 ;;
     --app-dest) APP_DEST="${2:?--app-dest needs a directory}"; shift 2 ;;
     --skip-deps) SKIP_DEPS=1; shift ;;
     --skip-register) SKIP_REGISTER=1; shift ;;
@@ -82,8 +85,20 @@ log "profile        ${PROFILE_NAME}"
 
 step "2/6 application bundle"
 APP_PATH=""
-if [ -z "${APP_SOURCE}" ]; then
-  for candidate in "/Applications/DSH Desktop.app" "$HOME/Applications/DSH Desktop.app"; do
+if [ -n "${APP_SOURCE}" ] && [ -n "${INSTALLED_APP}" ]; then
+  fail "--app and --installed-app cannot be used together"
+fi
+if [ -n "${INSTALLED_APP}" ]; then
+  [ -d "${INSTALLED_APP}" ] || fail "installed application is missing: ${INSTALLED_APP}"
+  APP_PATH="${INSTALLED_APP}"
+  log "found          ${APP_PATH}"
+elif [ -z "${APP_SOURCE}" ]; then
+  if [ "$(basename "${HOME_DSH}")" = ".dsh-omni" ]; then
+    candidates=("/Applications/DSH Omni.app" "$HOME/Applications/DSH Omni.app")
+  else
+    candidates=("/Applications/DSH Desktop.app" "$HOME/Applications/DSH Desktop.app")
+  fi
+  for candidate in "${candidates[@]}"; do
     [ -d "${candidate}" ] && { APP_PATH="${candidate}"; break; }
   done
   [ -n "${APP_PATH}" ] && log "found          ${APP_PATH}" || log "not found      install the dmg from Releases, then re-run with --app"
@@ -145,10 +160,12 @@ else
 fi
 
 step "verify"
+verify_args=(--bundle "${SELF_DIR}" --home "${HOME_DSH}" --profile "${PROFILE_NAME}")
+[ -n "${APP_PATH}" ] && verify_args+=(--app "${APP_PATH}")
 if [ "${DRY_RUN}" = 1 ]; then
-  log "would run: node ${SELF_DIR}/scripts/verify.mjs --bundle ${SELF_DIR} --home ${HOME_DSH} --profile ${PROFILE_NAME}"
+  log "would run: node ${SELF_DIR}/scripts/verify.mjs ${verify_args[*]}"
 else
-  node "${SELF_DIR}/scripts/verify.mjs" --bundle "${SELF_DIR}" --home "${HOME_DSH}" --profile "${PROFILE_NAME}"
+  node "${SELF_DIR}/scripts/verify.mjs" "${verify_args[@]}"
 fi
 
 printf '\n'

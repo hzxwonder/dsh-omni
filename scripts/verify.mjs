@@ -10,7 +10,7 @@
 //
 // Usage: node scripts/verify.mjs --bundle <dir> --home <dsh-home> [--profile desktop] [--app <path>]
 import { createRequire } from 'node:module'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -128,6 +128,25 @@ async function main() {
   for (const name of Object.keys(manifest.profile.runtimeDependencies)) {
     check(name in runtimeDependencies, `runtime package ${name} is declared`)
     check(existsSync(join(profileDir, 'node_modules', name)), `runtime package ${name} is installed`)
+  }
+
+  if (options.app !== undefined) {
+    const bundledRuntime = join(options.app, 'Contents', 'Resources', 'app', 'node_modules', '@deepseek-ai')
+    const profileRuntime = join(profileDir, 'node_modules', '@deepseek-ai')
+    if (existsSync(bundledRuntime) && existsSync(profileRuntime)) {
+      const mismatches = []
+      for (const name of readdirSync(profileRuntime)) {
+        if (!name.startsWith('dsh-')) continue
+        const bundledPackage = join(bundledRuntime, name, 'package.json')
+        const profilePackage = join(profileRuntime, name, 'package.json')
+        if (!existsSync(bundledPackage) || !existsSync(profilePackage)) continue
+        const bundledVersion = JSON.parse(readFileSync(bundledPackage, 'utf8')).version
+        const profileVersion = JSON.parse(readFileSync(profilePackage, 'utf8')).version
+        if (bundledVersion !== profileVersion) mismatches.push(`${name}: ${profileVersion} vs ${bundledVersion}`)
+      }
+      if (mismatches.length === 0) pass('profile runtime matches the application')
+      else fail(`profile runtime differs from the application (${mismatches.join(', ')})`)
+    }
   }
 
   const bundles = profileManifest.dsh?.profile?.bundles ?? []
