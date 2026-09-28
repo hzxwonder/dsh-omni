@@ -156,4 +156,4 @@ Omni 集成版的构建、插件解析及桌面界面验收见 [工作流 0.4.0 
 
 在聊天框输入 `/prompt`，直接从候选菜单选择已保存的模板，将正文添加到聊天框。选择“新建 Prompt 模板”打开双栏管理窗口：左侧选择或新建模板，右侧编辑名称与正文，底部提供复制、删除和保存。复制会立即创建并选中“原名称 - copy”模板，使用当前编辑器中的正文；同名副本自动追加编号。支持保存失败重试、删除确认和未保存内容保护。
 
-Desktop 2.0.14 的完整应用提供配套的界面和数据接口。构建默认使用 `manifest.json` 的精确提交，打包后运行提示词前后端配套校验。
+`dsh-plugin-prompt` 通过插件接口在 DSH Omni 与官方 DeepSeek Harness Desktop 中提供配套界面和数据接口，模板保存在各自的 DSH Home。插件源码位于 `vendor/dsh-plugin-prompt`，官方 Desktop 兼容版发布于 `hzxwonder-dsh-plugins/dsh-plugin-prompt`。

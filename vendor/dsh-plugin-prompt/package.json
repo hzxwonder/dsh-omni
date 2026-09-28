@@ -1,0 +1,39 @@
+{
+  "name": "dsh-plugin-prompt",
+  "version": "0.1.0",
+  "description": "Saved prompt templates for DeepSeek Harness Desktop and DSH Omni",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./dist/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["index.js", "store.js", "dist", "cordis.patch.yml", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {"node": ">=24.0.0"},
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hzxwonder-dsh-plugins/dsh-plugin-prompt.git"
+  },
+  "dsh": {
+    "bundle": {"patch": "./cordis.patch.yml"},
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-input-trigger",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-session"
+      ]
+    }
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  }
+}
