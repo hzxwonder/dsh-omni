@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | dsh-plugin-latex | 0.1.14 | 安装、启用、创建论文与编译 PDF 通过；点击行文导图后主区空白，整体验收未通过 |
 | dsh-plugin-browser | 0.5.2 | 安装、启用、面板通过；默认缺少 Chromium，配置本机 Chrome 后成功导航至 Example Domain；Agent 工具与完整交互待验收 |
-| dsh-plugin-workflow | 0.4.0 | 官方应用加载、已有定义读取、模型设置、双击改名和八种扩展步骤通过；执行引擎 72 项自动化测试通过。实机范围见[工作流验收记录](https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow/blob/main/docs/desktop-workflow-0.4.0.md) |
+| dsh-plugin-workflow | 0.4.0 | 官方应用加载、已有定义读取、模型设置、双击改名、八种扩展步骤和确定性单步执行通过；执行引擎 72 项自动化测试通过。实机范围见[工作流验收记录](https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow/blob/main/docs/desktop-workflow-0.4.0.md) |
 | dsh-plugin-project-memory | 0.2.2 | 官方安装器拒绝：credentials/sandbox-policy/session-projection/tools 限定 0.1.5-rc.2 |
 | dsh-plugin-terminal | 0.5.0 | 安装和启用通过；会话标题栏按钮出现，打开后底部留白、没有终端控件，核心面板验收未通过 |
 | dsh-plugin-ssh | 0.1.0 | 安装后 Host 显示运行；冷启动失败：客户端等待 settingsScope。测试配置已停用该组件 |
