@@ -26,7 +26,7 @@ export async function publishHalo(input, configPath, signal) {
     const digest = createHash('sha256').update(overview.svg).digest('hex').slice(0, 12);
     overview.file = `${article.slug}-${digest}.svg`;
     publishText = insertPaperOverview(publishText, `/lab/assets/paper-overviews/${overview.file}`);
-    rendered = renderPaperMarkdown(publishText);
+    rendered = await renderPaperMarkdown(publishText);
   }
   const payload = JSON.stringify({ title: article.title, slug: article.slug, text: publishText, renderedHtml: rendered?.html,
     overview: overview ? { file: overview.file, svg: overview.svg } : undefined,

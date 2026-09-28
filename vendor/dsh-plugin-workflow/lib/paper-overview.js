@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import * as fontkit from 'fontkit';
 import rough from './vendor/rough.esm.mjs';
 
 const W = 680;
@@ -56,7 +57,7 @@ function sceneElement(type, x, y, width, height, seed) {
 function sceneText(x, y, width, height, value, size, color, seed) {
   return { ...sceneElement('text', x, y, width, height, seed), strokeColor: color,
     text: value, fontSize: size, fontFamily: 5, textAlign: 'left', verticalAlign: 'middle',
-    containerId: null, originalText: value, autoResize: true, lineHeight: 1.25 };
+    containerId: null, originalText: value, autoResize: false, lineHeight: 1.25 };
 }
 
 function sceneCard(x, y, width, height, fill, seed) {
@@ -69,8 +70,20 @@ function sceneArrow(x, y, height, seed) {
     endBinding: null, startArrowhead: null, endArrowhead: 'arrow', elbowed: false };
 }
 
-function svgText(x, y, value, size, color, extra = '') {
-  return `<text x="${x}" y="${y}" font-size="${size}" fill="${color}" ${extra}>${escape(value)}</text>`;
+function svgText(font, x, y, value, size, color, maxWidth) {
+  const run = font.layout(value);
+  const units = font.unitsPerEm;
+  const advance = run.positions.reduce((sum, position) => sum + position.xAdvance, 0);
+  const scale = Math.min(size / units, maxWidth / Math.max(1, advance));
+  let offset = 0;
+  const paths = run.glyphs.map((glyph, index) => {
+    const position = run.positions[index];
+    const path = glyph.path.toSVG();
+    const segment = path ? `<path d="${path}" transform="translate(${offset + position.xOffset} ${position.yOffset})"/>` : '';
+    offset += position.xAdvance;
+    return segment;
+  }).join('');
+  return `<g fill="${color}" transform="translate(${x} ${y}) scale(${scale} -${scale})">${paths}</g>`;
 }
 
 function roughCard(generator, x, y, width, height, fill, seed) {
@@ -86,16 +99,13 @@ export async function renderPaperOverview(input) {
   const generator = rough.generator();
   const elements = [];
   const svg = [];
-  const [latin, cjk] = await Promise.all([
-    readFile(new URL('../assets/fonts/Excalifont-Latin.woff2', import.meta.url)),
-    readFile(new URL('../assets/fonts/Xiaolai-DiagramSubset.woff2', import.meta.url)),
-  ]);
+  const font = fontkit.create(await readFile(new URL('../assets/fonts/Xiaolai-Regular.ttf', import.meta.url)));
   svg.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${height}" viewBox="0 0 ${W} ${height}" role="img" aria-labelledby="overview-title overview-desc">`);
   svg.push(`<title id="overview-title">${escape(overview.title)}</title><desc id="overview-desc">${escape(overview.steps.map(s => `${s.label}：${s.title}。${s.detail}`).join('；') + `。证据：${overview.evidence}。边界：${overview.boundary}`)}</desc>`);
-  svg.push(`<defs><style>@font-face{font-family:Excalifont;src:url(data:font/woff2;base64,${latin.toString('base64')}) format('woff2')}@font-face{font-family:Xiaolai;src:url(data:font/woff2;base64,${cjk.toString('base64')}) format('woff2')}text{font-family:Excalifont,Xiaolai,'Kaiti SC',KaiTi,cursive}</style><marker id="tip" markerWidth="12" markerHeight="12" refX="8" refY="6" orient="auto"><path d="M1 1 L9 6 L1 11" fill="none" stroke="${STROKE}" stroke-width="2"/></marker></defs>`);
+  svg.push(`<defs><marker id="tip" markerWidth="12" markerHeight="12" refX="8" refY="6" orient="auto"><path d="M1 1 L9 6 L1 11" fill="none" stroke="${STROKE}" stroke-width="2"/></marker></defs>`);
   svg.push(`<rect width="${W}" height="${height}" fill="${PAPER}"/>`);
-  svg.push(svgText(X, 55, overview.title, 29, INK));
-  svg.push(svgText(X, 85, '问题 → 方法 → 证据 → 适用边界', 16, MUTED));
+  svg.push(svgText(font, X, 55, overview.title, 29, INK, CARD_W));
+  svg.push(svgText(font, X, 85, '问题 → 方法 → 证据 → 适用边界', 16, MUTED, CARD_W));
   elements.push(sceneText(X, 27, CARD_W, 40, overview.title, 29, INK, 1));
   elements.push(sceneText(X, 67, CARD_W, 25, '问题 → 方法 → 证据 → 适用边界', 16, MUTED, 2));
   overview.steps.forEach((step, index) => {
@@ -105,11 +115,11 @@ export async function renderPaperOverview(input) {
     elements.push(sceneCard(X, y, CARD_W, 148, fill, seed));
     elements.push(sceneText(X + 24, y + 12, CARD_W - 48, 20, `${String(index + 1).padStart(2, '0')}  ${step.label}`, 16, MUTED, seed + 1));
     elements.push(sceneText(X + 24, y + 36, CARD_W - 48, 30, step.title, 25, INK, seed + 2));
-    elements.push(sceneText(X + 24, y + 72, CARD_W - 48, 68, step.detail, 16, MUTED, seed + 3));
+    elements.push(sceneText(X + 24, y + 72, CARD_W - 48, 68, lineWrap(step.detail, 30).join('\n'), 16, MUTED, seed + 3));
     svg.push(roughCard(generator, X, y, CARD_W, 148, fill, seed));
-    svg.push(svgText(X + 24, y + 30, `${String(index + 1).padStart(2, '0')}  ${step.label}`, 16, MUTED));
-    svg.push(svgText(X + 24, y + 61, step.title, 25, INK));
-    lineWrap(step.detail, 30).forEach((line, lineNo) => svg.push(svgText(X + 24, y + 86 + lineNo * 22, line, 16, MUTED)));
+    svg.push(svgText(font, X + 24, y + 30, `${String(index + 1).padStart(2, '0')}  ${step.label}`, 16, MUTED, CARD_W - 48));
+    svg.push(svgText(font, X + 24, y + 61, step.title, 25, INK, CARD_W - 48));
+    lineWrap(step.detail, 30).forEach((line, lineNo) => svg.push(svgText(font, X + 24, y + 86 + lineNo * 22, line, 16, MUTED, CARD_W - 48)));
     if (index < overview.steps.length - 1) {
       elements.push(sceneArrow(W / 2, y + 151, 22, seed + 4));
       svg.push(`<path d="M${W / 2} ${y + 152} Q${W / 2 + 2} ${y + 162} ${W / 2} ${y + 170}" fill="none" stroke="${STROKE}" stroke-width="2.5" marker-end="url(#tip)"/>`);
@@ -120,10 +130,10 @@ export async function renderPaperOverview(input) {
     const y = footerY + index * 146;
     elements.push(sceneCard(X, y, CARD_W, 132, fill, 800 + index * 10));
     elements.push(sceneText(X + 18, y + 10, CARD_W - 36, 25, label, 19, INK, 801 + index * 10));
-    elements.push(sceneText(X + 18, y + 40, CARD_W - 36, 80, value, 16, MUTED, 802 + index * 10));
+    elements.push(sceneText(X + 18, y + 40, CARD_W - 36, 80, lineWrap(value, 34).join('\n'), 16, MUTED, 802 + index * 10));
     svg.push(roughCard(generator, X, y, CARD_W, 132, fill, 800 + index * 10));
-    svg.push(svgText(X + 18, y + 34, label, 19, INK));
-    lineWrap(value, 34).forEach((line, lineNo) => svg.push(svgText(X + 18, y + 63 + lineNo * 22, line, 16, MUTED)));
+    svg.push(svgText(font, X + 18, y + 34, label, 19, INK, CARD_W - 36));
+    lineWrap(value, 34).forEach((line, lineNo) => svg.push(svgText(font, X + 18, y + 63 + lineNo * 22, line, 16, MUTED, CARD_W - 36)));
   }
   svg.push('</svg>');
   return {

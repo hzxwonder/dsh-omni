@@ -4,11 +4,26 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 
 ## 宿主支持
 
-本目录维护 DSH Omni 集成版。插件数据落在 Omni 的 `$DSH_HOME`（`config.dshHome` → `DSH_HOME` → `~/.dsh`），工作流定义、运行记录和附件保存在独立的 `workflow-studio` 目录。
+本仓库维护 [DeepSeek 官方 Desktop](https://github.com/deepseek-ai/deepseek-harness) 的独立适配插件。
+[DSH Omni](https://github.com/hzxwonder/dsh-omni) 的集成版由其 `vendor/` 单独维护。维护目标为这两个桌面产品，Web 端不再作为维护目标。
 
-客户端通过 Harness 的工作流面板、输入标签和会话槽集成。步骤内复用原生对话组件，包含消息、思考过程和工具调用。嵌入步骤视图与 Omni 的 `0.1.7-rc.2` 运行时一同验收。
+### 官方 Desktop 验收
 
-包显式导出 `./package.json`：DSH Desktop 的宿主在 Electron Utility 进程里通过 Node loader 的 fallback 路径解析客户端入口，未声明该导出时客户端入口会被静默跳过；普通 Web 宿主不受影响。该导出对两端都保留。
+2026-09-28，macOS arm64，官方签名的 DeepSeek Harness **0.1.7-rc.2** 已加载工作流插件 **0.5.0**。编辑器中的 Skill、文件资源模块及版本保存已通过桌面实机验收；执行引擎通过 74 项自动化测试。
+
+官方有 JavaScript/subagent 编排与运行阶段卡片；本插件增加可视化 Studio、可复用定义版本、步骤编辑和调试。
+
+[Desktop 工作流 0.5.0 验收记录](docs/desktop-workflow-0.5.0.md)列出实机与自动化检查范围。
+
+开发与发布顺序：DSH Omni 开发及实机验收 → 更新 Omni 仓库 → 官方 Desktop 适配及实机验收 → 发布本仓库。每次重新构建后重新实机验证。
+
+### 安装到官方 Desktop
+
+在官方应用中打开“插件 → 添加插件”，输入 `https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow`。插件启用后在侧栏打开“工作流”。
+
+### 分发说明
+
+本仓库是官方 DeepSeek Harness Desktop 的公开适配版；[DSH Omni](https://github.com/hzxwonder/dsh-omni) 集成 `vendor/dsh-plugin-workflow` 固定快照。两套版本共享可视化工作流 Studio 能力，但分别跟随宿主验收；Web 端不再作为维护目标。官方 Desktop 的当前状态见 [兼容性报告](https://github.com/hzxwonder/dsh-omni/blob/main/docs/official-desktop-compatibility.md)。
 
 ## 对话式运行与调试
 
@@ -24,8 +39,11 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 - 调试每次执行一个已就绪节点，内部最多 8 个子代理并行，各有独立会话与模型配置。步骤会话可继续交流并返回总会话。
 - 更新输出图标将最新回答保存为步骤输出，回退依赖步骤的公共文件改动；随后选择单步或连续执行。
 - 每个步骤和尝试在本地保留输入、输出、快照、精确二进制 patch 和文本 unified diff。公共工作目录直接修改；回退前检查文件哈希和权限。
+- 会话输入标签直接显示工作流名与当前草稿版本（修改/创建标注用途），保存后立即跟随新版本；点击标签即可打开编辑器。
+- 对话修改默认走定点编辑：Agent 只提交受影响节点的字段（`edit`），由 Host 校验并保存新版本、自动回绑会话，不需要重发整份定义，也不允许绕过工具直接读写工作流数据。
+- 运行列表以输入摘要标识一次运行，失败行直接给出可读原因；运行详情的错误横幅指明失败的步骤，事件记录渲染为人读时间线，原始 JSON 收在二级折叠里。
 
-构建与桌面验收结果见 [Omni 工作流 0.4.0 验收记录](https://github.com/hzxwonder/dsh-omni/blob/main/docs/workflow-omni-0.4.0.md)。
+验证命令和逐项结果见 [验收报告](https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow/blob/main/docs/acceptance-report.md) 与 [测试清单](https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow/blob/main/docs/workflow-acceptance-plan.md)。
 
 快照覆盖常规文件，单次上限 128 MiB / 20,000 个文件，排除 `.git`、`node_modules`、符号链接和内部检查点。网络请求、部署及其他外部副作用需单独核对。多个子代理直接写同一文件的过程冲突尚未自动仲裁；同一公共根目录的不同 workflow 串行占用。运行中的补充消息支持文本；补充附件通过步骤输入编辑后重新执行。外部执行器的一次性会话能力与内置 spawn 不同。
 
@@ -42,12 +60,13 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 - 工作流对话落在 `$DSH_HOME/workflows/<id>`，对应原生工作区按用途命名：运行会话用工作流名，创作/修改会话用“工作流对话”；用户自己改过的名字不会被覆盖
 - 对话创建、试运行和版本化修改
 - 可视化编辑器：浮动步骤工具条、右侧 步骤/预览/控制台/主题 面板；顶部“对话修改”进入修改会话，“应用”视图包含运行记录、定时任务和版本历史
-- 生成、用户输入、交互、输出、工具、条件、汇合、子工作流、确认、发布、脚本和 Multithread 步骤；双击步骤名称可原位修改
-- Skill 与文件资源模块：按工作流版本保存标准 Skill 文件夹和导入文件，在指定 Prompt 位置插入路径，并加载连线 Skill 的指令。参见 [资源模块操作说明](docs/resource-nodes.md)。
-- 步骤面板集中展示模型设置；Provider、Model 和推理强度可继承会话或逐步指定
+- 生成、用户输入、交互、输出、工具、条件、汇合、子工作流、确认、发布、脚本和 Multithread 步骤；「条件」节点的底部是/否双端口连线。填写 Prompt 时由模型按结构化输出 `{answer:boolean, reason:string}` 裁决（answer=true 即「是」），留空则按条件表达式本地判断
+- Multithread 外壳：把「生成」步骤拖进同一个彩色外壳并发执行（并发池 1–8，可把外壳 Prompt 分发给全部子步骤）；头部双击改名，勾选分发后子步骤 Prompt 锁定
+- 脚本节点：用 Python 处理上一步输出（输入经 `input_data` JSON 注入，stdout 即输出）
+- Skill 与文件资源节点：编辑标准 Skill 目录、拖入或创建文件，将版本化资源路径插入下游 Prompt；连线的 Skill 指令随步骤加载。操作说明见 [工作流资源模块](docs/resource-nodes.md)
 - 交互节点：在绑定会话里向用户提问，用户回答后继续。`交互一次` 收一条回答（例如论文 PDF 或链接）；`交互目标` 由判定 Agent 反复追问，直到它理解用户意图并请用户确认后才进入下一步，可用 `maxTurns` 限定轮次；“已有材料时跳过提问”让已经带上材料的消息直接进入下一步。交互节点需要真人，定时无人值守的运行会以 `INTERACTION_UNATTENDED` 失败
 - 节点级 executor、provider、model、effort、skills、工具白名单和输出 Schema
-- 附件材料自动提取；论文精读模板按获取论文、撰写解读、读者问答评审、Halo 发布四个阶段执行。文章正文使用独立论文信息、短段落、可渲染的 MathML 公式和 Q：/A：问答；发布时生成 SVG 总览图、可编辑 Excalidraw 源文件与公众号排版本地 HTML。
+- 附件材料自动提取；论文精读模板按获取论文、撰写解读、读者问答评审、Halo 发布四个阶段执行。文章正文使用独立论文信息、短段落、清晰可缩放的公式图像和 Q：/A：问答；发布时生成 SVG 总览图、可编辑 Excalidraw 源文件与公众号排版本地 HTML。
 
 ## 论文解读与评审循环
 
@@ -60,6 +79,8 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 工作流定义通过 `repeat` 指定返回步骤、条件和轮数，以及延续原会话或新建会话。子代理支持 `dependsOn` 和独立 `input` 映射，无依赖成员继续并行执行。`repeat` 是有界回到上游步骤的评审循环。每轮文章与评审分别保存。
 
 Halo 发布使用服务器已有发布脚本。管理员在 `$DSH_HOME/workflow-studio/halo-destination.json` 配置 `sshHost`、`helper` 和 `category`，将 `scripts/halo-publish.py` 放入站点 `scripts/` 目录。站点凭据留在服务器，仓库与工作流定义不包含凭据。先使用发布适配器的 `dryRun` 完成渲染预检；正式发布返回文章标识与网址，并核实公开页面响应。更新原文章时，在运行输入中提供 `publication: {slug, postId}`；发布前校验目标并备份原正文，返回相同文章标识。公式由插件转为 MathML，总览 SVG 上传到站点资产目录；本地导出目录为 `$DSH_HOME/workflow-studio/exports/<slug>/`，包含公众号排版 HTML、SVG 和 Excalidraw 源文件。运行时间线提供「打开公众号排版」按钮。
+
+FreeToken 的[博客阅读样式预览](docs/design/freetoken-reading-preview.html)、[公众号排版预览](docs/design/freetoken-wechat-preview.html)、[总览图](docs/design/freetoken-overview.svg)与[样式说明](docs/design/reading-style.md)展示文章布局与交付格式。
 - 本地 Host 持久化定时任务，支持 IANA 时区、夏令时、错过执行和重叠策略
 - SQLite WAL、乐观并发控制、运行事件、产物下载、暂停/恢复和权限检查
 
@@ -86,7 +107,7 @@ npm run check:web
 
 ### Desktop 工作流
 
-在工作流首页搜索任务，点击「运行」提供材料；「对话」可以继续历史会话。编辑器提供步骤列表和流程图，选中一步即可修改，双击名称可改名。「更多步骤」提供工具、条件、汇合、子工作流、确认、发布、脚本和 Multithread。修改完成后保存版本，再试运行验证。
+在工作流首页搜索任务，点击「运行」提供材料；「对话」可以继续历史会话。编辑器提供步骤列表和流程图，选中一步即可修改，双击名称可改名。步骤面板集中展示模型设置；「更多步骤」提供工具、条件、汇合、子工作流、确认、发布、脚本和 Multithread。修改完成后保存版本，再试运行验证。
 
 ![Desktop 工作流界面导览](assets/desktop-workflow-tour.gif)
 
