@@ -655,6 +655,8 @@ export function apply(ctx) {
       return (
       <div className={`wf-node-card wf-step-${view.kind} ${active ? "is-selected" : ""}`} onMouseDown={(event) => { if (event.button === 0) { window.getSelection?.()?.removeAllRanges(); event.preventDefault(); } }}>
         {!['input', 'skill', 'file'].includes(view.kind) && <Handle type="target" position={Position.Top} />}
+        {view.evidenceOutgoing && <Handle id="evidence-out" type="source" position={Position.Left} isConnectable={false} />}
+        {view.evidenceIncoming && <Handle id="evidence-in" type="target" position={Position.Left} isConnectable={false} />}
         <div className="wf-step-heading">
           <span className="wf-step-glyph" aria-hidden="true">{glyphFor(view.kind, 15)}</span>
           <span className="wf-step-copy">
@@ -978,6 +980,8 @@ export function apply(ctx) {
         onRename: (name) => change({ ...definition, nodes: definition.nodes.map(x => x.id === n.id ? { ...x, name } : x) }),
         mode: n.kind === 'interact' ? (n.interaction === 'goal' ? '交互目标' : '交互一次') : undefined,
         references: Object.values(n.input ?? {}).filter(r => r.source === 'node').map(r => definition.nodes.find(x => x.id === r.nodeId)).filter(Boolean),
+        evidenceOutgoing: definition.edges.some(edge => edge.from === n.id && edge.label),
+        evidenceIncoming: definition.edges.some(edge => edge.to === n.id && edge.label),
         badge: n.kind === 'multithread' ? `并发 ${n.concurrency ?? 3}` : undefined,
         childrenCount: isContainer ? definition.nodes.filter(x => x.parentId === n.id).length : undefined,
         distributePrompt: n.distributePrompt,
@@ -1014,24 +1018,25 @@ export function apply(ctx) {
       id: `${e.from}:${e.to}`,
       source: e.from,
       target: e.to,
+      ...(e.label ? { sourceHandle: 'evidence-out', targetHandle: 'evidence-in' } : {}),
       type: "smoothstep",
       selected: `${e.from}:${e.to}` === selectedEdge,
        className: `${e.on === "false" ? "wf-edge-dashed" : e.on === "true" ? "wf-edge-yes" : "wf-edge-default"}${`${e.from}:${e.to}` === selectedEdge ? " wf-edge-selected" : ""}`,
-       label: e.on === "true" ? "是" : e.on === "false" ? "否" : undefined,
+       label: e.on === "true" ? "是" : e.on === "false" ? "否" : e.label,
       style: e.on === "true"
         ? { stroke: "#2f9e63", color: "#2f9e63", strokeWidth: 2 }
         : e.on === "false"
           ? { stroke: "#8d97a5", color: "#8d97a5", strokeWidth: 1.75 }
           : undefined,
-      ...(e.on === "true" || e.on === "false" ? {
-        labelStyle: { fill: e.on === "true" ? "#2f9e63" : "var(--wf-muted)", fontWeight: 600, fontSize: 11 },
-        labelBgStyle: { fill: "var(--wf-surface)" },
-        labelBgPadding: [6, 3],
-        labelBgBorderRadius: 6,
+      ...(e.on === "true" || e.on === "false" || e.label ? {
+        labelStyle: { fill: "var(--wf-text)", fontWeight: 600, fontSize: 11 },
+        labelBgStyle: { fill: "var(--wf-surface)", stroke: "var(--wf-line-strong)", strokeWidth: 1 },
+        labelBgPadding: [10, 6],
+        labelBgBorderRadius: 10,
       } : {}),
-      pathOptions: { offset: 18 + index * 8, borderRadius: 18 },
+      pathOptions: { offset: e.label ? 52 : 18 + index * 8, borderRadius: 18 },
       };
-    }).concat(definition.nodes.filter(n=>n.repeat?.target).map(n=>({id:`repeat:${n.id}`,source:n.id,target:n.repeat.target,sourceHandle:'retry-out',targetHandle:'retry-in',type:'smoothstep',label:`未通过，返回修改 · 最多 ${n.repeat.maxRounds} 轮`,className:'wf-edge-loop',deletable:false})));
+    }).concat(definition.nodes.filter(n=>n.repeat?.target).map(n=>({id:`repeat:${n.id}`,source:n.id,target:n.repeat.target,sourceHandle:'retry-out',targetHandle:'retry-in',type:'smoothstep',label:'未通过 · 返回修订',ariaLabel:`未通过时返回${definition.nodes.find(target=>target.id===n.repeat.target)?.name ?? '指定步骤'}，最多 ${n.repeat.maxRounds} 轮`,labelStyle:{fill:'var(--wf-text)',fontWeight:600,fontSize:11},labelBgStyle:{fill:'var(--wf-surface)',stroke:'var(--wf-line-strong)',strokeWidth:1},labelBgPadding:[12,7],labelBgBorderRadius:12,className:'wf-edge-loop',deletable:false})));
     }, [definition, selectedEdge]);
      const latestRun = data.runs.find((item) => item.workflowId === record.id);
     useEffect(() => {

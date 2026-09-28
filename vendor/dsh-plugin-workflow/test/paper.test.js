@@ -58,6 +58,7 @@ test('paper Skill is a connected, versioned resource for the writing step', asyn
  const d = reviewedPaperTemplate();
  t.after(() => rm(root, { recursive: true, force: true }));
  assert(d.edges.some(edge => edge.from === 'paper_skill' && edge.to === 'article'));
+ assert.equal(d.edges.find(edge => edge.from === 'source' && edge.to === 'review')?.label, '原文核验');
  const article = d.nodes.find(node => node.id === 'article');
  assert.equal(article.skills.includes('paper-explainer'), false);
  assert.equal(article.input.paper_skill.resourceKind, 'skill');

@@ -27,7 +27,10 @@ export function connectPaperSkill(definition) {
     '使用流程图连接的写作规范 Skill 生成完整中文解读。');
   const prompt = prose.includes(`{{input.${inputKey}}}`) ? prose
     : `写作规范 Skill 文件夹：{{input.${inputKey}}}。\n${prose}`;
-  const clean = { ...definition, nodes: nodes.map(node => node.id !== article.id ? node
+  const clean = { ...definition,
+    edges: definition.edges.map(edge => edge.from === 'source' && edge.to === 'review'
+      ? { ...edge, label: '原文核验' } : edge),
+    nodes: nodes.map(node => node.id !== article.id ? node
     : { ...node, prompt, skills: (node.skills ?? []).filter(name => name !== 'paper-explainer') }) };
   return connectReference(clean, resource.id, article.id, false).definition;
 }
@@ -53,6 +56,6 @@ export function reviewedPaperTemplate(id = 'paper-reader') {
   nodes[2].resultMember = 'judge';
   nodes[2].subagents[2].outputSchema = nodes[2].outputSchema;
   return connectPaperSkill({ schemaVersion: '1.0', id, name: '论文精读', description: '原文溯源、分层解读、读者问答评审与 Halo 发布。', trigger: 'material', inputSchema: { type: 'object', properties: { text: { type: 'string' } } }, nodes,
-    edges: [{ from: 'source', to: 'article' }, { from: 'article', to: 'review' }, { from: 'source', to: 'review' }, { from: 'article', to: 'publish' }, { from: 'review', to: 'publish' }],
+    edges: [{ from: 'source', to: 'article' }, { from: 'article', to: 'review' }, { from: 'source', to: 'review', label: '原文核验' }, { from: 'article', to: 'publish' }, { from: 'review', to: 'publish' }],
     outputs: { article: ref('article'), review: ref('review'), publication: ref('publish') }, limits: { concurrency: 1, maxNodeCalls: 30, timeoutSeconds: 7200 } });
 }

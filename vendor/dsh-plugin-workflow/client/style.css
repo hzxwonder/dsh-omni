@@ -2099,4 +2099,6 @@ body[data-ds-dark-theme] .wf-canvas > .wf-addbar { background: var(--wf-surface)
 .wf-flow:has(.react-flow__node.selected) .react-flow__edge:not(.selected) .react-flow__edge-path {
   opacity: .86 !important;
 }
-.wf .react-flow__edge-text { paint-order: stroke; stroke: var(--wf-surface); stroke-width: 3px; stroke-linejoin: round; }
+.wf .react-flow__edge-text { paint-order: normal; stroke: none; }
+.wf .react-flow__edge.wf-edge-loop .react-flow__edge-text { fill: var(--wf-text); }
+.wf .react-flow__edge-textbg { fill: var(--wf-surface); stroke: var(--wf-line-strong); stroke-width: 1px; }

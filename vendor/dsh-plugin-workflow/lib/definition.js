@@ -147,6 +147,7 @@ export const schema = {
           from: { type: "string" },
           to: { type: "string" },
           on: { enum: ["success", "true", "false"] },
+          label: { type: "string", maxLength: 40 },
         },
       },
     },

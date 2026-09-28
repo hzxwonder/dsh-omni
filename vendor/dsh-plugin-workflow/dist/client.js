@@ -12202,7 +12202,9 @@ body[data-ds-dark-theme] .wf-canvas > .wf-addbar { background: var(--wf-surface)
 .wf-flow:has(.react-flow__node.selected) .react-flow__edge:not(.selected) .react-flow__edge-path {
   opacity: .86 !important;
 }
-.wf .react-flow__edge-text { paint-order: stroke; stroke: var(--wf-surface); stroke-width: 3px; stroke-linejoin: round; }
+.wf .react-flow__edge-text { paint-order: normal; stroke: none; }
+.wf .react-flow__edge.wf-edge-loop .react-flow__edge-text { fill: var(--wf-text); }
+.wf .react-flow__edge-textbg { fill: var(--wf-surface); stroke: var(--wf-line-strong); stroke-width: 1px; }
 `;
 
 // lib/graph-edit.js
@@ -13887,6 +13889,8 @@ function apply(ctx) {
         }
       }, children: [
         !["input", "skill", "file"].includes(view.kind) && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { type: "target", position: Position.Top }),
+        view.evidenceOutgoing && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { id: "evidence-out", type: "source", position: Position.Left, isConnectable: false }),
+        view.evidenceIncoming && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { id: "evidence-in", type: "target", position: Position.Left, isConnectable: false }),
         /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-step-heading", children: [
           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-step-glyph", "aria-hidden": "true", children: glyphFor(view.kind, 15) }),
           /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "wf-step-copy", children: [
@@ -14198,6 +14202,8 @@ function apply(ctx) {
             onRename: (name2) => change({ ...definition, nodes: definition.nodes.map((x) => x.id === n.id ? { ...x, name: name2 } : x) }),
             mode: n.kind === "interact" ? n.interaction === "goal" ? "\u4EA4\u4E92\u76EE\u6807" : "\u4EA4\u4E92\u4E00\u6B21" : void 0,
             references: Object.values(n.input ?? {}).filter((r) => r.source === "node").map((r) => definition.nodes.find((x) => x.id === r.nodeId)).filter(Boolean),
+            evidenceOutgoing: definition.edges.some((edge) => edge.from === n.id && edge.label),
+            evidenceIncoming: definition.edges.some((edge) => edge.to === n.id && edge.label),
             badge: n.kind === "multithread" ? `\u5E76\u53D1 ${n.concurrency ?? 3}` : void 0,
             childrenCount: isContainer ? definition.nodes.filter((x) => x.parentId === n.id).length : void 0,
             distributePrompt: n.distributePrompt,
@@ -14238,20 +14244,21 @@ function apply(ctx) {
           id: `${e.from}:${e.to}`,
           source: e.from,
           target: e.to,
+          ...e.label ? { sourceHandle: "evidence-out", targetHandle: "evidence-in" } : {},
           type: "smoothstep",
           selected: `${e.from}:${e.to}` === selectedEdge,
           className: `${e.on === "false" ? "wf-edge-dashed" : e.on === "true" ? "wf-edge-yes" : "wf-edge-default"}${`${e.from}:${e.to}` === selectedEdge ? " wf-edge-selected" : ""}`,
-          label: e.on === "true" ? "\u662F" : e.on === "false" ? "\u5426" : void 0,
+          label: e.on === "true" ? "\u662F" : e.on === "false" ? "\u5426" : e.label,
           style: e.on === "true" ? { stroke: "#2f9e63", color: "#2f9e63", strokeWidth: 2 } : e.on === "false" ? { stroke: "#8d97a5", color: "#8d97a5", strokeWidth: 1.75 } : void 0,
-          ...e.on === "true" || e.on === "false" ? {
-            labelStyle: { fill: e.on === "true" ? "#2f9e63" : "var(--wf-muted)", fontWeight: 600, fontSize: 11 },
-            labelBgStyle: { fill: "var(--wf-surface)" },
-            labelBgPadding: [6, 3],
-            labelBgBorderRadius: 6
+          ...e.on === "true" || e.on === "false" || e.label ? {
+            labelStyle: { fill: "var(--wf-text)", fontWeight: 600, fontSize: 11 },
+            labelBgStyle: { fill: "var(--wf-surface)", stroke: "var(--wf-line-strong)", strokeWidth: 1 },
+            labelBgPadding: [10, 6],
+            labelBgBorderRadius: 10
           } : {},
-          pathOptions: { offset: 18 + index2 * 8, borderRadius: 18 }
+          pathOptions: { offset: e.label ? 52 : 18 + index2 * 8, borderRadius: 18 }
         };
-      }).concat(definition.nodes.filter((n) => n.repeat?.target).map((n) => ({ id: `repeat:${n.id}`, source: n.id, target: n.repeat.target, sourceHandle: "retry-out", targetHandle: "retry-in", type: "smoothstep", label: `\u672A\u901A\u8FC7\uFF0C\u8FD4\u56DE\u4FEE\u6539 \xB7 \u6700\u591A ${n.repeat.maxRounds} \u8F6E`, className: "wf-edge-loop", deletable: false })));
+      }).concat(definition.nodes.filter((n) => n.repeat?.target).map((n) => ({ id: `repeat:${n.id}`, source: n.id, target: n.repeat.target, sourceHandle: "retry-out", targetHandle: "retry-in", type: "smoothstep", label: "\u672A\u901A\u8FC7 \xB7 \u8FD4\u56DE\u4FEE\u8BA2", ariaLabel: `\u672A\u901A\u8FC7\u65F6\u8FD4\u56DE${definition.nodes.find((target) => target.id === n.repeat.target)?.name ?? "\u6307\u5B9A\u6B65\u9AA4"}\uFF0C\u6700\u591A ${n.repeat.maxRounds} \u8F6E`, labelStyle: { fill: "var(--wf-text)", fontWeight: 600, fontSize: 11 }, labelBgStyle: { fill: "var(--wf-surface)", stroke: "var(--wf-line-strong)", strokeWidth: 1 }, labelBgPadding: [12, 7], labelBgBorderRadius: 12, className: "wf-edge-loop", deletable: false })));
     }, [definition, selectedEdge]);
     const latestRun = data.runs.find((item) => item.workflowId === record.id);
     (0, import_react13.useEffect)(() => {
