@@ -23,7 +23,7 @@ function escape(value) {
 export async function renderPaperMath(tex, displayMode = false) {
   const source = tex.trim();
   katex.renderToString(source, { displayMode, output: 'mathml', throwOnError: true, trust: false, strict: 'warn' });
-  const ex = displayMode ? 10 : 8;
+  const ex = displayMode ? 6.5 : 7;
   const node = await mathjax.tex2svgPromise(source, { display: displayMode, em: ex * 2, ex, containerWidth: 600 });
   const svg = adaptor.serializeXML(adaptor.tags(node, 'svg')[0]);
   const widthEx = Number(svg.match(/\bwidth="([\d.]+)ex"/)?.[1]);
@@ -35,5 +35,6 @@ export async function renderPaperMath(tex, displayMode = false) {
   const png = new Resvg(sizedSvg, { fitTo: { mode: 'zoom', value: 2 } }).render().asPng();
   const sourceImage = `data:image/png;base64,${png.toString('base64')}`;
   const label = escape(source);
-  return `<img class="paper-math-image" src="${sourceImage}" width="${width}" height="${height}" alt="${label}" loading="lazy">`;
+  const inlineStyle = displayMode ? '' : ' style="display:inline-block;vertical-align:-0.18em;margin:0;max-width:100%;height:auto"';
+  return `<img class="paper-math-image" src="${sourceImage}" width="${width}" height="${height}" alt="${label}" loading="lazy"${inlineStyle}>`;
 }
