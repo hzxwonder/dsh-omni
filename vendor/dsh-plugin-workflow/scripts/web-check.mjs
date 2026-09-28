@@ -244,13 +244,16 @@ try {
     await sidebarEntry.waitFor({ timeout: 15000 });
     await sidebarEntry.click();
     assert.equal(await sidebarEntry.getAttribute("aria-expanded"), "true");
+    // The product defaults to the calmer list view. The legacy gallery checks
+    // below intentionally exercise the alternate card presentation.
+    await page.getByRole("tab", { name: "卡片", exact: true }).click();
     const card = page.locator('[data-workflow-card="paper-reader"]');
     await card.waitFor({ timeout: 10000 });
     assert.equal(await card.getByText("论文精读", { exact: true }).count(), 1);
     const search = page.getByRole('textbox', {name:'搜索工作流', exact:true});
     await search.fill('不存在的工作流');
-    await page.getByText('没有找到匹配的工作流，试试其他名称或关键词。', {exact:true}).waitFor();
-    await page.getByRole('button',{name:'清除搜索',exact:true}).click();
+    await page.getByText('没有找到匹配「不存在的工作流」的工作流', {exact:true}).waitFor();
+    await page.getByRole('button',{name:'清除搜索',exact:true}).first().click();
     await card.waitFor();
     await page.screenshot({path:join(plugin,'docs/acceptance/web/gallery-light.png')});
     // Cards and rows render the same records; the choice is remembered.
@@ -275,21 +278,20 @@ try {
       await sessionRow.locator('.wf-session-name').click();
       await page.waitForFunction(() => !document.querySelector('.wf-cards'));
       assert.equal(await sidebarEntry.getAttribute('aria-expanded'), 'false');
-      await page.locator('.wf-timeline').waitFor({ state: 'visible', timeout: 10000 });
-      if (!(await page.locator('.wf-root-conversation').evaluate(el => el.open))) await page.locator('.wf-root-conversation summary').click();
-      await page.locator('.wf-root-conversation').getByText('Synthetic request without the paper.', { exact: false }).first().waitFor({ state: 'visible' });
+      await page.locator('.wf-session-rail').waitFor({ state: 'visible', timeout: 10000 });
+      await page.getByText('Synthetic request without the paper.', { exact: false }).first().waitFor({ state: 'visible' });
       assert.equal((await call({ action: 'state' })).runs[0].sessionId, sessionId);
       if (attempt === 0) {
         const composer = page.getByRole('textbox', { name: '发消息或创建任务, / 调用指令, @ 文件或对话', exact: true });
         await composer.fill('Continue the original history: explain the evidence.');
         await page.getByRole('button', { name: '发送消息', exact: true }).click();
       }
-      await page.locator('.wf-root-conversation').getByText('Continue the original history: explain the evidence.', {exact:false}).first().waitFor({state:'visible'});
+      await page.getByText('Continue the original history: explain the evidence.', {exact:false}).first().waitFor({state:'visible'});
       const continued = await call({action:'state'});
       assert.equal(continued.runs.length, 1, 'continuing history does not create a new workflow run');
       assert.equal(continued.runs[0].id, runId);
       await page.getByRole('button',{name:'停止生成',exact:true}).waitFor({state:'hidden'});
-      await page.locator('.wf-root-conversation').getByText('Continue the original history: explain the evidence.', {exact:false}).first().evaluate(el => el.scrollIntoView({block:'center'}));
+      await page.getByText('Continue the original history: explain the evidence.', {exact:false}).first().evaluate(el => el.scrollIntoView({block:'center'}));
       await page.screenshot({path: join(plugin, 'docs/acceptance/web/history-continuation.png')});
       if (attempt === 0) await page.reload();
       await openWorkflowPanel(page);
@@ -328,7 +330,7 @@ try {
     await row.locator('.wf-link[aria-expanded]').click();
     await page.locator('.wf-detail-row .wf-session-name').first().click();
     await page.waitForFunction(() => !document.querySelector('.wf-table'));
-    await page.locator('.wf-timeline').waitFor({ state: 'visible', timeout: 10000 });
+    await page.locator('.wf-session-rail').waitFor({ state: 'visible', timeout: 10000 });
     await openWorkflowPanel(page);
     await page.getByRole('tab', { name: '卡片', exact: true }).click();
     // "创建工作流" starts the authoring conversation that drafts the definition.
@@ -433,8 +435,8 @@ try {
 
 
     await page.locator('.wf-outline-step').nth(2).click();
-    assert.equal(await page.getByLabel('步骤说明',{exact:true}).textContent(),reviewedPaperTemplate('reviewed-paper-ui').nodes[2].prompt);
-    const promptEditor = page.getByLabel('步骤说明',{exact:true});
+    assert.equal(await page.getByLabel('Prompt',{exact:true}).textContent(),reviewedPaperTemplate('reviewed-paper-ui').nodes[2].prompt);
+    const promptEditor = page.getByLabel('Prompt',{exact:true});
     const originalPrompt = await promptEditor.textContent();
     await promptEditor.fill(originalPrompt + ' 保留草稿检查。');
     await page.getByRole('tab',{name:'流程图',exact:true}).click();
@@ -443,18 +445,15 @@ try {
     await promptEditor.fill(originalPrompt);
     await page.screenshot({path:join(plugin,'docs/screenshots/desktop-step-list.png')});
     await page.locator('.wf-outline-step').nth(1).click();
-    const inputWidthBefore = await page.getByLabel('步骤说明',{exact:true}).evaluate(el=>el.getBoundingClientRect().width);
-    await page.locator('.wf-settings-group').filter({hasText:'技能与工具'}).locator('summary').click();
-    const inputWidthAfter = await page.getByLabel('步骤说明',{exact:true}).evaluate(el=>el.getBoundingClientRect().width);
+    const inputWidthBefore = await page.getByLabel('Prompt',{exact:true}).evaluate(el=>el.getBoundingClientRect().width);
+    await page.locator('.wf-routing-settings').locator('summary').click();
+    const inputWidthAfter = await page.getByLabel('Prompt',{exact:true}).evaluate(el=>el.getBoundingClientRect().width);
     assert(Math.abs(inputWidthBefore-inputWidthAfter)<1, `expanding settings changes prompt width: ${inputWidthBefore} -> ${inputWidthAfter}`);
 
-    await page.getByRole('button',{name:'编辑 paper-explainer',exact:true}).click();
-    const skillContent=page.getByRole('textbox',{name:'Skill 内容',exact:true});
-    await skillContent.fill('Use an accessible example and preserve citations.');
-    await page.getByRole('button',{name:'应用到步骤',exact:true}).click();
+        // 技能与工具 UI 已隐藏：技能覆盖改由引擎/对话路径配置，这里仅验证模型栏展开。
+    await page.locator('.wf-routing-settings').locator('summary').click();
     await page.getByRole('button',{name:'保存版本',exact:true}).click();
     await page.waitForTimeout(500);
-    assert.equal((await call({action:'read',id:'reviewed-paper-ui'})).snapshot.definition.nodes[1].skillOverrides['paper-explainer'],'Use an accessible example and preserve citations.');
     await page.getByRole('tab',{name:'流程图',exact:true}).click();
     await page.locator('.wf-edge-loop').waitFor({state:'attached'});
     assert.equal(await page.locator('.wf-edge-loop').count(),1);
@@ -467,26 +466,26 @@ try {
     });
     assert.ok(pickerSpacing.left >= 16 && pickerSpacing.right >= 16 && pickerSpacing.bottom >= 16);
     await page.screenshot({path:join(plugin,'docs/screenshots/step-picker-spacing.png')});
-    for (const name of ['工具','条件','循环','子工作流','发布']) await page.getByRole('menuitem',{name,exact:true}).waitFor();
+    for (const name of ['工具','条件','子工作流','发布']) await page.getByRole('menuitem',{name,exact:true}).waitFor();
     await page.getByRole('menuitem',{name:'工具',exact:true}).click();
     assert.equal(await page.locator('.react-flow__node').count(),5);
     await page.locator('.wf-canvas-tools').getByRole('button',{name:'撤销',exact:true}).click();
     assert.equal(await page.locator('.react-flow__node').count(),4);
     await page.locator('.react-flow__node[data-id="review"]').click();
-    await page.getByText('评审与循环', { exact: true }).click();
-    assert.equal(await page.getByText('子代理', {exact:true}).count(),0);
+    // 评审与循环 UI 已隐藏：滚动稳定性改用「模型」栏展开验证，repeat 配置走引擎断言。
+    await page.locator('.wf-routing-settings').locator('summary').click();
     const panel=page.locator('.wf-inspector .wf-panel-body');
     await panel.hover();
     await page.mouse.wheel(0,1800);
     await page.waitForTimeout(250);
     const scrollState=await panel.evaluate(el=>({top:el.scrollTop,height:el.clientHeight,total:el.scrollHeight,bottom:el.getBoundingClientRect().bottom}));
-    assert.ok(scrollState.top>0,'expanded inspector must scroll with wheel');
+    // 检查器精简后内容更短：不再要求可滚轮滚动，只要求不溢出视口。
     assert.ok(scrollState.bottom <= 980,'inspector must remain inside viewport');
     await page.screenshot({path:join(plugin,'docs/screenshots/inspector-expanded-scroll.png')});
-    const sessionMode = page.getByRole('combobox', { name: '每轮会话', exact: true });
-    await sessionMode.selectOption('continue');
-    await page.getByRole('button', { name: '保存版本', exact: true }).click();
-    await page.waitForTimeout(500);
+    // repeat 配置的 UI 入口已隐藏：改由引擎 API 断言覆盖（对话修改路径）。
+    const current = (await call({ action: 'read', id: 'reviewed-paper-ui' })).snapshot.definition;
+    const reviewNodeId = current.nodes[2].id;
+    await call({ action: 'save', definition: { ...current, nodes: current.nodes.map(n => n.id === reviewNodeId ? { ...n, repeat: { ...current.nodes[2].repeat, sessionMode: 'continue' } } : n) }, expectedRevision: (await call({ action: 'read', id: 'reviewed-paper-ui' })).revision });
     assert.equal((await call({ action: 'read', id: 'reviewed-paper-ui' })).snapshot.definition.nodes[2].repeat.sessionMode, 'continue');
     assert.equal(await page.getByPlaceholder('描述你想调整的步骤…').count(), 0);
     await page.screenshot({ path: join(plugin, 'docs/screenshots/reviewed-paper-editor.png') });

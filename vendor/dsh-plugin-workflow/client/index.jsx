@@ -1,4 +1,5 @@
 import { StepOutline } from './step-outline.jsx';
+import { InlineName } from './inline-name.jsx';
 import { createGallery } from './gallery.jsx';
 import React, { useState, useEffect, useSyncExternalStore } from "react";
 import { Menu } from "@deepseek-ai/dsh-client-ui-primitives";
@@ -48,13 +49,15 @@ import {
   Workflow,
   LayoutGrid,
   List,
+  Layers,
 } from "lucide-react";
 import { Handle, Position, MarkerType } from "@xyflow/react";
 import flowCss from "@xyflow/react/dist/style.css";
 import css from "./style.css";
 import { canConnect, connectReference, pasteNodes, removeGraphItems } from "../lib/graph-edit.js";
-import { RunTimeline } from "./run-timeline.jsx";
+import { RunTimeline, EventTimeline } from "./run-timeline.jsx";
 import { StepPrompt } from "./step-prompt.jsx";
+import { shortError, describeRunError, displayPrompt } from "./format.js";
 
 export const name = "dsh-plugin-workflow";
 export const inject = [
@@ -72,11 +75,12 @@ const labels = {
   tool: "工具",
   condition: "条件",
   join: "汇合",
-  loop: "循环",
   subworkflow: "子工作流",
   approval: "确认",
   artifact: "输出",
   publish: "发布",
+  script: "脚本",
+  multithread: "Multithread",
 };
 const statuses = {
   queued: "等待执行",
@@ -105,16 +109,20 @@ const glyphs = {
   tool: Settings2,
   condition: GitBranch,
   join: PanelsTopLeft,
-  loop: RefreshCw,
   subworkflow: GitBranch,
   approval: Check,
   artifact: FileText,
   publish: Send,
+  script: Code,
+  multithread: Layers,
 };
 const glyphFor = (glyph, size) => {
   const Glyph = glyphs[glyph] ?? GitBranch;
   return <Glyph size={size} />;
 };
+// 外壳容器：自身不是对话步骤，用于包裹并调度内部子步骤。
+const containerKinds = ["multithread"];
+
 const pretty = (value) => JSON.stringify(value, null, 2);
 const timestamp = (time) => (time ? new Date(time).toLocaleString() : "-");
 const download = (name, content, type = "application/json") => {
@@ -582,16 +590,6 @@ export function apply(ctx) {
       });
     return (
       <>
-        <Field label="Executor">
-          <select
-            value={node.executor ?? "spawn"}
-            onChange={(e) => update({ executor: e.target.value })}
-          >
-            {(caps?.executors ?? ["spawn"]).map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </select>
-        </Field>
         <Field label="Provider">
           <select
             value={provider}
@@ -648,30 +646,70 @@ export function apply(ctx) {
     );
   }
   const nodeTypes = {
-    workflowNode: ({ data: view, selected: active }) => (
-      <div className={`wf-node-card wf-step-${view.kind} ${active ? "is-selected" : ""}`}>
+    workflowNode: ({ data: view, selected: active }) => {
+      const detail = view.summary || view.references.length > 0 || view.repeat;
+      return (
+      <div className={`wf-node-card wf-step-${view.kind} ${active ? "is-selected" : ""}`} onMouseDown={(event) => { if (event.button === 0) { window.getSelection?.()?.removeAllRanges(); event.preventDefault(); } }}>
         {view.kind !== 'input' && <Handle type="target" position={Position.Top} />}
         <div className="wf-step-heading">
-          <span className="wf-step-glyph">{glyphFor(view.kind, 14)}</span>
-          <span className="wf-node-order">{view.order}</span><strong>{view.title}</strong>
-          <em>{labels[view.kind]}</em>
+          <span className="wf-step-glyph" aria-hidden="true">{glyphFor(view.kind, 15)}</span>
+          <span className="wf-step-copy">
+            <InlineName value={view.title} onRename={view.onRename} />
+            <span className="wf-step-meta">
+              <span className="wf-node-order">{view.order}</span>
+              <em>{labels[view.kind]}</em>
+              {view.kind === 'agent' && view.model && view.model !== '会话模型' && <span className="wf-step-model">{view.model}</span>}
+              {view.kind === 'interact' && view.mode && <span className="wf-step-model">{view.mode}</span>}
+            </span>
+          </span>
         </div>
-        <div className="wf-step-body">
-          <p>{view.summary}</p>
-          {view.references.length > 0 && (
-            <div className="wf-step-references">
-              {view.references.map((ref, i) => (
-                <span key={`${ref.id}-${i}`} className={`wf-inline-reference wf-step-${ref.kind}`}>{ref.name}</span>
-              ))}
-            </div>
-          )}
-          {view.kind === 'agent' && <span className="wf-step-model">{view.model}</span>}
-          {view.repeat && <span className="wf-step-model">未通过返回修订 · 最多 {view.repeat.maxRounds} 轮</span>}
-          {view.kind === 'interact' && <span className="wf-step-model">{view.mode}</span>}
+        {detail && (
+          <div className="wf-step-body">
+            {view.references.length > 0 && (
+              <div className="wf-step-references">
+                {view.references.map((ref, i) => (
+                  <span key={`${ref.id}-${i}`} className={`wf-inline-reference wf-step-${ref.kind}`}>{ref.name}</span>
+                ))}
+              </div>
+            )}
+            {view.summary && <p>{view.summary}</p>}
+            {view.repeat && <span className="wf-step-model">未通过返回修订 · 最多 {view.repeat.maxRounds} 轮</span>}
+          </div>
+        )}
+        {view.kind === "condition" ? (
+          <>
+            <Handle id="yes" type="source" position={Position.Bottom} style={{ left: "32%" }} className="wf-port-yes" />
+            <Handle id="no" type="source" position={Position.Bottom} style={{ left: "68%" }} className="wf-port-no" />
+            <span className="wf-port-label wf-port-yes-label">是</span>
+            <span className="wf-port-label wf-port-no-label">否</span>
+          </>
+        ) : (
+          <>
+            <Handle type="source" position={Position.Bottom} />
+            <Handle id="retry-in" type="target" position={Position.Right} isConnectable={false} />
+            <Handle id="retry-out" type="source" position={Position.Right} isConnectable={false} />
+          </>
+        )}
+      </div>
+      );
+    },
+    containerNode: ({ data: view, selected: active }) => (
+      <div className={`wf-shell-card wf-shell-${view.kind} ${active ? "is-selected" : ""}`} onMouseDown={(event) => { if (event.button === 0) { window.getSelection?.()?.removeAllRanges(); event.preventDefault(); } }}>
+        <div className="wf-shell-head">
+          <span className="wf-step-glyph" aria-hidden="true">{glyphFor(view.kind, 15)}</span>
+          <span className="wf-step-copy">
+            <InlineName value={view.title} onRename={view.onRename} />
+            <span className="wf-step-meta">
+              <em>{view.badge ?? labels[view.kind]}</em>
+              <span className="wf-shell-count">{view.childrenCount} 个子步骤</span>
+            </span>
+          </span>
         </div>
+        {view.childrenCount === 0 && (
+          <div className="wf-shell-empty">从上方步骤栏拖入「生成」步骤，在此并行执行</div>
+        )}
+        {view.kind !== "input" && <Handle type="target" position={Position.Top} />}
         <Handle type="source" position={Position.Bottom} />
-        <Handle id="retry-in" type="target" position={Position.Right} isConnectable={false} />
-        <Handle id="retry-out" type="source" position={Position.Right} isConnectable={false} />
       </div>
     ),
   };
@@ -690,7 +728,6 @@ export function apply(ctx) {
     const [clipboard, setClipboard] = useState(null);
     const [run, setRun] = useState(null);
     const [assetsOpen, setAssetsOpen] = useState(false);
-    const [notice, setNotice] = useState("");
     const [skillEdit, setSkillEdit] = useState(null);
     const [selectedEdge, setSelectedEdge] = useState(null);
     const flow = React.useRef();
@@ -742,8 +779,20 @@ export function apply(ctx) {
     const node = definition.nodes.find((n) => n.id === selected);
     useEffect(() => {
       const onKey = (e) => {
-        if (e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
-        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "c" && node) {
+        const mod = e.metaKey || e.ctrlKey;
+        if (mod && e.key.toLowerCase() === "s") {
+          e.preventDefault();
+          if (dirty) void saveDraft();
+          return;
+        }
+        const inField = e.target.closest('input, textarea, select, [contenteditable="true"]');
+        if (mod && e.key.toLowerCase() === "z" && !inField) {
+          e.preventDefault();
+          undo();
+          return;
+        }
+        if (inField) return;
+        if (mod && e.key.toLowerCase() === "c" && node) {
           e.preventDefault();
           setClipboard({ ...node, id: `node_${crypto.randomUUID().slice(0, 8)}`, name: `${node.name} 副本` });
         }
@@ -756,7 +805,7 @@ export function apply(ctx) {
       };
       window.addEventListener("keydown", onKey);
       return () => window.removeEventListener("keydown", onKey);
-    }, [node, clipboard, definition]);
+    }, [node, clipboard, definition, history, selected, dirty]);
     const update = (patch) =>
       change({
         ...definition,
@@ -764,17 +813,62 @@ export function apply(ctx) {
           n.id === selected ? { ...n, ...patch } : n,
         ),
       });
-    const add = (kind, position) => {
+    // 落点命中的外壳容器（拖入新步骤 / 拖动既有步骤共用）。
+    const containerAt = (pos) => definition.nodes.find(n => containerKinds.includes(n.kind) && n.position && n.size &&
+      pos.x >= n.position.x && pos.x <= n.position.x + n.size.width &&
+      pos.y >= n.position.y && pos.y <= n.position.y + n.size.height);
+    const childAllowed = (shell, kind) => shell && !containerKinds.includes(kind) && kind === "agent";
+    // 新步骤默认自上而下接续排布（详见 add 内注释）。
+    const add = (kind, position, parentId) => {
       const id = `node_${crypto.randomUUID().slice(0, 8)}`;
+      let pos = position;
+      let parent = parentId;
+      if (!pos) {
+        // 默认自上而下接续：跟在当前选中步骤（或其外壳）正下方、同列；
+        // 外壳内新增排在子步骤队尾；与既有步骤重叠时沿同列继续向下让位；
+        // 空画布才落视口中心。
+        const selectedDef = selected ? definition.nodes.find(n => n.id === selected) : undefined;
+        const shellSelected = selectedDef && containerKinds.includes(selectedDef.kind) ? selectedDef : undefined;
+        if (shellSelected && childAllowed(shellSelected, kind)) {
+          parent = shellSelected.id;
+          const kids = definition.nodes.filter(n => n.parentId === shellSelected.id);
+          pos = { x: 20 + (kids.length % 2) * 240, y: 52 + Math.floor(kids.length / 2) * 130 };
+        } else {
+          const sizeOf = (m) => {
+            const zoom = flow.current?.getViewport().zoom ?? 1;
+            const el = flowElement.current?.querySelector(`.react-flow__node[data-id="${m.id}"]`);
+            return { w: m.size?.width ?? 232, h: m.size?.height ?? (el ? el.offsetHeight / zoom : 150) };
+          };
+          let anchor = selectedDef?.parentId ? definition.nodes.find(n => n.id === selectedDef.parentId) : selectedDef;
+          if (!anchor) anchor = definition.nodes.filter(n => !n.parentId).sort((a, b) => (b.position?.y ?? 0) - (a.position?.y ?? 0))[0];
+          const host = flowElement.current?.getBoundingClientRect();
+          const center = flow.current && host
+            ? flow.current.screenToFlowPosition({ x: host.left + host.width / 2, y: host.top + host.height / 2 })
+            : null;
+          const offset = (definition.nodes.length % 5) * 28;
+          pos = anchor
+            ? { x: anchor.position.x, y: anchor.position.y + sizeOf(anchor).h + 56 }
+            : center
+              ? { x: center.x - 120 + offset, y: center.y - 60 + offset }
+              : { x: 100 + (definition.nodes.length % 3) * 400, y: 100 + Math.floor(definition.nodes.length / 3) * 300 };
+          for (let guard = 0; guard < 40; guard++) {
+            const hit = definition.nodes.filter(m => !m.parentId).find(m => {
+              const s = sizeOf(m);
+              return pos.x < m.position.x + s.w + 28 && pos.x + 232 + 28 > m.position.x &&
+                pos.y < m.position.y + s.h + 28 && pos.y + 150 + 28 > m.position.y;
+            });
+            if (!hit) break;
+            pos = { x: pos.x, y: hit.position.y + sizeOf(hit).h + 56 };
+          }
+        }
+      }
       const n = {
         id,
         name: labels[kind],
         kind,
-        position: position ?? {
-          x: 100 + (definition.nodes.length % 3) * 400,
-          y: 100 + Math.floor(definition.nodes.length / 3) * 300,
-        },
+        position: pos,
       };
+      if (parent) n.parentId = parent;
       if (kind === "agent") {
         n.prompt = "根据输入完成此步骤，返回完整结果。";
         n.input = { material: { source: "workflow", path: "/text" } };
@@ -790,12 +884,26 @@ export function apply(ctx) {
         n.prompt = "请提供完成任务需要的材料。";
         n.input = { material: { source: "workflow", path: "/text" } };
       }
-      if (kind === "condition") n.condition = { "!!": [{ var: "value" }] };
+      if (kind === "condition") {
+        n.condition = { "!!": [{ var: "value" }] };
+        n.prompt = "根据上一步的输出判断条件是否成立，只回答「是」或「否」。";
+        n.input = { material: { source: "workflow", path: "/text" } };
+      }
       if (kind === "artifact") {
         n.format = "text/markdown";
         n.input = { content: { source: "workflow", path: "/text" } };
       }
+      if (containerKinds.includes(kind)) {
+        n.size = { width: 500, height: 300 };
+        n.concurrency = 3;
+        n.distributePrompt = false;
+        n.prompt = "分发给每个并行子步骤的提示词。";
+      }
       change({ ...definition, nodes: [...definition.nodes, n] });
+      if (!position && !parent && flow.current && pos) {
+        // 新步骤落点可能在视野下方：把视图平移过去，加完即见。
+        flow.current.setCenter(pos.x + 116, pos.y + 56, { zoom: flow.current.getViewport().zoom, duration: 280 });
+      }
       setSelected(id);
     };
     const remove = (id = selected) => {
@@ -805,7 +913,6 @@ export function apply(ctx) {
         const next = removeGraphItems(definition, [id]);
         change(next);
         setSelected(next.nodes[Math.min(index, next.nodes.length - 1)]?.id ?? null);
-        setNotice(`已删除“${definition.nodes[index].name}”，可撤销恢复。`);
       } catch (e) { setError(e.message); }
     };
     const undo = () => {
@@ -815,53 +922,99 @@ export function apply(ctx) {
       setDefinition(previous);
       setHistory(h => h.slice(0, -1));
       setSelected(previous.nodes.some(n => n.id === selected) ? selected : previous.nodes.at(-1)?.id ?? null);
-      setDirty(true); setNotice("已撤销，步骤与材料关系已恢复。");
+      setDirty(true);
     };
     useEffect(() => {
       const keydown = e => {
         if (!e.target.closest('.wf-editor') || e.target.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return;
         if (e.key === 'Delete' || e.key === 'Backspace') {
-          if (selectedEdge && !selectedEdge.startsWith('repeat:')) { e.preventDefault(); change(removeGraphItems(definition, [], [selectedEdge])); setSelectedEdge(null); setNotice('已删除连接，可撤销恢复。'); }
+          if (selectedEdge && !selectedEdge.startsWith('repeat:')) { e.preventDefault(); change(removeGraphItems(definition, [], [selectedEdge])); setSelectedEdge(null); }
           else if (selected) { e.preventDefault(); remove(); }
         }
       };
       window.addEventListener('keydown', keydown);
       return () => window.removeEventListener('keydown', keydown);
     }, [definition, selected, selectedEdge]);
+    const graphNodes = React.useMemo(() => {
     const ranks = Object.fromEntries(definition.nodes.map(n=>[n.id,0]));
     for(let pass=0;pass<definition.nodes.length;pass++) for(const e of definition.edges) if(e.from in ranks && e.to in ranks) ranks[e.to]=Math.max(ranks[e.to],ranks[e.from]+1);
     const lanes = {};
-    const graphNodes = definition.nodes.map((n, i) => ({
+    return definition.nodes.filter(n => !n.parentId || definition.nodes.some(x => x.id === n.parentId)).map((n, i) => {
+      const parentOf = n.parentId ? definition.nodes.find(x => x.id === n.parentId) : undefined;
+      const isContainer = containerKinds.includes(n.kind);
+      return {
       id: n.id,
-      type: "workflowNode",
-      position: {x:80+(lanes[ranks[n.id]]=(lanes[ranks[n.id]] ?? -1)+1)*340,y:60+ranks[n.id]*240},
+      ...(n.parentId && parentOf ? { parentId: n.parentId, extent: "parent" } : {}),
+      type: isContainer ? "containerNode" : "workflowNode",
+      position: n.position ?? (n.parentId && parentOf
+        ? { x: 20 + (i % 2) * 240, y: 52 + Math.floor(i / 2) * 130 }
+        : {x:80+(lanes[ranks[n.id]]=(lanes[ranks[n.id]] ?? -1)+1)*340,y:60+ranks[n.id]*240}),
       data: {
         order: i+1,
         kind: n.kind,
         repeat: n.repeat,
         title: n.name,
         model: n.model?.mode === "explicit" ? n.model.id : "会话模型",
-        summary: n.prompt || (n.kind === 'artifact' ? '展示并保存上游步骤的结果' : '配置此步骤的执行行为'),
+        summary: displayPrompt(n.prompt) || "",
+        onRename: (name) => change({ ...definition, nodes: definition.nodes.map(x => x.id === n.id ? { ...x, name } : x) }),
         mode: n.kind === 'interact' ? (n.interaction === 'goal' ? '交互目标' : '交互一次') : undefined,
         references: Object.values(n.input ?? {}).filter(r => r.source === 'node').map(r => definition.nodes.find(x => x.id === r.nodeId)).filter(Boolean),
+        badge: n.kind === 'multithread' ? `并发 ${n.concurrency ?? 3}` : undefined,
+        childrenCount: isContainer ? definition.nodes.filter(x => x.parentId === n.id).length : undefined,
+        distributePrompt: n.distributePrompt,
+        prompt: n.prompt,
+        onDistributeChange: (checked) => change({ ...definition, nodes: definition.nodes.map(x => x.id === n.id ? { ...x, distributePrompt: checked } : x) }),
+        onContainerPatch: (patch) => change({ ...definition, nodes: definition.nodes.map(x => x.id === n.id ? { ...x, ...patch } : x) }),
       },
-      className: `wf-node wf-node-${n.kind}`,
+      style: isContainer ? { width: n.size?.width ?? 480, height: n.size?.height ?? 280 } : undefined,
+      className: `wf-node wf-node-${n.kind}${isContainer ? ' wf-container' : ''}`,
       selected: n.id === selected,
-    }));
+      };
+    });
+    }, [definition, selected]);
+    // 拖动期间的实时位置：受控模式下若不把 position 回灌给 React Flow，
+    // 节点会停在原地、到松手落盘才移动。只在 definition/selected 变化时重建。
+    const [liveNodes, setLiveNodes] = useState([]);
+    useEffect(() => { setLiveNodes(graphNodes); }, [graphNodes]);
+    const graphEdges = React.useMemo(() => {
     const visibleEdges = definition.edges.filter(edge => {
       if (edge.on && edge.on !== 'success') return true;
+      // 承载数据引用的边永远显示：藏掉它会让用户以为连线丢失。
+      const target = definition.nodes.find(n => n.id === edge.to);
+      if (target && Object.values(target.input ?? {}).some(r => r?.source === 'node' && r.nodeId === edge.from)) return true;
       const seen = new Set();
       const reaches = id => { if(id===edge.to) return true; if(seen.has(id)) return false; seen.add(id); return definition.edges.filter(e=>e!==edge && e.from===id && (!e.on || e.on==='success')).some(e=>reaches(e.to)); };
       return !reaches(edge.from);
     });
-    const graphEdges = visibleEdges.map((e) => ({
+    const incoming = {};
+    return visibleEdges.map((e) => {
+      incoming[e.to] = (incoming[e.to] ?? 0);
+      const index = incoming[e.to];
+      incoming[e.to] += 1;
+      return {
       id: `${e.from}:${e.to}`,
       source: e.from,
       target: e.to,
-      label: e.on === "true" ? "是" : e.on === "false" ? "否" : undefined,
-      className: e.on === "false" ? "wf-edge-dashed" : undefined,
-    })).concat(definition.nodes.filter(n=>n.repeat?.target).map(n=>({id:`repeat:${n.id}`,source:n.id,target:n.repeat.target,sourceHandle:'retry-out',targetHandle:'retry-in',type:'smoothstep',label:`未通过，返回修改 · 最多 ${n.repeat.maxRounds} 轮`,className:'wf-edge-loop',deletable:false})));
-    const latestRun = data.runs.find((item) => item.workflowId === record.id);
+      type: "smoothstep",
+      selected: `${e.from}:${e.to}` === selectedEdge,
+       className: `${e.on === "false" ? "wf-edge-dashed" : e.on === "true" ? "wf-edge-yes" : "wf-edge-default"}${`${e.from}:${e.to}` === selectedEdge ? " wf-edge-selected" : ""}`,
+       label: e.on === "true" ? "是" : e.on === "false" ? "否" : undefined,
+      style: e.on === "true"
+        ? { stroke: "#2f9e63", color: "#2f9e63", strokeWidth: 2 }
+        : e.on === "false"
+          ? { stroke: "#8d97a5", color: "#8d97a5", strokeWidth: 1.75 }
+          : undefined,
+      ...(e.on === "true" || e.on === "false" ? {
+        labelStyle: { fill: e.on === "true" ? "#2f9e63" : "var(--wf-muted)", fontWeight: 600, fontSize: 11 },
+        labelBgStyle: { fill: "var(--wf-surface)" },
+        labelBgPadding: [6, 3],
+        labelBgBorderRadius: 6,
+      } : {}),
+      pathOptions: { offset: 18 + index * 8, borderRadius: 18 },
+      };
+    }).concat(definition.nodes.filter(n=>n.repeat?.target).map(n=>({id:`repeat:${n.id}`,source:n.id,target:n.repeat.target,sourceHandle:'retry-out',targetHandle:'retry-in',type:'smoothstep',label:`未通过，返回修改 · 最多 ${n.repeat.maxRounds} 轮`,className:'wf-edge-loop',deletable:false})));
+    }, [definition, selectedEdge]);
+     const latestRun = data.runs.find((item) => item.workflowId === record.id);
     useEffect(() => {
       let live = true;
       if (!latestRun) {
@@ -897,9 +1050,8 @@ export function apply(ctx) {
     return (
       <div className="wf-editor">
         <div className="wf-editor-viewbar"><div className="wf-segmented" role="tablist" aria-label="步骤展示方式">{[["steps","步骤列表"],["graph","流程图"]].map(([id,label])=><button key={id} role="tab" aria-selected={editorView===id} onClick={()=>{setEditorView(id);setRaw(false);localStorage.setItem("workflow-studio:editor-view",id);}}>{label}</button>)}</div></div>
-        {notice && <div className="wf-editor-notice" role="status"><span>{notice}</span><button disabled={!history.length} onClick={undo}>撤销</button><Icon label="关闭提示" icon={X} onClick={()=>setNotice("")} /></div>}
         {skillEdit && <Modal title={`编辑 skill · ${skillEdit.name}`} close={()=>setSkillEdit(null)}><textarea className="wf-skill-content" aria-label="Skill 内容" value={skillEdit.content} onChange={e=>setSkillEdit({...skillEdit,content:e.target.value})}/><button className="wf-primary" onClick={()=>{update({skillOverrides:{...node.skillOverrides,[skillEdit.name]:skillEdit.content}});setSkillEdit(null);}}>应用到步骤</button></Modal>}
-        {assetsOpen && <Modal title="添加步骤" close={()=>setAssetsOpen(false)}><div className="wf-modal-body"><div className="wf-step-picker" role="menu" aria-label="更多步骤选项">{Object.entries(labels).filter(([kind])=>!["input","interact","agent","artifact"].includes(kind)).map(([kind,label])=><button key={kind} role="menuitem" onClick={()=>{setAssetsOpen(false);add(kind);}}>{glyphFor(kind,20)}<span>{label}</span></button>)}</div></div></Modal>}
+        {assetsOpen && <Modal title="添加步骤" close={()=>setAssetsOpen(false)}><div className="wf-modal-body"><div className="wf-step-picker" role="menu" aria-label="更多步骤选项">{Object.entries(labels).filter(([kind])=>!["input","interact","agent","artifact"].includes(kind)).map(([kind,label])=><button key={kind} role="menuitem" className={`wf-step-${kind}`} onClick={()=>{setAssetsOpen(false);add(kind);}}><span className="wf-step-glyph" aria-hidden="true">{glyphFor(kind,15)}</span><span>{label}</span></button>)}</div></div></Modal>}
         <div className="wf-editor-body">
           <div className="wf-stage">
             <div className="wf-canvas">
@@ -907,18 +1059,19 @@ export function apply(ctx) {
                 {Object.entries(labels).filter(([kind]) => ["input", "interact", "agent", "artifact"].includes(kind)).map(([kind, label]) => (
                   <button
                     key={kind}
+                    className={`wf-add wf-step-${kind}`}
                     draggable
                     onDragStart={(e) =>
                       e.dataTransfer.setData("application/workflow-node", kind)
                     }
                     onClick={() => add(kind)}
                   >
-                    {glyphFor(kind, 14)}
+                    <span className="wf-add-glyph" aria-hidden="true">{glyphFor(kind, 13)}</span>
                     {label}
                   </button>
                 ))}
                 <span className="wf-addbar-divider" aria-hidden="true" />
-                <button aria-label="更多步骤" aria-expanded={assetsOpen} onClick={()=>setAssetsOpen(true)}><Plus size={14}/>更多步骤</button>
+                <button aria-label="更多步骤" aria-expanded={assetsOpen} onClick={()=>setAssetsOpen(true)}><span className="wf-add-glyph" aria-hidden="true"><Plus size={13}/></span>更多步骤</button>
 
               </div>
               <input
@@ -939,7 +1092,7 @@ export function apply(ctx) {
                   />
                 </div>
               ) : editorView === "steps" ? (
-                <StepOutline definition={definition} selected={selected} onDelete={remove} onSelect={id=>{setSelectedEdge(null);setSelected(id);setPanelTab("step");}} />
+                <StepOutline definition={definition} selected={selected} onDelete={remove} onRename={(id, name) => change({ ...definition, nodes: definition.nodes.map(n => n.id === id ? { ...n, name } : n) })} onSelect={id=>{setSelectedEdge(null);setSelected(id);setPanelTab("step");}} />
               ) : (
                 <div
                   className="wf-flow"
@@ -948,19 +1101,36 @@ export function apply(ctx) {
                   onDrop={(e) => {
                     e.preventDefault();
                     const kind = e.dataTransfer.getData("application/workflow-node");
-                    if (labels[kind]) add(kind, flow.current?.screenToFlowPosition({ x: e.clientX, y: e.clientY }));
+                    if (!labels[kind]) return;
+                    const pos = flow.current?.screenToFlowPosition({ x: e.clientX, y: e.clientY });
+                    const shell = pos ? containerAt(pos) : undefined;
+                    if (shell && childAllowed(shell, kind)) {
+                      add(kind, { x: Math.max(12, pos.x - shell.position.x), y: Math.max(56, pos.y - shell.position.y) }, shell.id);
+                      return;
+                    }
+                    add(kind, pos);
                   }}
                 >
+                  <svg className="wf-sketch-defs" aria-hidden="true" focusable="false">
+                    <filter id="wf-sketch-line">
+                      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" seed="8" result="warp" />
+                      <feDisplacementMap in="SourceGraphic" in2="warp" scale="2.6" xChannelSelector="R" yChannelSelector="G" />
+                    </filter>
+                  </svg>
                   <ReactFlow
                     onInit={(instance) => { flow.current = instance; }}
                     nodeTypes={nodeTypes}
-                    nodes={graphNodes}
+                    nodes={liveNodes}
                     edges={graphEdges}
                     defaultEdgeOptions={{
                       type: "smoothstep",
-                      markerEnd: { type: MarkerType.ArrowClosed },
+                      style: { stroke: "currentColor", strokeWidth: 2 },
+                      markerEnd: { type: MarkerType.ArrowClosed, width: 9, height: 9, color: "currentColor" },
                     }}
-                    nodesDraggable={false}
+                    connectionLineStyle={{ stroke: "#6a5acd", strokeWidth: 1.5 }}
+                    nodesDraggable
+                    zoomOnDoubleClick={false}
+                    proOptions={{ hideAttribution: true }}
                     deleteKeyCode={null}
                     fitView
                     fitViewOptions={{ padding: 0.18 }}
@@ -968,27 +1138,53 @@ export function apply(ctx) {
                     maxZoom={2}
                     onNodeClick={(_, n) => { setSelectedEdge(null); setSelected(n.id); setPanelTab("step"); }}
                     onEdgeClick={(_, e) => { setSelected(null); setSelectedEdge(e.id); }}
+                    onPaneClick={() => { setSelectedEdge(null); }}
                     onNodesChange={(changes) => {
+                      // 拖动坐标实时回灌让节点跟手；落盘仍只在 onNodeDragStop。
+                      setLiveNodes((nodes) => applyNodeChanges(changes, nodes));
+                      if (!changes.some((c) => c.type === "remove")) return;
                       const nodes = applyNodeChanges(changes, graphNodes);
-                      if (
-                        changes.some(
-                          (c) => c.type === "position" || c.type === "remove",
-                        )
-                      )
-                        change({
-                          ...definition,
-                          nodes: definition.nodes
-                            .filter((n) => nodes.some((x) => x.id === n.id))
-                            .map((n) => ({
-                              ...n,
-                              position: nodes.find((x) => x.id === n.id).position,
-                            })),
-                          edges: definition.edges.filter(
-                            (e) =>
-                              nodes.some((n) => n.id === e.from) &&
-                              nodes.some((n) => n.id === e.to),
-                          ),
-                        });
+                      change({
+                        ...definition,
+                        nodes: definition.nodes
+                          .filter((n) => nodes.some((x) => x.id === n.id))
+                          .map((n) => ({
+                            ...n,
+                            position: nodes.find((x) => x.id === n.id).position,
+                          })),
+                        edges: definition.edges.filter(
+                          (e) =>
+                            nodes.some((n) => n.id === e.from) &&
+                            nodes.some((n) => n.id === e.to),
+                        ),
+                      });
+                    }}
+                    onNodeDragStop={(_, dragged) => {
+                      if (!dragged?.position) return;
+                      const draggedDef = definition.nodes.find(n => n.id === dragged.id);
+                      if (!draggedDef) return;
+                      if (draggedDef.parentId) {
+                        const shell = definition.nodes.find(n => n.id === draggedDef.parentId);
+                        if (shell) {
+                          const w = shell.size?.width ?? 480, h = shell.size?.height ?? 280;
+                          const inside = dragged.position.x > -20 && dragged.position.y > 32 && dragged.position.x < w - 40 && dragged.position.y < h - 16;
+                          if (inside) {
+                            change({ ...definition, nodes: definition.nodes.map(n => n.id === dragged.id ? { ...n, position: dragged.position } : n) });
+                            return;
+                          }
+                          const absolute = { x: shell.position.x + dragged.position.x, y: shell.position.y + dragged.position.y };
+                          change({ ...definition, nodes: definition.nodes.map(n => n.id === dragged.id ? { ...n, parentId: undefined, position: absolute } : n) });
+                          return;
+                        }
+                      }
+                      // 拖入外壳：仅接受该外壳允许的子步骤类型。
+                      const shell = containerAt(dragged.position);
+                      if (childAllowed(shell, draggedDef.kind)) {
+                        const relative = { x: Math.max(12, dragged.position.x - shell.position.x), y: Math.max(56, dragged.position.y - shell.position.y) };
+                        change({ ...definition, nodes: definition.nodes.map(n => n.id === dragged.id ? { ...n, parentId: shell.id, position: relative } : n) });
+                        return;
+                      }
+                      change({ ...definition, nodes: definition.nodes.map((n) => n.id === dragged.id ? { ...n, position: dragged.position } : n) });
                     }}
                     onEdgesChange={(changes) => {
                       if (changes.some((c) => c.type === "remove")) {
@@ -997,7 +1193,8 @@ export function apply(ctx) {
                     }}
                     onConnect={(connection) => {
                       try {
-                        change(connectReference(definition, connection.source, connection.target).definition);
+                        const on = connection.sourceHandle === "yes" ? "true" : connection.sourceHandle === "no" ? "false" : undefined;
+                        change(connectReference(definition, connection.source, connection.target, false, on).definition);
                       } catch (e) { setError(e.message); }
                     }}
                   >
@@ -1057,7 +1254,7 @@ export function apply(ctx) {
             {panelTab !== "theme" && node && (
               <div className={`wf-panel-head wf-step-${node.kind}`}>
                 <span className="wf-step-glyph">{glyphFor(node.kind, 14)}</span>
-                <strong>{node.name}</strong>
+                <InlineName value={node.name} onRename={(name) => update({ name })} />
                 <em>{labels[node.kind]}</em>
                 <button className="wf-delete-step" aria-label="删除节点" title="删除此步骤，可撤销恢复" onClick={()=>remove()}><Trash2 size={15} />删除</button>
               </div>
@@ -1134,8 +1331,53 @@ export function apply(ctx) {
                   </details>
                 )}
               </div>
+            ) : node && containerKinds.includes(node.kind) ? (
+              <div className="wf-panel-body">
+                <p className="wf-panel-note">外壳容器：把要一起执行的步骤拖入画布上的框内，容器本身不运行对话。</p>
+                {node.kind === "multithread" && (
+                  <>
+                    <Field label="并发数（同时执行的子步骤数）">
+                      <input
+                        type="number"
+                        min="1"
+                        max="8"
+                        value={node.concurrency ?? 3}
+                        onChange={(e) => update({ concurrency: Math.min(8, Math.max(1, Number(e.target.value) || 1)) })}
+                      />
+                    </Field>
+                    <label className="wf-check-row">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(node.distributePrompt)}
+                        onChange={(e) => update({ distributePrompt: e.target.checked })}
+                      />
+                      把下面的 Prompt 分发给每个子步骤
+                    </label>
+                    {node.distributePrompt ? (
+                      <Field label="分发的 Prompt">
+                        <textarea
+                          rows={4}
+                          value={node.prompt ?? ""}
+                          placeholder="写清楚每个并行子步骤要做什么。"
+                          onChange={(e) => update({ prompt: e.target.value })}
+                        />
+                      </Field>
+                    ) : (
+                      <p className="wf-panel-note">未勾选时，各子步骤使用各自的 Prompt。</p>
+                    )}
+                  </>
+                )}
+
+              </div>
             ) : node ? (
               <div className="wf-panel-body">
+                {(() => {
+                  const shell = node.parentId ? definition.nodes.find((x) => x.id === node.parentId) : undefined;
+                  if (shell?.kind === "multithread" && shell.distributePrompt) {
+                    return <p className="wf-panel-note">Prompt 由 Multithread 外壳统一分发；如需单独设置，请在外壳中取消勾选分发。</p>;
+                  }
+                  return (
+                    <>
                 <div className="wf-prompt-label">
                   <Sparkles size={12} />
                   <span>
@@ -1145,12 +1387,6 @@ export function apply(ctx) {
                         : "提问内容"
                       : "步骤说明"}
                   </span>
-                  <Icon
-                    label="编辑步骤说明"
-                    icon={Pencil}
-                    size={12}
-                    onClick={() => document.querySelector(".wf-panel-body .wf-step-prompt")?.focus()}
-                  />
                 </div>
                 <StepPrompt
                   key={node.id}
@@ -1158,14 +1394,25 @@ export function apply(ctx) {
                   definition={definition}
                   onChange={(prompt) => update({ prompt })}
                   onReference={(source) => {
-                    try { change(connectReference(definition, source, node.id).definition); } catch (e) { setError(e.message); }
+                    try {
+                      // append=false：chip 由编辑器在光标处插入，不再向 prompt 追加 token。
+                      const linked = connectReference(definition, source, node.id, false);
+                      change(linked.definition);
+                      return linked.key;
+                    } catch (e) { setError(e.message); }
                   }}
                 />
+                    </>
+                  );
+                })()}
+                {node.kind === "condition" && (
+                  <p className="wf-panel-note">填写步骤说明时，由模型判断并只回答「是/否」；留空则按高级设置里的条件表达式本地判断。</p>
+                )}
                 {(node.kind === 'agent' || (node.kind === 'interact' && node.interaction === 'goal')) && (
-                  <details className="wf-routing-settings"><summary>模型与执行设置 · {node.model?.mode === 'explicit' ? node.model.id : '继承会话'}</summary><Routing node={node} update={update} caps={caps} /></details>
+                  <details className="wf-routing-settings" open><summary>模型</summary><Routing node={node} update={update} caps={caps} /></details>
                 )}
                 {node.kind === "agent" && (
-                  <details className="wf-settings-group"><summary>技能与工具 <small>{(node.skills?.length ?? 0) + (node.tools?.length ?? 0)} 项</small></summary>
+                  <details className="wf-settings-group" hidden><summary>技能与工具 <small>{(node.skills?.length ?? 0) + (node.tools?.length ?? 0)} 项</small></summary>
                                         <Field label="技能">
                       <input
                         list="wf-skills"
@@ -1278,7 +1525,7 @@ export function apply(ctx) {
                   ))}
                 </datalist>
 
-                {node.kind === 'agent' && <details className="wf-review-settings"><summary><span>评审与循环</span><span className="wf-setting-value">{node.repeat ? "已开启" : "未开启"}</span></summary>
+                {node.kind === 'agent' && <details className="wf-review-settings" hidden><summary><span>评审与循环</span><span className="wf-setting-value">{node.repeat ? "已开启" : "未开启"}</span></summary>
                   <label><input type="checkbox" checked={Boolean(node.repeat)} onChange={e => { if (e.target.checked) update({ repeat: { target: definition.nodes.find(n => n.id !== node.id && n.kind === 'agent')?.id ?? '', until: { '>=': [{ var: 'score' }, 85] }, maxRounds: 3, sessionMode: 'new' } }); else { const next = { ...node }; delete next.repeat; change({ ...definition, nodes: definition.nodes.map(n => n.id === node.id ? next : n) }); } }} />根据结果返回修订</label>
                   {node.repeat && <>
                     <Field label="返回步骤"><select value={node.repeat.target} onChange={e => update({ repeat: { ...node.repeat, target: e.target.value } })}><option value="">选择上游步骤</option>{definition.nodes.filter(n => n.id !== node.id && n.kind === 'agent').map(n => <option key={n.id} value={n.id}>{n.name}</option>)}</select></Field>
@@ -1287,7 +1534,7 @@ export function apply(ctx) {
                     <JsonField label="通过条件" value={node.repeat.until} change={until => update({ repeat: { ...node.repeat, until } })} />
                                       </>}
                 </details>}
-                <details className="wf-advanced">
+                <details className="wf-advanced" hidden>
                   <summary>高级设置</summary>
                   <Field label="步骤标识"><input value={node.id} readOnly /></Field>
                   <JsonField
@@ -1309,7 +1556,7 @@ export function apply(ctx) {
                       change={(outputSchema) => update({ outputSchema })}
                     />
                   )}
-                  {["loop", "subworkflow"].includes(node.kind) && (
+                  {node.kind === "subworkflow" && (
                     <JsonField
                       label="子工作流版本"
                       value={node.workflow ?? { id: "", revision: 1 }}
@@ -1324,17 +1571,6 @@ export function apply(ctx) {
                         max="3600"
                         value={node.timeoutSeconds ?? 600}
                         onChange={(e) => update({ timeoutSeconds: Number(e.target.value) })}
-                      />
-                    </Field>
-                  )}
-                  {node.kind === "loop" && (
-                    <Field label="最大条目数">
-                      <input
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={node.maxItems ?? 10}
-                        onChange={(e) => update({ maxItems: Number(e.target.value) })}
                       />
                     </Field>
                   )}
@@ -1412,41 +1648,52 @@ export function apply(ctx) {
                 <tr key={r.id}>
                   <td>
                     <button
+                      className="wf-run-open"
+                      title={r.summary || r.id}
                       onClick={async () =>
                         setDetail(await api({ action: "runRead", id: r.id }))
                       }
                     >
-                      {r.id.slice(0, 18)}
+                      {r.summary || r.id.slice(0, 18)}
                     </button>
                   </td>
                   <td>v{r.revision}</td>
                   <td>
-                    <span className={`wf-status ${r.status}`}>
+                    <span className={`wf-status ${r.status}`} title={r.error ?? ""}>
                       {statuses[r.status] ?? r.status}
                     </span>
+                    {r.error && (
+                      <small className="wf-run-error-hint">{shortError(r.error)}</small>
+                    )}
                   </td>
                   <td>{timestamp(r.createdAt)}</td>
                   <td>
-                    <Icon
-                      label="打开运行会话"
-                      icon={MessageSquare}
+                    <button
+                      className="wf-run-action"
                       onClick={async () => {
                         await ctx.sessions.refresh();
                         openSession(r.sessionId);
                       }}
-                    />
+                    >
+                      <MessageSquare size={14} />
+                      对话
+                    </button>
                     {r.status === "running" ? (
                       <>
-                        <Icon
-                          label="暂停运行"
-                          icon={Pause}
+                        <button
+                          className="wf-run-action"
                           onClick={() => action({ action: "pause", id: r.id })}
-                        />
-                        <Icon
-                          label="取消运行"
-                          icon={Square}
+                        >
+                          <Pause size={14} />
+                          暂停
+                        </button>
+                        <button
+                          className="wf-run-action"
                           onClick={() => action({ action: "cancel", id: r.id })}
-                        />
+                        >
+                          <Square size={14} />
+                          停止
+                        </button>
                       </>
                     ) : (
                       [
@@ -1456,13 +1703,15 @@ export function apply(ctx) {
                         "waiting_approval",
                         "cancelled",
                       ].includes(r.status) && (
-                        <Icon
-                          label="恢复运行"
-                          icon={Play}
-                          onClick={() =>
-                            setDetail({ run: r, events: [], artifacts: [] })
+                        <button
+                          className="wf-run-action"
+                          onClick={async () =>
+                            setDetail(await api({ action: "runRead", id: r.id }))
                           }
-                        />
+                        >
+                          <Play size={14} />
+                          检视
+                        </button>
                       )
                     )}
                   </td>
@@ -1485,7 +1734,13 @@ export function apply(ctx) {
                 {statuses[detail.run.status]} · v{detail.run.revision}
               </p>
               {detail.run.error && (
-                <p className="wf-error">{detail.run.error}</p>
+                <div className="wf-error-banner" role="alert">
+                  <AlertTriangle size={16} />
+                  <div>
+                    <p>{describeRunError(detail.run, detail.events) ?? detail.run.error}</p>
+                    <small>{detail.run.error}</small>
+                  </div>
+                </div>
               )}
               {(() => {
                 const entry = Object.entries(detail.run.nodes ?? {}).find(
@@ -1516,7 +1771,7 @@ export function apply(ctx) {
                   </div>
                 );
               })()}
-              <RunTimeline ctx={ctx} api={api} runId={detail.run.id} openSession={openSession} onChange={refresh} />
+              <RunTimeline ctx={ctx} api={api} runId={detail.run.id} openSession={openSession} onChange={refresh} hideRunError />
               {detail.artifacts.map((a) => (
                 <button
                   key={a.id}
@@ -1562,9 +1817,13 @@ export function apply(ctx) {
                   </button>
                 </>
               )}
-              <details>
+              <details className="wf-events">
                 <summary>事件记录</summary>
-                <pre>{pretty(detail.events)}</pre>
+                <EventTimeline events={detail.events} nodes={detail.run.nodes} />
+                <details>
+                  <summary>原始事件 JSON</summary>
+                  <pre>{pretty(detail.events)}</pre>
+                </details>
               </details>
             </div>
           </Modal>
@@ -2248,7 +2507,6 @@ export function apply(ctx) {
     );
     const latest = data.runs.find(r => r.sessionId === sessionId);
     const recipients = (data.stepSessions ?? []).filter(s => s.runId === latest?.id);
-    if (!authoring) return null;
     const name = workflow?.name ?? "新工作流";
     const label = authoring
       ? creating

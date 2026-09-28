@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {Menu} from '@deepseek-ai/dsh-client-ui-primitives';
-import {MessageSquare,Copy,Pencil,GitBranch,Archive,ArchiveRestore,MoreHorizontal,Plus,Search,LayoutGrid,List,Settings2,Play,Undo2,X} from 'lucide-react';
+import {MessageSquare,Copy,Pencil,GitBranch,Archive,ArchiveRestore,MoreHorizontal,Plus,Search,LayoutGrid,List,Settings2,Play,Undo2,X,ChevronDown} from 'lucide-react';
 import {workflowHistory} from './history.js';
 
 export function createGallery({ctx, api, refresh, openSession, openEditor, bind, beginAuthorSession, useSessions, Icon, glyphFor, timestamp}) {
@@ -111,7 +111,9 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
   function Gallery({ data, onError }) {
     const sessions = useSessions();
     const [view, setView] = useState(
-      () => localStorage.getItem("workflow-studio:view") ?? "cards",
+      // Lists keep the library calm at the moment of entry. Cards remain a
+      // deliberate view choice for people who want more visual browsing.
+      () => localStorage.getItem("workflow-studio:view") ?? "list",
     );
     const [archived, setArchived] = useState(false);
     const [query, setQuery] = useState("");
@@ -122,6 +124,20 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
     const [feedback, setFeedback] = useState(null);
     const [pending, setPending] = useState("");
     const [creating, setCreating] = useState(false);
+    // React state updates are async, so two clicks in the same tick both read
+    // the stale `pending` and run twice (a double click really does happen).
+    // The ref flips synchronously and closes that window.
+    const pendingRef = useRef("");
+    const claim = (id) => {
+      if (pendingRef.current) return false;
+      pendingRef.current = id;
+      setPending(id);
+      return true;
+    };
+    const release = () => {
+      pendingRef.current = "";
+      setPending("");
+    };
     const perform = (fn) =>
       Promise.resolve()
         .then(fn)
@@ -136,20 +152,18 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
     // runs, schedules and conversation bindings deliberately stay behind.
     const copy = (record) =>
       perform(async () => {
-        if (pending) return;
-        setPending(record.id);
+        if (!claim(record.id)) return;
         try {
           const created = await api({ action: "copy", id: record.id });
           await refresh();
           openEditor(created.id);
         } finally {
-          setPending("");
+          release();
         }
       });
     const archive = (record) =>
       perform(async () => {
-        if (pending) return;
-        setPending(record.id);
+        if (!claim(record.id)) return;
         try {
           await api({ action: "archive", id: record.id, archived: !record.archived });
           await refresh();
@@ -161,7 +175,7 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
               : `已归档「${record.name}」，可在「已归档」里恢复`,
           });
         } finally {
-          setPending("");
+          release();
         }
       });
     const undoArchive = (entry) =>
@@ -295,11 +309,20 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
                     {glyphFor(w.icon ?? "workflow", 15)}
                   </span>
                   <span className="wf-card-title" title={w.name}>{w.name}</span>
-                  <span
-                    className={`wf-chip ${w.published === w.revision ? "is-published" : ""}`}
-                  >
-                    {w.published ? `已发布 v${w.published}` : `草稿 v${w.revision}`}
-                  </span>
+                  {w.published ? (
+                    <>
+                      <span className="wf-chip is-published">
+                        已发布 v{w.published}
+                      </span>
+                      {w.revision > w.published && (
+                        <span className="wf-chip is-dirty">
+                          草稿 v{w.revision}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="wf-chip">草稿 v{w.revision}</span>
+                  )}
                 </button>
                 <p className="wf-card-desc" title={w.description || "还没有描述"}>
                   {w.description || "还没有描述"}
@@ -308,10 +331,6 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
                   <span>最近修改 {timestamp(w.updatedAt)}</span>
                 </p>
                 <div className="wf-card-actions">
-                  <button onClick={() => openEditor(w.id)}>
-                    <Settings2 size={15} aria-hidden="true" />
-                    打开
-                  </button>
                   <button
                     className="wf-run-action"
                     disabled={w.archived}
@@ -319,6 +338,10 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
                   >
                     <Play size={15} aria-hidden="true" />
                     运行
+                  </button>
+                  <button onClick={() => openEditor(w.id)}>
+                    <Settings2 size={15} aria-hidden="true" />
+                    打开
                   </button>
                   <button disabled={pending === w.id} onClick={() => copy(w)}>
                     <Copy size={15} aria-hidden="true" />
@@ -352,6 +375,7 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
           </div>
         ) : (
           <table className="wf-table">
+            <colgroup><col className="wf-col-name" /><col className="wf-col-version" /><col className="wf-col-chat" /><col className="wf-col-time" /><col className="wf-col-actions" /></colgroup>
             <thead>
               <tr>
                 <th>工作流</th>
@@ -365,24 +389,30 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
               {rows.map((w) => (
                 <React.Fragment key={w.id}>
                   <tr data-workflow-row={w.id}>
-                    <td>
-                      <button
-                        className="wf-link wf-list-title"
-                        title={w.name}
-                        onClick={() => openEditor(w.id)}
-                      >
-                        {w.name}
-                      </button>
-                      <small className="wf-list-desc" title={w.description}>
-                        {w.description}
-                      </small>
+                    <td className="wf-name-cell">
+                      <div className="wf-list-identity">
+                        <span className={`wf-workflow-icon wf-icon-${w.icon ?? "workflow"}`} aria-hidden="true">{glyphFor(w.icon ?? "workflow", 18)}</span>
+                        <div className="wf-list-copy">
+                          <button
+                            className="wf-link wf-list-title"
+                            title={w.name}
+                            onClick={() => openEditor(w.id)}
+                          >
+                            {w.name}
+                          </button>
+                          {w.description && <small className="wf-list-desc" title={w.description}>{w.description}</small>}
+                        </div>
+                      </div>
                     </td>
                     <td>
-                      {w.published ? `已发布 v${w.published}` : `草稿 v${w.revision}`}
+                      <div className="wf-list-versions">
+                        {w.published && <span className="wf-chip is-published">已发布 v{w.published}</span>}
+                        {(!w.published || w.revision > w.published) && <span className="wf-chip">草稿 v{w.revision}</span>}
+                      </div>
                     </td>
                     <td>
                       <button
-                        className="wf-link"
+                        className="wf-link wf-list-conversations"
                         aria-expanded={detail.has(w.id)}
                         onClick={() =>
                           setDetail((old) => {
@@ -392,34 +422,17 @@ export function createGallery({ctx, api, refresh, openSession, openEditor, bind,
                           })
                         }
                       >
-                        {conversations(w.id)} 个对话
+                        <MessageSquare size={14} aria-hidden="true" />{conversations(w.id)}<ChevronDown size={13} aria-hidden="true" />
                       </button>
                     </td>
-                    <td>{timestamp(w.updatedAt)}</td>
+                    <td><span className="wf-list-time" title={timestamp(w.updatedAt)}>{timestamp(w.updatedAt)}</span></td>
                     <td>
-                      <Icon
-                        label={`运行 ${w.name}`}
-                        icon={Play}
-                        disabled={w.archived}
-                        onClick={() => perform(() => bind(w))}
-                      />
-                      <Icon
-                        label={`拷贝 ${w.name}`}
-                        icon={Copy}
-                        disabled={pending === w.id}
-                        onClick={() => copy(w)}
-                      />
-                      <Icon
-                        label={`编辑 ${w.name}`}
-                        icon={Settings2}
-                        onClick={() => openEditor(w.id)}
-                      />
-                      <Icon
-                        label={w.archived ? `恢复 ${w.name}` : `归档 ${w.name}`}
-                        icon={w.archived ? ArchiveRestore : Archive}
-                        disabled={pending === w.id}
-                        onClick={() => archive(w)}
-                      />
+                      <div className="wf-list-actions">
+                        <Icon label={`运行 ${w.name}`} icon={Play} disabled={w.archived} onClick={() => perform(() => bind(w))} />
+                        <Icon label={`拷贝 ${w.name}`} icon={Copy} disabled={pending === w.id} onClick={() => copy(w)} />
+                        <Icon label={`编辑 ${w.name}`} icon={Settings2} onClick={() => openEditor(w.id)} />
+                        <Icon label={w.archived ? `恢复 ${w.name}` : `归档 ${w.name}`} icon={w.archived ? ArchiveRestore : Archive} disabled={pending === w.id} onClick={() => archive(w)} />
+                      </div>
                     </td>
                   </tr>
                   {detail.has(w.id) && (

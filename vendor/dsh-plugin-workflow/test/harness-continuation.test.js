@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { harnessAdapter } from '../lib/harness.js';
+import { harnessAdapter, buildAgentPrompt, materialInput } from '../lib/harness.js';
 
 test('continued steps enqueue a turn on the existing child and return its new output', async () => {
   let starts = 0, request;
@@ -59,4 +59,46 @@ test('prompt-created descendants cannot expand workflow tool permissions', async
  await assert.rejects(adapter.agent({prompt:'使用 subagents',tools:[]},{},{executor:'spawn'},[],{session:{id:'root'}},new AbortController().signal,{sessionId:'old'}));
  assert.equal(guard({agent:child,name:'bash'}),'WORKFLOW_TOOL_NOT_ALLOWED');
  assert.equal(guard({agent:child,name:'subagent'}),undefined);
+});
+
+test('agent prompt attaches files instead of inlining extracted text', () => {
+  const huge = 'x'.repeat(9000);
+  const files = [{ type: 'file', attachment: { attachmentId: 'a', name: 'paper.pdf', mediaType: 'application/pdf', bytes: 99 } }];
+  const parts = buildAgentPrompt(
+    { name: 'Writer', prompt: 'Write', tools: [] },
+    { text: huge, paper: { text: huge, title: 'Paper' }, attachments: files },
+  );
+  assert.equal(parts[0].type, 'text');
+  assert.equal(parts[1].type, 'file');
+  assert.equal(parts[1].attachment.attachmentId, 'a');
+  assert.equal(parts[0].text.includes(huge), false);
+  assert.match(parts[0].text, /omitted 9000 characters/);
+  assert.match(parts[0].text, /paper\.pdf/);
+  assert.match(parts[0].text, /title": "Paper"/);
+});
+
+test('agent prompt keeps short fields when no files are attached', () => {
+  const parts = buildAgentPrompt({ prompt: 'Write', tools: [] }, { text: 'hello' });
+  assert.equal(parts.length, 1);
+  assert.match(parts[0].text, /hello/);
+});
+
+test('materialInput keeps uploaded files as attachments and does not extract them', async () => {
+  const result = await materialInput({}, [{
+    content: [{ type: 'file', attachment: { attachmentId: 'pdf-1', name: 'paper.pdf', bytes: 12000, mediaType: 'application/pdf' } }],
+  }]);
+  assert.match(result.text, /paper\.pdf/);
+  assert.equal(result.attachments[0].attachment.attachmentId, 'pdf-1');
+  assert.equal(result.text.includes('%PDF'), false);
+});
+
+test('materialInput allows a short instruction plus an attachment', async () => {
+  const result = await materialInput({}, [{
+    content: [
+      { type: 'text', text: 'slug: demo' },
+      { type: 'file', attachment: { attachmentId: 'pdf-1', name: 'paper.pdf', bytes: 10 } },
+    ],
+  }]);
+  assert.equal(result.text, 'slug: demo');
+  assert.equal(result.attachments.length, 1);
 });

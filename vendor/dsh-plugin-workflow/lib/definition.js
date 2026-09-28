@@ -7,14 +7,16 @@ export const kinds = [
   "interact",
   "agent",
   "tool",
+  "script",
   "condition",
   "join",
-  "loop",
   "subworkflow",
   "approval",
   "artifact",
   "publish",
+  "multithread",
 ];
+export const containers = ["multithread"];
 export const interactions = ["once", "goal"];
 const route = {
   type: "object",
@@ -81,6 +83,17 @@ export const schema = {
           },
           input: { type: "object" },
           outputSchema: { type: "object" },
+          code: { type: "string", maxLength: 100000 },
+          language: { enum: ["python"] },
+          parentId: { type: "string" },
+          concurrency: { type: "integer", minimum: 1, maximum: 8 },
+          distributePrompt: { type: "boolean" },
+          rounds: { type: "integer", minimum: 1, maximum: 20 },
+          size: {
+            type: "object",
+            additionalProperties: false,
+            properties: { width: { type: "number" }, height: { type: "number" } },
+          },
           tools: {
             type: "array",
             items: { type: "string" },
@@ -105,7 +118,6 @@ export const schema = {
               revision: { type: "integer", minimum: 1 },
             },
           },
-          maxItems: { type: "integer", minimum: 1, maximum: 100 },
           maxTurns: { type: "integer", minimum: 1, maximum: 20 },
           timeoutSeconds: { type: "integer", minimum: 1, maximum: 3600 },
           maxAttempts: { type: "integer", minimum: 1, maximum: 5 },
@@ -236,13 +248,30 @@ export function validateDefinition(def) {
     if (node.kind === "interact" && node.maxTurns && node.interaction !== "goal")
       fail("INTERACTION_TURNS_UNUSED", node.id);
     if (node.kind === "tool" && !node.tool) fail("TOOL_REQUIRED", node.id);
-    if (["loop", "subworkflow"].includes(node.kind) && !node.workflow)
+    if (node.kind === "script" && !String(node.code ?? "").trim()) fail("CODE_REQUIRED", node.id);
+    const containers = ["multithread"];
+    if (node.parentId) {
+      const parent = def.nodes.find(n => n.id === node.parentId);
+      if (!parent || !containers.includes(parent.kind)) fail("CONTAINER_INVALID", node.id);
+      if (containers.includes(node.kind)) fail("CONTAINER_NESTED", node.id);
+      if (parent.kind === "multithread" && node.kind !== "agent") fail("CONTAINER_CHILD_KIND", node.id);
+    }
+    if (containers.includes(node.kind)) {
+      const children = def.nodes.filter(n => n.parentId === node.id);
+      if (node.kind === "multithread") {
+        if (children.some(c => c.kind !== "agent")) fail("CONTAINER_CHILD_KIND", node.id);
+        if (children.length > 8) fail("CONTAINER_CHILDREN", node.id);
+        if (node.distributePrompt && !String(node.prompt ?? "").trim()) fail("PROMPT_REQUIRED", node.id);
+      }
+    }
+    if (node.kind === "subworkflow" && !node.workflow)
       fail("WORKFLOW_REQUIRED", node.id);
-    if (node.kind === "loop" && !node.maxItems)
-      fail("LOOP_LIMIT_REQUIRED", node.id);
     if (node.kind === "condition") {
-      if (node.condition === undefined) fail("CONDITION_REQUIRED", node.id);
-      validateCondition(node.condition);
+      // 判断框支持两种裁决：填写 Prompt 时由模型回答是/否；否则用本地条件表达式。
+      if (node.condition === undefined && !String(node.prompt ?? "").trim())
+        fail("CONDITION_REQUIRED", node.id);
+      if (node.condition !== undefined)
+        validateCondition(node.condition);
     }
     if (node.outputSchema) {
       if (node.outputSchema.type !== "object")
@@ -262,7 +291,7 @@ export function validateDefinition(def) {
       fail("CONDITION_EDGE_REQUIRED");
     graph.setEdge(edge.from, edge.to);
   }
-  if (!graphlib.alg.isAcyclic(graph)) fail("CYCLE", "Use a bounded loop node");
+  if (!graphlib.alg.isAcyclic(graph)) fail("CYCLE", "Break the cycle with a condition node; loops come from agent review (repeat)");
   const ancestors = (id) => {
     const seen = new Set();
     const visit = (key) => {

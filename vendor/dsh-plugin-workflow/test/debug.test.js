@@ -243,3 +243,13 @@ test('N07: changed public files become output attachments available to downstrea
   assert(r.nodes.draft.output.attachments.some(b=>b.attachment.name==='result.txt'));
   assert(downstream.attachments.some(b=>b.attachment.name==='result.txt'));
 });
+test('paused run can be cancelled so a new start is allowed', async t => {
+  const f = await setup(t);
+  let r = await f.start({ debug: true });
+  assert.equal(r.status, 'paused');
+  await assert.rejects(() => f.start({ debug: true }), /SESSION_RUN_ACTIVE/);
+  f.engine.cancel(r.id);
+  assert.equal(f.store.get('run', r.id).status, 'cancelled');
+  r = await f.start({ debug: true });
+  assert.equal(r.status, 'paused', r.error);
+});

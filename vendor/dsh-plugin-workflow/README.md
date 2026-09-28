@@ -4,9 +4,9 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 
 ## 宿主支持
 
-两端共用同一个包 `dsh-plugin-workflow`，没有桌面端专用包，也没有需要单独维护的桌面仓库，两端由本仓库同一份实现维护。插件数据落在 `$DSH_HOME`（`config.dshHome` → `DSH_HOME` → `~/.dsh`），两端各用自己的 home。
+本目录维护 DSH Omni 集成版。插件数据落在 Omni 的 `$DSH_HOME`（`config.dshHome` → `DSH_HOME` → `~/.dsh`），工作流定义、运行记录和附件保存在独立的 `workflow-studio` 目录。
 
-客户端通过 Harness 的工作流面板、输入标签和会话槽集成。步骤内复用原生对话组件，包含消息、思考过程和工具调用。嵌入步骤视图使用 `0.1.5-rc.2` 的版本固定适配层；升级 Harness 时需要重新验证会话历史和 slot 契约。
+客户端通过 Harness 的工作流面板、输入标签和会话槽集成。步骤内复用原生对话组件，包含消息、思考过程和工具调用。嵌入步骤视图与 Omni 的 `0.1.7-rc.2` 运行时一同验收。
 
 包显式导出 `./package.json`：DSH Desktop 的宿主在 Electron Utility 进程里通过 Node loader 的 fallback 路径解析客户端入口，未声明该导出时客户端入口会被静默跳过；普通 Web 宿主不受影响。该导出对两端都保留。
 
@@ -25,7 +25,7 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 - 更新输出图标将最新回答保存为步骤输出，回退依赖步骤的公共文件改动；随后选择单步或连续执行。
 - 每个步骤和尝试在本地保留输入、输出、快照、精确二进制 patch 和文本 unified diff。公共工作目录直接修改；回退前检查文件哈希和权限。
 
-验证命令和逐项结果见 [验收报告](https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow/blob/main/docs/acceptance-report.md) 与 [测试清单](https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow/blob/main/docs/workflow-acceptance-plan.md)。
+构建与桌面验收结果见 [Omni 工作流 0.4.0 验收记录](https://github.com/hzxwonder/dsh-omni/blob/main/docs/workflow-omni-0.4.0.md)。
 
 快照覆盖常规文件，单次上限 128 MiB / 20,000 个文件，排除 `.git`、`node_modules`、符号链接和内部检查点。网络请求、部署及其他外部副作用需单独核对。多个子代理直接写同一文件的过程冲突尚未自动仲裁；同一公共根目录的不同 workflow 串行占用。运行中的补充消息支持文本；补充附件通过步骤输入编辑后重新执行。外部执行器的一次性会话能力与内置 spawn 不同。
 
@@ -42,7 +42,8 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 - 工作流对话落在 `$DSH_HOME/workflows/<id>`，对应原生工作区按用途命名：运行会话用工作流名，创作/修改会话用“工作流对话”；用户自己改过的名字不会被覆盖
 - 对话创建、试运行和版本化修改
 - 可视化编辑器：浮动步骤工具条、右侧 步骤/预览/控制台/主题 面板；顶部“对话修改”进入修改会话，“应用”视图包含运行记录、定时任务和版本历史
-- Agent、工具、条件、循环、子工作流、交互、确认和产物节点
+- 生成、用户输入、交互、输出、工具、条件、汇合、子工作流、确认、发布、脚本和 Multithread 步骤；双击步骤名称可原位修改
+- 步骤面板集中展示模型设置；Provider、Model 和推理强度可继承会话或逐步指定
 - 交互节点：在绑定会话里向用户提问，用户回答后继续。`交互一次` 收一条回答（例如论文 PDF 或链接）；`交互目标` 由判定 Agent 反复追问，直到它理解用户意图并请用户确认后才进入下一步，可用 `maxTurns` 限定轮次；“已有材料时跳过提问”让已经带上材料的消息直接进入下一步。交互节点需要真人，定时无人值守的运行会以 `INTERACTION_UNATTENDED` 失败
 - 节点级 executor、provider、model、effort、skills、工具白名单和输出 Schema
 - 附件材料自动提取；论文精读模板按获取论文、撰写解读、读者问答评审、Halo 发布四个阶段执行
@@ -55,7 +56,7 @@ DeepSeek Harness 的可插拔工作流 Studio。侧栏只有一个“工作流�
 
 `paper-explainer` 使用分层阅读模板，将原文转换为有具体例子、证据和适用边界的初学者文章。提问者读取原文和文章，回答者只接收文章和问题，审稿者结合原文与问答评分。85 分通过，最多三轮，未通过返回写作步骤；达到上限则保留现场供处理。
 
-步骤设置中的“评审与循环”可选择返回步骤、条件、轮数，以及延续原会话或新建会话。子代理支持 `dependsOn` 和独立 `input` 映射，无依赖成员继续并行执行。`repeat` 是有界回到上游步骤的评审循环；`loop` 保留列表迭代语义。每轮文章与评审分别保存。
+工作流定义通过 `repeat` 指定返回步骤、条件和轮数，以及延续原会话或新建会话。子代理支持 `dependsOn` 和独立 `input` 映射，无依赖成员继续并行执行。`repeat` 是有界回到上游步骤的评审循环。每轮文章与评审分别保存。
 
 Halo 发布使用服务器已有发布脚本。管理员在 `$DSH_HOME/workflow-studio/halo-destination.json` 配置 `sshHost`、`helper` 和 `category`，将 `scripts/halo-publish.py` 放入站点 `scripts/` 目录。站点凭据留在服务器，仓库与工作流定义不包含凭据。先使用发布适配器的 `dryRun` 完成渲染预检；正式发布返回文章标识与网址，并核实公开页面响应。更新原文章时，在运行输入中提供 `publication: {slug, postId}`；发布前校验目标并备份原正文，返回相同文章标识。站点需具备 Markdown 渲染与发布脚本；公式和图片需要目标站点支持，不能将生成的文本路径视为已上传附件。
 - 本地 Host 持久化定时任务，支持 IANA 时区、夏令时、错过执行和重叠策略
@@ -84,7 +85,7 @@ npm run check:web
 
 ### Desktop 工作流
 
-在工作流首页搜索任务，点击「运行」提供材料；「对话」可以继续历史会话。编辑器默认按步骤列出任务和材料来源，选中一步即可修改。切换「流程图」检查分支与依赖，「更多步骤」提供工具、条件、循环等配置。修改完成后保存版本，再试运行验证。
+在工作流首页搜索任务，点击「运行」提供材料；「对话」可以继续历史会话。编辑器提供步骤列表和流程图，选中一步即可修改，双击名称可改名。「更多步骤」提供工具、条件、汇合、子工作流、确认、发布、脚本和 Multithread。修改完成后保存版本，再试运行验证。
 
 ![Desktop 工作流界面导览](assets/desktop-workflow-tour.gif)
 

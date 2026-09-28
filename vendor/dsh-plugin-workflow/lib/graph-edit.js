@@ -10,7 +10,7 @@ export function canConnect(def, from, to) {
   };
   return !visit(to);
 }
-export function connectReference(def, from, to, append = true) {
+export function connectReference(def, from, to, append = true, on) {
   if (!canConnect(def, from, to)) throw new Error("此连接会形成循环");
   const source = def.nodes.find(n => n.id === from);
   const target = def.nodes.find(n => n.id === to);
@@ -20,7 +20,7 @@ export function connectReference(def, from, to, append = true) {
   const ref = existing?.[1] ?? { source: "node", nodeId: from, path: source.kind === "agent" && !source.outputSchema ? "/text" : "" };
   const token = tokenFor(key);
   return { definition: { ...def,
-    edges: def.edges.some(e => e.from === from && e.to === to) ? def.edges : [...def.edges, { from, to }],
+    edges: def.edges.some(e => e.from === from && e.to === to) ? def.edges : [...def.edges, { from, to, ...(on ? { on } : {}) }],
     nodes: def.nodes.map(n => n.id !== to ? n : { ...n, input: { ...n.input, [key]: ref },
       ...(n.kind === "agent" && append && !n.prompt?.includes(token) ? { prompt: `${n.prompt ?? ""}\n${token}`.trim() } : {}) }),
   }, key };

@@ -3,6 +3,7 @@ import { NativeStep } from './native-step.jsx';
 import { MarkdownText } from '@deepseek-ai/dsh-client-ui-primitives';
 import { ChevronDown, ChevronRight, Check, LoaderCircle, Play, Pause, Square, StepForward, ExternalLink, Pencil, CheckCheck, SkipForward, ArrowLeft } from 'lucide-react';
 import { StepInput, IconButton, FileCard } from './step-input.jsx';
+import { shortError, describeRunError, eventLine } from './format.js';
 
 const names = { queued: '等待执行', running: '执行中', completed: '已完成', paused: '等待检视', waiting_input: '等待回答', waiting_approval: '等待确认', failed: '失败', cancelled: '已停止', needs_attention: '执行中断', stale: '输出已过期', skipped: '已跳过', pending: '待执行' };
 const pretty = value => typeof value === 'string' ? value : JSON.stringify(value ?? null, null, 2);
@@ -16,15 +17,26 @@ const prose = value => {
 };
 function Content({ value }) { return <MarkdownText text={prose(value)} labels={{ code: { copyLabel: "复制", copiedLabel: "已复制" }, footnotes: "注释" }} />; }
 
-export function RunTimeline({ ctx, api, runId, openSession, onChange, embedded = false, focusNodeId = null, children }) {
-  const [run, setRun] = useState(null), [error, setError] = useState(''), [busy, setBusy] = useState(false);
+// The run's event stream rendered as a scannable timeline. The raw JSON stays
+// available one level deeper for debugging.
+export function EventTimeline({ events = [], nodes = {} }) {
+  const nodeNames = Object.fromEntries(Object.entries(nodes).map(([id, n]) => [id, n.name ?? id]));
+  const rows = events.map(e => ({ ...eventLine(e, nodeNames), key: e.seq }));
+  if (!rows.length) return <p className="wf-muted">暂无事件</p>;
+  return <ol className="wf-event-list">
+    {rows.map(row => <li key={row.key}><time>{row.time}</time><span className="wf-event-label" data-type={row.label}>{row.label}</span><span className="wf-event-detail">{row.detail}</span></li>)}
+  </ol>;
+}
+
+export function RunTimeline({ ctx, api, runId, openSession, onChange, embedded = false, focusNodeId = null, children, purpose = 'run', hideRunError = false }) {
+  const [run, setRun] = useState(null), [events, setEvents] = useState([]), [error, setError] = useState(''), [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState({}), [recipient, setRecipient] = useState(''), [message, setMessage] = useState('');
   const [confirm, setConfirm] = useState(null), [editing, setEditing] = useState({});
   const lastActive = React.useRef('');
   useEffect(() => {
     let stopped = false, timer;
     const read = async () => {
-      try { const v = await api({ action: 'runRead', id: runId }); if (!stopped) { setRun(v.run); setRecipient(v.run.recipient ?? ''); const active = Object.keys(v.run.nodes).filter(k => v.run.nodes[k].status === 'running').join(','); if (active && active !== lastActive.current) { setExpanded({}); lastActive.current = active; } } }
+      try { const v = await api({ action: 'runRead', id: runId }); if (!stopped) { setRun(v.run); setEvents(v.events ?? []); setRecipient(v.run.recipient ?? ''); const active = Object.keys(v.run.nodes).filter(k => v.run.nodes[k].status === 'running').join(','); if (active && active !== lastActive.current) { setExpanded({}); lastActive.current = active; } } }
       catch (e) { if (!stopped) setError(e.message); }
       if (!stopped) timer = setTimeout(read, 1000);
     };
@@ -69,7 +81,7 @@ export function RunTimeline({ ctx, api, runId, openSession, onChange, embedded =
   const currentStep = Object.entries(run.nodes).find(([, n]) => n.status === 'running')?.[0];
   const resume = debug => act({ action: 'resume', runId, sessionId: run.sessionId, debug, response: true, background: true, expectedRevision: run.checkpointRevision });
   return <section className="wf wf-timeline" aria-label="工作流运行时间线">
-    <header className="wf-run-header">{focusNodeId && <IconButton label="返回工作流总会话" icon={ArrowLeft} onClick={() => openSession(run.sessionId)} />}<div><h2>{run.prepared.definition.name}</h2><span className="wf-run-caption">v{run.revision} · {names[run.status] ?? run.status} · {run.debug ? '逐步调试' : '连续执行'}</span></div>
+    <header className="wf-run-header">{focusNodeId && <IconButton label="返回工作流总会话" icon={ArrowLeft} onClick={() => openSession(run.sessionId)} />}<div><h2>{purpose === 'trial' ? `试运行 · ${run.prepared.definition.name}` : run.prepared.definition.name}</h2><span className="wf-run-caption">{purpose === 'trial' ? '这是测试执行，不是在修改工作流 · ' : ''}v{run.revision} · {names[run.status] ?? run.status} · {run.debug ? '逐步调试' : '连续执行'}</span></div>
       <div className="wf-run-actions">
         <select aria-label="步骤消息接收者" value={recipient} onChange={e => { setRecipient(e.target.value); act({ action: 'setRecipient', sessionId: run.sessionId, recipient: e.target.value }); }}><option value="">当前步骤</option>{targets.map(t => <option key={t.sessionId} value={t.sessionId}>{t.name}</option>)}</select>
         {running && <><IconButton label="暂停" icon={Pause} disabled={busy} onClick={() => act({ action: 'pause', id: runId })} /><IconButton label="停止" icon={Square} disabled={busy} onClick={() => act({ action: 'cancel', id: runId })} /></>}
@@ -78,15 +90,17 @@ export function RunTimeline({ ctx, api, runId, openSession, onChange, embedded =
       </div>
     </header>
     {error && <p className="wf-error" role="alert">{error}</p>}
-    {run.error && <p className="wf-error">{run.error}</p>}
+    {!hideRunError && run.error && <p className="wf-error" role="alert">{describeRunError(run, events) ?? run.error}<small className="wf-error-raw">{run.error}</small></p>}
     {run.prepared.definition.nodes.map((node, index) => {
       if (focusNodeId && focusNodeId !== node.id) return null;
       const state = run.nodes[node.id] ?? { status: 'pending' };
       const active = state.status === 'running';
+      const failure = [...events].reverse().find(e => e.type === 'node.failed' && e.nodeId === node.id);
       const show = expanded[node.id] ?? (active || node.id === currentStep);
-      return <article className={`wf-run-step ${active ? 'is-running' : ''}`} key={node.id} data-step-id={node.id} style={{ "--wf-cell-hue": [218, 150, 35, 278, 185, 340][index % 6] }}>
+      return <article className={`wf-run-step ${active ? 'is-running' : ''} ${failure ? 'is-failed' : ''}`} key={node.id} data-step-id={node.id} style={{ "--wf-cell-hue": [218, 150, 35, 278, 185, 340][index % 6] }}>
         <header><span className="wf-step-number">步骤 {index + 1}</span><h3>{node.name}</h3><span className="wf-step-state">{active ? <LoaderCircle size={13} className="wf-spin" /> : state.status === 'completed' ? <Check size={13} /> : null}{names[state.status]}</span></header>
         <p className="wf-model-line">模型：{state.route ? `${state.route.provider} / ${state.route.model}${state.route.reasoningEffort ? ' · ' + state.route.reasoningEffort : ''}` : node.kind === 'agent' ? '执行时确定' : '流程步骤'}</p>
+        {failure && <p className="wf-error" role="alert">{node.name}：{shortError(failure.error ?? '')}</p>}
         <div className="wf-cell-toolbar" role="toolbar" aria-label={`${node.name}操作`}>
           <IconButton label="运行此步骤" icon={Play} disabled={busy || running || Boolean(editing[node.id])} onClick={() => act({ action: 'stepRun', runId, nodeId: node.id, expectedRevision: run.checkpointRevision })} />
           <IconButton label="编辑输入" icon={Pencil} disabled={busy || running} onClick={() => setEditing(v => ({ ...v, [node.id]: !v[node.id] }))} />

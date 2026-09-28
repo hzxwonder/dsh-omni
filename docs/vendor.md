@@ -2,7 +2,7 @@
 
 ## 为什么是快照
 
-`vendor/` 存的是 16 个插件在发布版本上的源码副本，不是 submodule，也不是安装时拉取。
+`vendor/` 存的是 16 个插件的固定源码，不是 submodule，也不是安装时拉取。
 这样同一个 commit 里的插件组合是确定的：使用者不会因为某个插件仓库前进、
 tag 被移动或 npm 上的同名包而拿到没测过的组合；离线也能装配。
 
@@ -17,7 +17,8 @@ tag 被移动或 npm 上的同名包而拿到没测过的组合；离线也能�
 - `profile.runtimeDependencies`：插件导入但应用不自带的运行时包（当前只有
   `@deepseek-ai/dsh-tool-terminal`，其余 `@deepseek-ai/*` 都在应用包内）；
 - `plugins[]`：每个插件的 `name`、`version`、`commit`、`repository`；包嵌在仓库
-  子目录里的插件多一个 `subdir`（见「同步插件」）。
+  子目录里的插件多一个 `subdir`。`integrated: true` 表示 Omni 集成源码在
+  `vendor/` 中维护，`commit` 记录上游基础提交，`version` 记录集成版本。
 
 `vendor/<name>/` 与 `plugins[]` 一一对应；`setup.sh` 装配时把每个插件作为
 `file:<bundle>/vendor/<name>` 写进 profile 的 dependencies，再在该 profile 里
@@ -41,6 +42,10 @@ node scripts/vendor.mjs --from <插件源码根目录> --only dsh-plugin-termina
 不带 `.git`，也不带 `node_modules`；本地未提交的改动会在导出期间被 stash，
 导出后恢复，因此工作区里的半成品不会进快照。不给 `--from` 时按
 `manifest.json` 里的 `repository` 逐个 clone。
+
+`dsh-plugin-workflow` 是 Omni 集成插件。同步脚本检查其清单版本，并在批量同步时
+保留 `vendor/dsh-plugin-workflow/`。更新它时，在该目录维护源码与版本、重建客户端
+产物，并同步更新 `manifest.json`；官方 Desktop 适配版在独立仓库维护。
 
 插件包嵌在仓库子目录里时（如 `dsh-pet` 上游以 `dsh-pet/` 子目录为包根），
 manifest 条目加 `"subdir": "<目录名>"`，脚本导出该子目录的内容到

@@ -81,9 +81,10 @@
     },
     {
       "name": "dsh-plugin-workflow",
-      "version": "0.3.1",
-      "commit": "6931041ae2a4da72105c9f76fa6f1aa437708805",
-      "repository": "https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow.git"
+      "version": "0.4.0",
+      "commit": "32687589cd2f63c6d257d13284b569c5f66e5e85",
+      "repository": "https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow.git",
+      "integrated": true
     },
     {
       "name": "dsh-plugin-sessions",

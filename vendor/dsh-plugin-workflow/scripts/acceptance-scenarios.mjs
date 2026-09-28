@@ -61,8 +61,8 @@ export async function acceptance({ page, call, api, plugin, errors, environment 
     await page.getByRole('button', { name: '运行记录', exact: true }).click();
     await page.getByRole('button', { name: runId.slice(0, 18), exact: true }).click();
     await page.getByRole('button', { name: '打开总会话', exact: true }).click();
-    await page.getByRole('region', { name: '工作流运行时间线' }).waitFor({ timeout: 10000 });
-    assert.equal(await page.locator('[data-step-id]').count(), 3);
+    await page.locator('.wf-session-rail').waitFor({ timeout: 10000 });
+    assert.equal(await page.locator('.wf-session-rail [data-step-id]').count(), 3);
     assert.equal(await page.getByRole('checkbox',{name:'逐步调试',exact:true}).count(),0);
     await shot('timeline-debug');
   });
@@ -70,15 +70,15 @@ export async function acceptance({ page, call, api, plugin, errors, environment 
     await page.getByRole('button', { name: '运行一步', exact: true }).click();
     run = await waitRun(runId, 'paused'); if (!run.nodes.draft) { await page.waitForTimeout(500); run = await waitRun(runId, 'paused'); } assert.equal(run.nodes.draft.status, 'completed');
     await page.waitForTimeout(1200);
-    assert.equal(await page.locator('[data-step-id="research"] .wf-activity-toggle').getAttribute('aria-expanded'), 'false');
+    assert.equal(await page.locator('.wf-session-rail [data-step-id="draft"]').getAttribute('data-step-status'), 'completed');
     await shot('timeline-next-step');
   });
   await record('S01', '打开步骤独立会话再返回', async () => {
-    await page.locator('[data-step-id="draft"]').getByRole('button', { name: '打开步骤会话', exact: true }).click();
+    await page.locator('.wf-session-rail [data-step-id="draft"]').click();
     await page.getByRole('button', { name: '返回工作流总会话', exact: true }).waitFor({ timeout: 10000 });
     await shot('step-conversation');
     await page.getByRole('button', { name: '返回工作流总会话', exact: true }).click();
-    await page.getByRole('region', { name: '工作流运行时间线' }).waitFor();
+    await page.locator('.wf-session-rail').waitFor();
   });
   await record('S02', '步骤补聊保留原输出并完成新回答', async () => {
     const original = run.nodes.draft.output;

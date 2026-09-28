@@ -1,3 +1,4 @@
+import { spawn as nodeSpawn } from "node:child_process";
 import { mkdir, writeFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -6,6 +7,7 @@ import {
   evaluateCondition,
   fail,
   mapInputs,
+  pointer,
   validateDefinition,
 } from "./definition.js";
 import { uid, hash } from "./store.js";
@@ -108,6 +110,7 @@ export class Engine {
     for (const node of def.nodes) {
       if (
         node.kind === "agent" ||
+        node.kind === "condition" ||
         (node.kind === "interact" && node.interaction === "goal")
       ) {
         prepared.routes[node.id] = await this.adapter.route(
@@ -157,7 +160,9 @@ export class Engine {
     runId,
     debug = false,
   }) {
-    if (this.starting.has(parent.session.id) || this.store.list("run").some(r => r.sessionId === parent.session.id && ["queued", "running", "paused", "waiting_input", "waiting_approval"].includes(r.status))) fail("SESSION_RUN_ACTIVE");
+    if (this.starting.has(parent.session.id)) fail("SESSION_RUN_ACTIVE");
+    const blocking = this.store.list("run").find(r => r.sessionId === parent.session.id && ["queued", "running", "paused", "waiting_input", "waiting_approval"].includes(r.status));
+    if (blocking) fail("SESSION_RUN_ACTIVE", blocking.id);
     this.starting.add(parent.session.id);
     try {
     const snapshot = this.store.get("revision", `${workflowId}:${revision}`);
@@ -307,9 +312,10 @@ export class Engine {
     for (const n of def.nodes)
       if (run.nodes[prefix + n.id]?.status === "completed")
         local[n.id] = run.nodes[prefix + n.id].output;
+    const contained = new Set(def.nodes.filter((n) => n.parentId).map((n) => n.id));
     const pending = new Set(
       def.nodes
-        .filter((n) => !done.has(run.nodes[prefix + n.id]?.status))
+        .filter((n) => !n.parentId && !done.has(run.nodes[prefix + n.id]?.status))
         .map((n) => n.id),
     );
     while (pending.size) {
@@ -348,7 +354,7 @@ export class Engine {
           }
           if (paused(run.nodes[key])) return;
           if (node.repeat && (run.reviews?.[key]?.length ?? 0) >= node.repeat.maxRounds && !run.reviews[key].at(-1).accepted) fail('REVIEW_LIMIT', key);
-          if (run.debug && !["subworkflow", "loop"].includes(node.kind)) run.stepBudget--;
+          if (run.debug && node.kind !== "subworkflow") run.stepBudget--;
           const mapped = mapInputs(node.input, input, local);
           const output = await this.executeNode(
             node,
@@ -405,6 +411,94 @@ export class Engine {
     }
     return def.outputs ? mapInputs(def.outputs, input, local) : local;
   }
+  // ---- 外壳容器：Multithread（并发分发）/ 循环外壳（重复执行）/ 分支外壳（条件守卫） ----
+  // 子步骤（parentId 指向容器的 agent 节点）不参与独立调度，由容器统一执行：
+  // 每个子步骤经 adapter.agent 运行，记录进 state.subagents 以在时间线中呈现。
+  containerChildren(node, prepared) {
+    return prepared.definition.nodes.filter((n) => n.parentId === node.id);
+  }
+  // 子步骤可以引用外壳外的上游节点（连线/@ 引用落在子节点上）。容器统一执行
+  // 子步骤时，把这些引用从图的 local 作用域解析进容器输入，供子节点渲染。
+  containerInput(node, input, local, prepared) {
+    if (!local) return input;
+    const merged = { ...input };
+    for (const child of this.containerChildren(node, prepared))
+      for (const [childKey, ref] of Object.entries(child.input ?? {}))
+        if (ref?.source === "node" && !(childKey in merged) && local[ref.nodeId] !== undefined)
+          merged[childKey] = pointer(local[ref.nodeId], ref.path);
+    return merged;
+  }
+  async runChildStep(child, input, prepared, run, parent, deadline, state, suffix = "", prompt) {
+    if (++run.calls > (run.prepared.definition.limits?.maxNodeCalls ?? 100))
+      fail("CALL_BUDGET");
+    const childNode = prompt === undefined ? child : { ...child, prompt };
+    const member = (state.subagents ??= {})[`${child.id}${suffix}`] = {
+      name: `${child.name}${suffix ? ` · ${suffix}` : ""}`,
+      status: "running",
+      input,
+      route: prepared.routes[child.id] ?? null,
+    };
+    try {
+      const output = await this.adapter.agent(
+        childNode, input, prepared.routes[child.id] ?? null,
+        prepared.skills[child.id] ?? [], parent, deadline, {},
+      );
+      member.status = "completed"; member.output = output;
+      return output;
+    } catch (error) {
+      member.status = "failed"; member.error = String(error.message).slice(0, 300);
+      throw error;
+    }
+  }
+  async executeMultithread(node, input, prepared, run, parent, deadline, key, state, local) {
+    input = this.containerInput(node, input, local, prepared);
+    const children = this.containerChildren(node, prepared).filter((n) => n.kind === "agent");
+    if (!children.length) return { skipped: true, empty: true }; // 外壳还没拖入子步骤：跳过而不是让整个运行失败
+    const concurrency = Math.min(Math.max(node.concurrency ?? 3, 1), 8);
+    const results = [];
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < children.length) {
+        const child = children[cursor++];
+        const output = await this.runChildStep(child, input, prepared, run, parent, deadline, state, "", node.distributePrompt ? node.prompt : undefined);
+        results.push({ name: child.name, output });
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, children.length) }, worker));
+    return {
+      text: results.map((r) => `【${r.name}】\n${textOf(r.output)}`).join("\n\n"),
+      count: results.length,
+      results: results.map((r) => ({ name: r.name, output: r.output })),
+    };
+  }
+  // 脚本步骤：以独立 python3 进程执行节点代码。约定：上一步的映射输入经
+  // sys.argv[1] 以 JSON 注入为 input_data；脚本的 stdout（可解析 JSON 时按
+  // 结构化处理）作为本步输出。超时与取消经 deadline 传导。
+  async executeScript(node, input, deadline) {
+    const child = nodeSpawn("python3", ["-", JSON.stringify(input ?? {})], {
+      signal: deadline,
+      env: { ...process.env, PYTHONIOENCODING: "utf-8" },
+    });
+    let stdout = "", stderr = "";
+    child.stdout.on("data", chunk => { stdout += chunk; if (stdout.length > 2000000) child.kill(); });
+    child.stderr.on("data", chunk => { if (stderr.length < 8000) stderr += chunk; });
+    const done = new Promise((resolve, reject) => {
+      child.on("error", reject);
+      child.on("exit", code => {
+        if (code === 0) return resolve();
+        const detail = String(stderr).trim() || `python3 exited with ${code}`;
+        reject(Object.assign(new Error(`SCRIPT_FAILED: ${detail}`), { code: "SCRIPT_FAILED" }));
+      });
+    });
+    child.stdin.end(
+      "import sys, json as _json\n" +
+      "input_data = _json.loads(sys.argv[1])\n" +
+      (node.code ?? "") + "\n"
+    );
+    await done;
+    const text = stdout.trim();
+    try { return JSON.parse(text); } catch { return { text }; }
+  }
   async executeNode(node, input, prepared, run, parent, signal, key, scope = {}) {
     const override = run.stepOverrides?.[key];
     if (override) node = { ...node, prompt: override.prompt };
@@ -428,12 +522,14 @@ export class Engine {
     const old = run.nodes[key];
     if (old?.feedback) input = { ...input, revisionFeedback: old.feedback };
     const attempts = old?.attempts ?? [];
+    const containerChildren = node.parentId ? [] : prepared.definition.nodes.filter((n) => n.parentId === node.id);
     const state = (run.nodes[key] = {
       status: "running",
       input,
       prompt: node.prompt ?? "",
       effects:
-        node.kind === "tool" || node.kind === 'publish' || node.tools?.length
+        node.kind === "tool" || node.kind === 'publish' || node.kind === 'script' || node.tools?.length ||
+        containerChildren.some((c) => c.tools?.length)
           ? "write"
           : (node.effects ?? "read-only"),
       attempts,
@@ -482,6 +578,8 @@ export class Engine {
       run.unattended &&
       !run.approvedTools?.includes(key) &&
       ((node.kind === 'publish' && !allowed.includes('halo_publish')) || (node.kind === "tool" && !allowed.includes(node.tool)) ||
+        (node.kind === 'script' && !allowed.includes('script')) ||
+        (containerChildren.some((c) => (c.tools ?? []).some((t) => !allowed.includes(t)))) ||
         node.tools?.some((t) => !allowed.includes(t)) ||
         node.subagents?.some(m => m.tools?.some(t => !allowed.includes(t))))
     ) {
@@ -513,7 +611,7 @@ export class Engine {
       let before;
       try {
         // Container steps delegate checkpoints to their leaf steps to avoid overlapping patches.
-        before = await this.checkpoints.begin(['subworkflow', 'loop'].includes(node.kind) ? null : parent.session.header?.cwd, record.folder, { prompt: node.prompt ?? "", material: input });
+        before = await this.checkpoints.begin(node.kind === 'subworkflow' ? null : parent.session.header?.cwd, record.folder, { prompt: node.prompt ?? "", material: input });
         let output;
         if (node.kind === "agent") {
           if (prepared.teams?.[node.id]?.length) {
@@ -554,13 +652,41 @@ export class Engine {
             deadline,
             { sessionId: old?.resumeSessionId, onTrace: events => { state.trace = events; }, onSession: info => { Object.assign(state, info); record.sessionId = info.sessionId; this.store.updateRun(run, "node.session", { nodeId: key }); } },
           );
-        } else if (node.kind === 'publish') {
+        } else if (node.kind === 'script')
+          output = await this.executeScript(node, input, deadline);
+        else if (node.kind === 'multithread')
+          output = await this.executeMultithread(node, input, prepared, run, parent, deadline, key, state, scope.local);
+        else if (node.kind === 'publish') {
           if (!this.adapter.publish) fail('PUBLISH_UNAVAILABLE');
           output = await this.adapter.publish(input, deadline);
         } else if (node.kind === "tool")
           output = await this.adapter.tool(node.tool, input, parent, deadline);
-        else if (node.kind === "condition")
-          output = { condition: evaluateCondition(node.condition, input) };
+        else if (node.kind === "condition") {
+          if (String(node.prompt ?? "").trim()) {
+            // 判断框 = 由模型裁决：固定结构化输出 {answer:boolean, reason}，
+            // 杜绝自由文本是/否的歧义；模型不支持结构化输出时回退到文本解析。
+            const schema = node.outputSchema?.properties?.answer ? node.outputSchema : {
+              type: "object", additionalProperties: false,
+              properties: {
+                answer: { type: "boolean", description: "判断结果：true=是/通过，false=否/不通过" },
+                reason: { type: "string", description: "一句话判断依据" },
+              },
+              required: ["answer"],
+            };
+            const judged = await this.adapter.agent(
+              { ...node, outputSchema: schema }, input, prepared.routes[node.id] ?? null,
+              prepared.skills[node.id] ?? [], parent, deadline, {},
+            );
+            const raw = judged && typeof judged === "object" && "answer" in judged
+              ? judged.answer
+              : textOf(judged).trim();
+            const passed = raw === true
+              || (typeof raw === "string" && /是|通过|合格|同意|true|yes\b/i.test(raw) && !/否|不|false|no\b/i.test(raw));
+            output = { condition: passed, answer: raw, ...(judged?.reason ? { reason: judged.reason } : {}) };
+          } else {
+            output = { condition: evaluateCondition(node.condition, input) };
+          }
+        }
         else if (node.kind === "artifact") {
           const folder = record.folder;
           await mkdir(folder, { recursive: true, mode: 0o700 });
@@ -600,23 +726,7 @@ export class Engine {
             deadline,
             `${key}/`,
           );
-        else if (node.kind === "loop") {
-          if (!Array.isArray(input.items) || input.items.length > node.maxItems)
-            fail("LOOP_INPUT_LIMIT", key);
-          const values = [];
-          for (let i = 0; i < input.items.length; i++)
-            values.push(
-              await this.executeGraph(
-                prepared.children[node.id],
-                { item: input.items[i], index: i, ...input.context },
-                run,
-                parent,
-                deadline,
-                `${key}/${i}/`,
-              ),
-            );
-          output = { items: values };
-        } else output = input;
+        else output = input;
         deadline.throwIfAborted();
         if (run.debugBoundary ||
           Object.entries(run.nodes).some(
@@ -914,12 +1024,26 @@ export class Engine {
 
   cancel(id, pause = false) {
     const c = this.active.get(id);
-    if (!c) fail("RUN_NOT_ACTIVE");
-    c.abort(
-      Object.assign(new Error(pause ? "Paused" : "Cancelled"), {
-        code: pause ? "PAUSED" : "CANCELLED",
-      }),
-    );
+    if (c) {
+      c.abort(
+        Object.assign(new Error(pause ? "Paused" : "Cancelled"), {
+          code: pause ? "PAUSED" : "CANCELLED",
+        }),
+      );
+      return;
+    }
+    if (pause) fail("RUN_NOT_ACTIVE");
+    const run = this.store.get("run", id);
+    if (!run) fail("RUN_NOT_FOUND");
+    if (
+      !["queued", "paused", "waiting_input", "waiting_approval", "needs_attention"].includes(
+        run.status,
+      )
+    )
+      fail("RUN_NOT_ACTIVE");
+    run.status = "cancelled";
+    run.error = "Cancelled";
+    this.store.updateRun(run, "run.cancelled");
   }
   async recover() {
     const recoveryError = await this.checkpoints.recover();

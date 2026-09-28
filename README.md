@@ -126,6 +126,7 @@ node scripts/vendor.mjs --check                   # 只报告偏差
 ```
 
 同步与发版流程见 [docs/vendor.md](docs/vendor.md)。
+工作流插件的 Omni 集成源码与版本在本仓库 `vendor/dsh-plugin-workflow/` 维护。
 
 ## 许可
 
@@ -137,11 +138,11 @@ node scripts/vendor.mjs --check                   # 只报告偏差
 
 ## Workflow Notebook
 
-工作流 0.3.0 提供左对齐的步骤对话、淡色分步背景、编辑器调试设置和图标工具栏。总会话及独立步骤页均可编辑本次运行的 prompt、添加附件并单步重跑；步骤保留结论、文件、模型与本地快照。
+工作流 0.4.0 提供可切换的卡片与列表、版本状态、工作流对话，以及可视化步骤编辑。模块名称可双击修改，步骤面板集中显示模型设置；「更多步骤」提供工具、条件、汇合、子工作流、确认、发布、脚本和 Multithread。总会话及独立步骤页均可编辑本次运行的 prompt、添加附件并单步重跑；步骤保留结论、文件、模型与本地快照。
 
 ![Workflow Notebook](vendor/dsh-plugin-workflow/assets/workflow-conversation.gif)
 
-本版本的插件单元测试与 Web 行为测试通过。Desktop 兼容模式的内容区恢复仍有待修复问题，完整产品验收尚未通过。详见[验收报告与截图](https://github.com/hzxwonder-dsh-plugins/dsh-plugin-workflow/blob/main/docs/acceptance-report.md)。
+Omni 集成版的构建、插件解析及桌面界面验收见 [工作流 0.4.0 验收记录](docs/workflow-omni-0.4.0.md)。
 
 ## LaTeX 论文工作台
 

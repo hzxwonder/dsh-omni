@@ -38,10 +38,10 @@ export function StepInput({ api, run, node, state, busy, act, editing, setEditin
     const uploaded = await Promise.all([...items].map(file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = reject; reader.onload = () => resolve({ name: file.name, mediaType: file.type, bytes: file.size, data: String(reader.result).split(',')[1] }); reader.readAsDataURL(file); })));
     setFiles(v => [...v, ...uploaded]);
   };
-  return <section className="wf-cell-input" aria-label="步骤输入">
+  return <section className="wf-cell-input" aria-label="Prompt">
     {cards.length > 0 && <div className="wf-file-row">{cards.map(block => <FileCard key={block.attachment.attachmentId} api={api} runId={run.id} block={block} />)}</div>}
     {editing ? <div className="wf-input-editor">
-      <textarea aria-label="步骤输入 prompt" value={prompt} onChange={e => setPrompt(e.target.value)} autoFocus />
+      <textarea aria-label="Prompt" value={prompt} onChange={e => setPrompt(e.target.value)} autoFocus />
       <div className="wf-input-files">{(saved?.attachments ?? []).filter(b => keep.includes(b.attachment.attachmentId)).map(b => <span key={b.attachment.attachmentId}>{b.attachment.name}<IconButton label={`移除 ${b.attachment.name}`} icon={X} onClick={() => setKeep(v => v.filter(id => id !== b.attachment.attachmentId))} /></span>)}{files.map((f, i) => <span key={i}>{f.name}<IconButton label={`移除 ${f.name}`} icon={X} onClick={() => setFiles(v => v.filter((_, index) => index !== i))} /></span>)}</div>
       <input ref={picker} type="file" multiple hidden aria-label="添加步骤文件" onChange={e => { add(e.target.files).catch(() => setError('文件读取失败')); e.target.value = ''; }} />
       <div className="wf-cell-toolbar"><IconButton label="添加文件" icon={Paperclip} onClick={() => picker.current?.click()} /><span className="wf-muted">本次运行</span><IconButton label="保存输入" icon={Check} disabled={busy} onClick={async () => { const result = await act({ action: 'stepEdit', runId: run.id, nodeId: node.id, prompt, keep, files, expectedRevision: run.checkpointRevision }); if (result) setEditing(false); }} /><IconButton label="取消编辑" icon={X} onClick={() => setEditing(false)} /></div>

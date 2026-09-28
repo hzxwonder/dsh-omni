@@ -46,6 +46,40 @@ export async function apply(ctx, config = {}) {
   }
   const adapter = harnessAdapter(ctx, { haloConfigPath: join(directory, 'halo-destination.json') });
   const engine = new Engine(store, adapter, join(directory, "artifacts"));
+  const sessionUploadedFiles = (parent) => {
+    try {
+      const events = parent?.session?.snapshotEvents?.() ?? [];
+      const files = [];
+      for (const event of events) {
+        if (event.type !== "user/message") continue;
+        const content = event.data?.message?.content ?? event.data?.content;
+        if (!Array.isArray(content)) continue;
+        for (const block of content) {
+          if (
+            (block.type === "file" || block.type === "image") &&
+            block.attachment?.attachmentId
+          )
+            files.push({
+              type: block.type === "image" ? "image" : "file",
+              attachment: block.attachment,
+              id: block.attachment.attachmentId,
+              name: block.attachment.name,
+            });
+        }
+      }
+      return [...new Map(files.map((file) => [file.attachment.attachmentId, file])).values()];
+    } catch {
+      return [];
+    }
+  };
+  const withSessionFiles = (input, parent) => {
+    const next =
+      input && typeof input === "object" ? { ...input } : { text: String(input ?? "") };
+    if (Array.isArray(next.attachments) && next.attachments.length) return next;
+    const uploaded = sessionUploadedFiles(parent);
+    if (uploaded.length) next.attachments = uploaded;
+    return next;
+  };
   const owned = new Map();
   const jobs = new Set();
   const reports = new Set();
@@ -93,6 +127,13 @@ export async function apply(ctx, config = {}) {
       maxTurns: info.maxTurns ?? 1,
       question: info.question ?? "",
     };
+  };
+  // The run list is read by people, not by agents: the full input can be huge,
+  // so only a short summary ever leaves the Host.
+  const runSummary = (input) => {
+    const text =
+      input && typeof input === "object" ? input.text ?? input.request : input;
+    return typeof text === "string" ? text.replace(/\s+/g, " ").trim().slice(0, 60) : "";
   };
   const runReport = async (run) => {
     const pending = pendingInteraction(run.nodes);
@@ -240,11 +281,17 @@ export async function apply(ctx, config = {}) {
           .slice(0, 100)
           .map(({ prepared, input, outputs, nodes, ...run }) => ({
             ...run,
+            summary: runSummary(input),
             pending: pendingInteraction(nodes),
+            steps: (prepared?.definition?.nodes ?? []).map((node) => ({
+              id: node.id,
+              name: node.name,
+              status: nodes[node.id]?.status ?? "pending",
+            })),
             nodes: Object.fromEntries(
               Object.entries(nodes).map(([id, n]) => [
                 id,
-                { status: n.status },
+                { status: n.status, name: n.name },
               ]),
             ),
           })),
@@ -261,16 +308,26 @@ export async function apply(ctx, config = {}) {
     if (action === "describe")
       return { schema, templates: [paperTemplate(), blankTemplate("custom")] };
     if (action === "read") {
-      const wf = store.get("workflow", a.id);
-      if (!wf) fail("WORKFLOW_NOT_FOUND");
+      // Inside a bound conversation the id is already known: read the bound
+      // workflow so the agent never has to guess ids or list the store first.
+      const id = a.id ?? (parent ? store.get("binding", parent.session.id)?.workflowId : null);
+      const wf = id && store.get("workflow", id);
+      if (!wf)
+        fail(
+          "WORKFLOW_NOT_FOUND",
+          a.id ?? "no workflow is bound to this conversation",
+        );
       return {
         ...wf,
         debug: Boolean(store.get("runSettings", wf.id)?.debug),
-        snapshot: store.get("revision", `${a.id}:${a.revision ?? wf.revision}`),
+        snapshot: store.get("revision", `${wf.id}:${a.revision ?? wf.revision}`),
       };
     }
-    if (action === "versions")
-      return store.list("revision").filter((x) => x.definition.id === a.id);
+    if (action === "versions") {
+      const id = a.id ?? (parent ? store.get("binding", parent.session.id)?.workflowId : null);
+      if (!id) fail("WORKFLOW_NOT_FOUND");
+      return store.list("revision").filter((x) => x.definition.id === id);
+    }
     if (action === "runRead")
       return {
         run: (() => {
@@ -349,11 +406,84 @@ export async function apply(ctx, config = {}) {
     }
     if (action === "save") {
       const saved = store.save(a.definition, a.expectedRevision);
-      if (parent && store.get("authoring", parent.session.id)) {
-        store.bind(parent.session.id, saved.id, saved.revision, "author");
-        store.remove("authoring", parent.session.id);
+      if (parent) {
+        // A modification conversation carries an author-mode binding, not an
+        // authoring marker: after saving, that binding must follow the new
+        // revision or the composer tag keeps showing the stale version.
+        const binding = store.get("binding", parent.session.id);
+        if (store.get("authoring", parent.session.id)) {
+          store.bind(parent.session.id, saved.id, saved.revision, "author");
+          store.remove("authoring", parent.session.id);
+        } else if (binding?.mode === "author" && binding.workflowId === saved.id) {
+          store.put("binding", parent.session.id, {
+            ...binding,
+            revision: saved.revision,
+          });
+        }
       }
       return saved;
+    }
+    if (action === "edit") {
+      // Small conversational changes should not re-transmit the whole
+      // definition: the model names the node and the fields, the Host reads,
+      // mutates and validates the current revision.
+      const binding = parent ? store.get("binding", parent.session.id) : null;
+      const id = a.id ?? binding?.workflowId;
+      const wf = id && store.get("workflow", id);
+      if (!wf)
+        fail(
+          "WORKFLOW_NOT_FOUND",
+          a.id ?? "no workflow is bound to this conversation",
+        );
+      const edits = a.edits;
+      if (!Array.isArray(edits) || !edits.length || edits.length > 20)
+        fail("EDITS_INVALID");
+      const snapshot = store.get("revision", `${wf.id}:${wf.revision}`);
+      if (!snapshot) fail("REVISION_NOT_FOUND");
+      const definition = structuredClone(snapshot.definition);
+      const changed = [];
+      for (const edit of edits) {
+        if (!edit || typeof edit !== "object") fail("EDITS_INVALID");
+        if (edit.removeNode) {
+          const index = definition.nodes.findIndex((n) => n.id === edit.removeNode);
+          if (index < 0) fail("NODE_NOT_FOUND", edit.removeNode);
+          definition.nodes.splice(index, 1);
+          definition.edges = (definition.edges ?? []).filter(
+            (e) => e.from !== edit.removeNode && e.to !== edit.removeNode,
+          );
+          changed.push({ removeNode: edit.removeNode });
+          continue;
+        }
+        if (edit.node) {
+          const node = definition.nodes.find((n) => n.id === edit.node);
+          if (!node) fail("NODE_NOT_FOUND", edit.node);
+          if (!edit.set || typeof edit.set !== "object" || !Object.keys(edit.set).length)
+            fail("EDITS_INVALID", edit.node);
+          for (const [key, value] of Object.entries(edit.set)) {
+            if (key === "id") fail("EDITS_INVALID", key);
+            node[key] = structuredClone(value);
+          }
+          changed.push({ node: edit.node, keys: Object.keys(edit.set) });
+          continue;
+        }
+        if (edit.set && typeof edit.set === "object" && Object.keys(edit.set).length) {
+          for (const [key, value] of Object.entries(edit.set)) {
+            if (!["name", "description", "icon", "inputSchema", "trigger"].includes(key))
+              fail("EDITS_INVALID", key);
+            definition[key] = structuredClone(value);
+          }
+          changed.push({ workflow: wf.id, keys: Object.keys(edit.set) });
+          continue;
+        }
+        fail("EDITS_INVALID");
+      }
+      const saved = store.save(definition, wf.revision);
+      if (binding?.workflowId === wf.id)
+        store.put("binding", binding.sessionId, {
+          ...binding,
+          revision: saved.revision,
+        });
+      return { id: saved.id, name: saved.name, revision: saved.revision, changed };
     }
     if (action === "create")
       return store.save(
@@ -569,7 +699,7 @@ export async function apply(ctx, config = {}) {
           : engine.start({
               workflowId: a.id,
               revision: a.revision,
-              input: a.input,
+              input: withSessionFiles(a.input, parent),
               parent,
               runId,
               debug: a.debug === undefined ? Boolean(store.get("runSettings", a.id)?.debug) : Boolean(a.debug),
@@ -586,7 +716,7 @@ export async function apply(ctx, config = {}) {
     defineTool({
       name: "workflow_studio",
       description:
-        "Create, copy, inspect, save, publish, bind, execute, revise and schedule visual workflows. Call describe for schema and templates; read before save. Payload is a JSON object of action-specific fields. Run uses id, revision, input. Save uses definition and expectedRevision. Bind uses id, revision, mode run/author for this session. Copy uses id and starts a new unpublished draft from the newest definition. Resume uses runId with response; an interact node parks the run in waiting_input and takes its answer from the user's next message in the bound conversation.",
+        "Create, copy, inspect, save, publish, bind, execute, revise and schedule visual workflows. Call describe for schema and templates; read before save (inside a bound conversation read without id returns the bound workflow). Payload is a JSON object of action-specific fields. Run uses id, revision, input. Pass files as input.attachments; never paste file contents into input.text. Save uses definition and expectedRevision. For a small conversational change use edit instead: edits is a list of {node, set:{field:value}}, {set:{name|description|icon|inputSchema|trigger}} or {removeNode}; it applies to the bound workflow, saves the next revision and re-binds this conversation. Bind uses id, revision, mode run/author for this session. Copy uses id and starts a new unpublished draft from the newest definition. Resume uses runId with response; an interact node parks the run in waiting_input and takes its answer from the user's next message in a run-mode conversation. Cancel works on running and paused trials; SESSION_RUN_ACTIVE includes the blocking runId.",
       parameters: {
         action: { type: "string", required: true },
         payload: { type: "string" },
@@ -625,14 +755,17 @@ export async function apply(ctx, config = {}) {
     }),
   );
   ctx.systemPrompt.variable("workflow_studio_context", ({ agent }) => {
+    const authoringRules = `This conversation edits the workflow definition. The user-visible chat is the modification thread; any trial execution is labeled 试运行 and is not the editing thread. Do not start a trial until the user asks to test. After save, summarize the graph change and wait. Never paste PDF/HTML/file contents or extracted page text into input.text or node prompts; pass files as input.attachments and reuse files already uploaded in this conversation. input.text is only the short user request. If run fails with SESSION_RUN_ACTIVE, cancel that runId (cancel works on paused trials) then retry.`;
+    const refinerCard = `${authoringRules}
+Fast path for an accepted change: call workflow_studio edit with edits:[{"node":"<id>","set":{"<field>":<value>}}], or [{"set":{"name":"..."}}] for the workflow title, or [{"removeNode":"<id>"}]. The Host reads the bound workflow, applies the edit, validates it, saves the next revision and re-binds this conversation automatically. Fields you may set on a node include prompt, name, subagents, repeat, until, model, executor, skills, tools, outputSchema, input. Rules: read (no id needed — it returns the bound workflow) only when you must see the node structure; never call describe for a simple edit; never use bash, sqlite or the filesystem to inspect or write workflow data; change only what the user asked; batch all field changes for one node into a single edit call. When done, reply in at most 5 short lines: what changed (old → new), the new revision, the behavior impact, and one next-step question (publish or trial). If the request is ambiguous, ask one clarifying question first. Read the workflow-refiner skill via skillRead only for complex structural surgery.`;
     if (agent && store.get("authoring", agent.session.id))
-      return `This is a workflow authoring conversation. First use workflow-discovery when any requirement, input, acceptance criterion, or side effect is unclear. Conduct the one-question-at-a-time Socratic interview and wait for confirmation of the precise actionable question before editing. Then use workflow-builder to derive the name, icon and graph; do not ask the user to configure a graph or supply an identifier. Use workflow-refiner for user-reported problems and workflow-debugger for step-by-step inspection. Read describe and capabilities, save a complete definition with expectedRevision=0; saving binds this conversation automatically. ${skill}\n${skillText["workflow-discovery"]}\n${skillText["workflow-refiner"]}\n${skillText["workflow-debugger"]}`;
+      return `${authoringRules} First use workflow-discovery when any requirement, input, acceptance criterion, or side effect is unclear. Conduct the one-question-at-a-time Socratic interview and wait for confirmation of the precise actionable question before editing. Then use workflow-builder to derive the name, icon and graph; do not ask the user to configure a graph or supply an identifier. Use workflow-refiner for user-reported problems and workflow-debugger for step-by-step inspection. Read describe and capabilities, save a complete definition with expectedRevision=0; saving binds this conversation automatically. ${skill}\n${skillText["workflow-discovery"]}\n${skillText["workflow-refiner"]}\n${skillText["workflow-debugger"]}`;
     const step = agent && stepForSession(agent.session.id);
-    if (step) return `This is an independent workflow step conversation. Workflow ${step.run.workflowId}, step ${step.nodeId}. Answer follow-ups normally. Outputs are adopted explicitly by the user; do not resume or rerun the parent workflow from this step. Public file writes are immediate and checkpointed by the workflow runtime.`;
+    if (step) return `This is an independent workflow step conversation. Workflow ${step.run.workflowId}, step ${step.nodeId}. Answer follow-ups normally. Outputs are adopted explicitly by the user; do not resume or rerun the parent workflow from this step. Public file writes are immediate and checkpointed by the workflow runtime. Attached files are the source of truth; do not assume file contents were inlined in the prompt.`;
     const binding = agent && store.get("binding", agent.session.id);
     if (!binding)
       return "Use workflow_studio and workflow-builder skill when the user requests creating or editing a reusable workflow.";
-    return `Workflow binding: ${JSON.stringify(binding)}. ${binding.mode === "author" ? `${skill}\n${skillText["workflow-discovery"]}\n${skillText["workflow-refiner"]}\n${skillText["workflow-debugger"]}` : "New material runs the pinned graph automatically. A run that reports waiting_input is parked on an interact node: relay its question verbatim and treat the user's next message as the answer, never answer it yourself. Discuss follow-up questions normally. For workflow changes, bind author mode and use workflow-refiner; use workflow-debugger to inspect intermediate inputs and outputs. Do not rerun a completed graph unless requested."}`;
+    return `Workflow binding: ${JSON.stringify(binding)}. ${binding.mode === "author" ? refinerCard : "This conversation uses the workflow. Step cards below are the execution, not a definition-editing thread. New material runs the pinned graph automatically. Pass uploaded files as attachments; do not inline their contents. A run that reports waiting_input is parked on an interact node: relay its question verbatim and treat the user's next message as the answer, never answer it yourself. Discuss follow-up questions normally. For workflow changes, bind author mode and use workflow-refiner; use workflow-debugger to inspect intermediate inputs and outputs. Do not rerun a completed graph unless requested."}`;
   });
   ctx.systemPrompt.section({
     name: "workflow-studio",
@@ -693,7 +826,10 @@ export async function apply(ctx, config = {}) {
       }
     }
     const recipientBinding = store.get("binding", agent.session.id);
-    if (recipientBinding?.recipient) {
+    const authoring =
+      recipientBinding?.mode === "author" ||
+      Boolean(store.get("authoring", agent.session.id));
+    if (!authoring && recipientBinding?.recipient) {
       const target = stepForSession(recipientBinding.recipient);
       if (target && target.run.sessionId === agent.session.id) {
         if (engine.active.has(target.run.id) && target.state.status !== 'running') return withNote(decision, messages, 'This step is busy with workflow execution. Wait for the workflow to pause before continuing this completed step.');
@@ -706,15 +842,16 @@ export async function apply(ctx, config = {}) {
       }
     }
     const liveRun = store.list("run").find(r => r.sessionId === agent.session.id && r.status === "running");
-    if (liveRun) {
+    if (liveRun && !authoring) {
       const targets = Object.entries(liveRun.nodes).filter(([, n]) => n.status === "running" && n.sessionId && ctx.agents.get(n.sessionId));
       if (targets.length === 1) {
         const [, target] = targets[0];
         for (const message of messages) ctx.agents.get(target.sessionId).steer({ ...message, id: uid("steer") });
         return withText(decision, messages, "The user's message was delivered to the active workflow step. Acknowledge delivery briefly; do not execute the workflow.");
       }
-      return withText(decision, messages, "Workflow execution is active. Ask the user to select a running subagent in the workflow timeline to deliver this message to a specific recipient. Do not claim it was delivered.");
+      return withText(decision, messages, "Workflow execution is active. Ask the user to pick a running step in the progress bar to deliver this message. Do not claim it was delivered.");
     }
+    if (liveRun && authoring) return decision;
     const binding = store.get("binding", agent.session.id);
     if (!binding || binding.mode !== "run") return decision;
     const def = store.get(

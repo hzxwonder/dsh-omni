@@ -100,6 +100,22 @@ function main() {
     const localHead = local === undefined ? undefined : headOf(local)
     const vendorDir = join(vendor, plugin.name)
 
+    // Integrated packages use the repository commit as their upstream base.
+    // Their Omni source and version are maintained in vendor/.
+    if (plugin.integrated) {
+      const packagePath = join(vendorDir, 'package.json')
+      if (!existsSync(packagePath)) throw new Error(`integrated plugin is missing: ${vendorDir}`)
+      const version = JSON.parse(readFileSync(packagePath, 'utf8')).version
+      if (version !== plugin.version) {
+        throw new Error(`${plugin.name} has version ${version}; manifest pins ${plugin.version}`)
+      }
+      if (options.only !== undefined && !options.check) {
+        throw new Error(`${plugin.name} is maintained in vendor/ as an Omni integrated plugin`)
+      }
+      console.log(`${plugin.name.padEnd(26)} integrated ${version}`)
+      continue
+    }
+
     if (options.check) {
       const vendoredVersion = existsSync(join(vendorDir, 'package.json'))
         ? JSON.parse(readFileSync(join(vendorDir, 'package.json'), 'utf8')).version

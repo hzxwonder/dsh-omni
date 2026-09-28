@@ -1,6 +1,7 @@
 /* Workflow Studio surfaces.
-   Visual model: a light canvas with tinted step cards, a floating step toolbar,
-   a right-hand Step inspector, expressed with Harness theme aliases. */
+   Visual model: a quiet canvas. Step color lives in a small icon well;
+   cards stay white, shells are light frames, and prompt detail appears
+   only on the selected step. */
 
 .wf {
   --wf-bg: var(--dsw-alias-bg-base, #fff);
@@ -11,10 +12,12 @@
   --wf-muted: var(--dsw-alias-label-secondary, #6c747c);
   --wf-line: var(--dsw-alias-border-l3, #e4e7ea);
   --wf-line-strong: var(--dsw-alias-border-l2, #cfd5db);
+  --wf-edge-color: color-mix(in srgb, var(--wf-text) 72%, var(--wf-bg));
   --wf-hover: var(--dsw-alias-interactive-bg-hover, #f1f3f5);
   --wf-accent: var(--dsw-alias-brand-primary, #6a5acd);
   --wf-accent-soft: color-mix(in srgb, var(--wf-accent) 14%, transparent);
   --wf-radius: 14px;
+  --wf-hand: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive;
   --wf-shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 8px 24px rgb(16 24 40 / 6%);
   color: var(--wf-text);
   font: 13px/1.5 var(--dsw-font-family, system-ui, sans-serif);
@@ -40,7 +43,9 @@
   padding: 5px 10px;
   border: 1px solid var(--wf-line);
   border-radius: 8px;
-  background: var(--wf-surface);
+  /* Transparent by design: a filled bg-base reads as a black box on the dark
+     desktop material. Buttons are outlined ghosts; fills are opt-in. */
+  background: transparent;
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease, color .15s ease;
 }
@@ -249,6 +254,8 @@
   padding: 0 0 4px;
   background: transparent;
 }
+/* The single sidebar entry: a borderless row that reads as part of the rail and
+   highlights while the workflow panel owns the main area. */
 .wf-nav-button {
   display: flex;
   width: calc(100% - 4px);
@@ -262,20 +269,16 @@
   border-radius: 12px;
   background: transparent !important;
   box-shadow: none !important;
-  color: var(--dsw-alias-label-primary);
+  color: var(--wf-text);
   font-size: 14px;
   font-weight: 400;
   line-height: 22px;
   text-align: left;
 }
-.wf-nav-button:hover { background: var(--dsw-alias-interactive-bg-hover) !important; }
-.wf-nav-button.is-active {
-  background: var(--dsw-alias-interactive-bg-hover) !important;
-  color: var(--dsw-alias-label-primary);
-}
-.wf-nav-button.is-rail { width: 36px; height: 36px; justify-content: center; margin: 0; padding: 0; }
-.wf-nav-button:focus-visible { outline: 2px solid var(--dsw-alias-label-primary); outline-offset: -2px; }
-.wf-nav-button svg { width: 16px; height: 16px; flex: none; stroke-width: 1.8; }
+.wf-nav-button:hover { background: var(--wf-hover) !important; }
+.wf-nav-button.is-active { background: var(--dsw-alias-interactive-bg-hover, var(--wf-hover)) !important; color: var(--dsw-alias-label-primary, var(--wf-text)); font-weight: 400; }
+.wf-nav-button.is-rail { justify-content: center; width: 36px; height: 36px; margin: 0; padding: 0; }
+.wf-nav-button svg { flex: none; width: 16px; height: 16px; stroke-width: 1.8; }
 .wf-nav-button > span:not(.wf-nav-count) {
   min-width: 0;
   overflow: hidden;
@@ -292,6 +295,7 @@
   font-weight: 600;
   line-height: 18px;
 }
+.wf-nav-button.is-active .wf-nav-count { background: transparent; color: var(--wf-accent); }
 .wf-workflow-icon {
   display: inline-flex;
   align-items: center;
@@ -369,6 +373,9 @@
   white-space: nowrap;
 }
 .wf-card-head .wf-chip { margin-left: auto; flex: none; }
+/* A card can pair the published chip with a draft-ahead chip; keep the pair
+   together on the trailing edge instead of splitting the row's free space. */
+.wf-card-head .wf-chip + .wf-chip { margin-left: 6px; }
 .wf-card-desc { margin: 0; min-height: 34px; color: var(--wf-muted); font-size: 12.5px; overflow-wrap: anywhere; }
 .wf-card-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; color: var(--wf-muted); font-size: 11.5px; }
 .wf-card-actions > button { white-space: nowrap; }
@@ -440,7 +447,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  max-width: min(340px, 42vw);
+  max-width: min(420px, 52vw);
   height: 26px;
   border: 1px solid transparent;
   border-radius: 999px;
@@ -478,6 +485,15 @@
   white-space: nowrap;
 }
 .wf-composer-tag-open small { font-size: 11px; opacity: .72; }
+.wf-composer-tag-mode {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentcolor 16%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 1;
+}
 .wf-composer-tag .wf-status { padding: 0 6px; font-size: 11px; white-space: nowrap; }
 .wf-composer-tag-clear {
   display: grid;
@@ -520,8 +536,8 @@
   min-width: 0;
   min-height: 320px;
   background-color: var(--wf-surface-subtle);
-  background-image: radial-gradient(color-mix(in srgb, var(--wf-muted) 35%, transparent) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-image: radial-gradient(color-mix(in srgb, var(--wf-muted) 18%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 .wf-addbar {
   position: absolute;
@@ -555,7 +571,16 @@
   white-space: nowrap;
 }
 .wf-addbar button:hover { background: var(--wf-surface-strong); }
-.wf-addbar button svg { color: var(--wf-muted); }
+.wf-addbar button svg { color: var(--step-ink, var(--wf-muted)); }
+.wf .wf-add-glyph {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--step-tint, var(--wf-surface-strong));
+  color: var(--step-ink, var(--wf-text));
+}
 .wf-addbar-divider { width: 1px; height: 20px; margin: 0 4px; background: var(--wf-line); }
 .wf-canvas-tools {
   position: absolute;
@@ -576,75 +601,235 @@
 .wf-json { flex: 1; min-height: 0; padding: 16px; overflow: auto; }
 
 /* ---------------------------------------------------------- step cards */
-.wf .wf-step-input { --step-tint: #eef3a8; --step-ink: #454a15; --step-body: #f8fbdc; }
-.wf .wf-step-interact { --step-tint: #a9e7dc; --step-ink: #14504a; --step-body: #e6faf6; }
-.wf .wf-step-agent { --step-tint: #ccd9fb; --step-ink: #2c3f63; --step-body: #eef3fe; }
-.wf .wf-step-tool { --step-tint: #ffd9ab; --step-ink: #6b4413; --step-body: #fff2e2; }
-.wf .wf-step-condition { --step-tint: #ffc9dd; --step-ink: #6d2743; --step-body: #ffedf4; }
-.wf .wf-step-join { --step-tint: #d9d4fb; --step-ink: #3d3470; --step-body: #f1efff; }
-.wf .wf-step-loop { --step-tint: #c6ecf7; --step-ink: #1f4c5c; --step-body: #e9f7fc; }
-.wf .wf-step-subworkflow { --step-tint: #e3d3fb; --step-ink: #472e70; --step-body: #f5eeff; }
-.wf .wf-step-approval { --step-tint: #ffe1b8; --step-ink: #6d4a15; --step-body: #fff4e4; }
-.wf .wf-step-artifact { --step-tint: #c6f2d3; --step-ink: #1f5233; --step-body: #eafbf0; }
-.wf .wf-step-publish { --step-tint: #d5e8dc; --step-ink: #274a37; --step-body: #f0f7f3; }
+.wf .wf-step-input { --step-tint: #f4edd4; --step-ink: #8a6a12; --step-body: #f4edd4; }
+.wf .wf-step-interact { --step-tint: #d9f3ee; --step-ink: #0f6e64; --step-body: #d9f3ee; }
+.wf .wf-step-agent { --step-tint: #e7e9fb; --step-ink: #3d4db5; --step-body: #e7e9fb; }
+.wf .wf-step-tool { --step-tint: #fde8d0; --step-ink: #9a5410; --step-body: #fde8d0; }
+.wf .wf-step-condition { --step-tint: #fde2ec; --step-ink: #a33b5c; --step-body: #fde2ec; }
+.wf .wf-step-join { --step-tint: #ece9fb; --step-ink: #5346a0; --step-body: #ece9fb; }
+.wf .wf-step-subworkflow { --step-tint: #f0e6fb; --step-ink: #6d3ea8; --step-body: #f0e6fb; }
+.wf .wf-step-approval { --step-tint: #fdecd4; --step-ink: #8a5a12; --step-body: #fdecd4; }
+.wf .wf-step-artifact { --step-tint: #dff5e7; --step-ink: #1d7a45; --step-body: #dff5e7; }
+.wf .wf-step-publish { --step-tint: #e5f0ea; --step-ink: #2f6b4a; --step-body: #e5f0ea; }
+.wf .wf-step-script { --step-tint: #e7eef6; --step-ink: #3d5570; --step-body: #e7eef6; }
+/* 外壳容器：颜色只留在图标和极淡的框上，不再铺满卡片。 */
+.wf .wf-step-multithread { --step-tint: #ece7fb; --step-ink: #5b45a8; --step-body: #ece7fb; }
+.wf .wf-check-row { display: flex; align-items: center; gap: 8px; margin-block: 4px; font-size: 13px; }
+.wf .wf-check-row input { accent-color: var(--wf-accent); }
+.wf .wf-shell-multithread { --step-tint: #ece7fb; --step-ink: #5b45a8; --step-body: #ece7fb; }
+/* 外壳容器：实体感 = 实线边框 + 通栏头部条 + 淡点阵内衬；虚线只用于空态投放盒。
+   （调研共识：Dify Iteration / Unreal Comment / Blender Frame —— 头部贴顶、头深体浅同色系） */
+.wf .wf-shell-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1.6px solid color-mix(in srgb, var(--wf-text) 45%, var(--wf-bg));
+  border-radius: 255px 24px 225px 24px / 24px 225px 24px 255px;
+  background: color-mix(in srgb, var(--step-tint, #ece7fb) 26%, var(--wf-surface));
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--wf-text) 10%, transparent);
+  font-family: var(--wf-hand);
+  transform: rotate(0.3deg);
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.wf .wf-shell-card::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 255px 22px 225px 22px / 22px 225px 22px 255px;
+  background-image: radial-gradient(color-mix(in srgb, var(--step-ink, #5b6472) 22%, transparent) 1px, transparent 1px);
+  background-size: 14px 14px;
+  opacity: .45;
+  pointer-events: none;
+}
+.wf .wf-shell-card.is-selected {
+  border-color: var(--wf-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--wf-accent) 26%, transparent), 0 4px 14px rgb(16 24 40 / 8%);
+}
+.wf .wf-shell-card.is-selected .wf-shell-head { background: color-mix(in srgb, var(--step-tint, #ece7fb) 78%, var(--wf-surface)); }
+.wf .wf-node.wf-container:hover .wf-shell-card:not(.is-selected) {
+  border-color: color-mix(in srgb, var(--step-ink, #5b6472) 60%, transparent);
+  box-shadow: 0 2px 8px rgb(16 24 40 / 7%);
+}
+.wf .wf-node.wf-container.dragging .wf-shell-card { box-shadow: 0 10px 24px rgb(16 24 40 / 12%); }
+/* 通栏头部条：比框体深一档，用 1px 分隔线与子节点区隔 */
+.wf .wf-shell-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 12px;
+  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--step-ink, #5b6472) 24%, transparent);
+  background: color-mix(in srgb, var(--step-tint, #ece7fb) 62%, var(--wf-surface));
+  color: var(--step-ink, var(--wf-text));
+  cursor: grab;
+}
+.wf .wf-shell-head .wf-step-copy { display: flex; align-items: center; gap: 8px; }
+.wf .wf-shell-head .wf-step-meta { margin-left: auto; color: color-mix(in srgb, var(--step-ink, #5b6472) 75%, var(--wf-text)); }
+.wf .wf-shell-head strong { margin: 0; font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wf .wf-shell-head em { font-size: 11px; font-style: normal; font-weight: 500; white-space: nowrap; }
+.wf .wf-shell-count { font-size: 11px; white-space: nowrap; }
+.wf .wf-shell-count::before,
+.wf .wf-step-meta .wf-step-model::before { content: "·"; margin-right: 6px; }
+/* 空态：内部虚线投放盒（投放区语义只落在待填充区域） */
+.wf .wf-shell-empty {
+  position: relative;
+  flex: 1;
+  margin: 10px 12px 12px;
+  display: grid;
+  place-items: center;
+  padding: 0 20px;
+  border: 1.5px dashed color-mix(in srgb, var(--step-ink, #5b6472) 42%, transparent);
+  border-radius: 9px;
+  color: color-mix(in srgb, var(--wf-muted) 80%, var(--step-ink));
+  font-size: 12px;
+  text-align: center;
+  pointer-events: none;
+}
+/* 外壳把手平时减淡，悬停恢复，减少画布噪点 */
+.wf .wf-node.wf-container .react-flow__handle { opacity: .35; transition: opacity .15s ease; }
+.wf .wf-node.wf-container:hover .react-flow__handle { opacity: 1; }
+.wf .wf-title-input {
+  flex: 1;
+  min-width: 0;
+  padding: 1px 6px;
+  border: 1px solid var(--wf-accent);
+  border-radius: 6px;
+  background: var(--wf-surface);
+  color: var(--wf-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+/* 「条件」节点 = 流程图判断框：干净卡片 + 底部是/否双端口（绿=是，灰=否），边线随端口着色 */
+.wf .wf-node-card.wf-step-condition .wf-step-body { padding-bottom: 20px; }
+.wf .wf-node-card.wf-step-condition .react-flow__handle.wf-port-yes,
+.wf .wf-node-card.wf-step-condition .react-flow__handle.wf-port-no { width: 11px; height: 11px; border-width: 2px; z-index: 3; }
+.wf .wf-node-card.wf-step-condition .react-flow__handle.wf-port-yes { background: #3f9d6b; }
+.wf .wf-node-card.wf-step-condition .react-flow__handle.wf-port-no { background: #8a939d; }
+.wf .wf-node-card.wf-step-condition .wf-port-label {
+  position: absolute;
+  bottom: 2px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+}
+.wf .wf-node-card.wf-step-condition .wf-port-yes-label { left: 32%; color: #2f8f5f; }
+.wf .wf-node-card.wf-step-condition .wf-port-no-label { left: 68%; color: var(--wf-muted); }
+.wf .react-flow__edge-path { transition: stroke .15s ease; }
 .wf-routing-settings,.wf-review-settings { margin-block: 12px; padding: 12px; border: 1px solid var(--wf-line); border-radius: 10px; }
 .wf-routing-settings summary,.wf-review-settings summary,.wf-team-editor summary { cursor: pointer; padding-block: 4px; font-weight: 500; }
 .wf-team-editor fieldset { border: 1px solid var(--wf-line); border-radius: 8px; padding: 10px; margin-block: 12px; }
 .wf-team-editor fieldset label { display: flex; align-items: center; gap: 8px; margin-block: 6px; }
 .wf-review-history { padding: 12px 0; }
 .wf-review-history section { margin-top: 12px; border-left: 2px solid var(--wf-line); padding-left: 12px; }
-.wf .wf-node { width: 264px !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+.wf .wf-node:not(.wf-container) { width: 232px !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+.wf .wf-node.wf-container { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
 .wf .wf-node-card {
-  width: 264px;
+  width: 232px;
   padding: 0;
   gap: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--step-ink, #303742) 14%, transparent);
-  border-radius: var(--wf-radius);
-  background: var(--step-body, var(--wf-surface));
-  box-shadow: 0 1px 3px rgb(16 24 40 / 6%);
-  transition: box-shadow .15s ease;
+  border: 1.6px solid color-mix(in srgb, var(--wf-text) 55%, var(--wf-bg));
+  border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
+  background: var(--wf-surface);
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--wf-text) 10%, transparent);
+  font-family: var(--wf-hand);
+  transform: rotate(-0.35deg);
+  transition: box-shadow .18s ease, border-color .18s ease;
 }
 .wf .wf-node-card.is-selected {
-  box-shadow: 0 0 0 2px var(--wf-accent), 0 10px 24px rgb(16 24 40 / 14%);
+  border-color: transparent;
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--wf-text) 10%, transparent), 0 0 0 2px var(--wf-accent);
 }
+.wf .react-flow__node:nth-child(even) .wf-node-card { transform: rotate(0.4deg); }
 .wf .wf-step-heading {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: var(--step-tint, #e5e7ee);
-  color: var(--step-ink, #303742);
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  color: var(--wf-text);
 }
-.wf .wf-step-heading strong { flex: 1; min-width: 0; margin: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wf .wf-step-heading em { font-size: 11px; font-style: normal; opacity: .8; white-space: nowrap; }
-.wf .wf-step-glyph { display: inline-flex; flex: none; opacity: .85; }
-.wf .wf-step-body { display: grid; gap: 8px; padding: 12px 14px 14px; }
+.wf .wf-step-copy { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.wf .wf-step-copy strong { margin: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wf .wf-step-meta { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--wf-muted); font-size: 11px; line-height: 1.3; }
+.wf .wf-step-meta em { font-size: 11px; font-style: normal; font-weight: 500; opacity: 1; white-space: nowrap; }
+.wf .wf-step-glyph {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--step-tint, var(--wf-surface-strong));
+  color: var(--step-ink, var(--wf-text));
+  opacity: 1;
+}
+.wf .wf-node-card:not(.is-selected) .wf-step-body { display: none; }
+.wf .wf-step-body { display: grid; gap: 6px; padding: 0 12px 12px; }
 .wf .wf-step-body p {
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  color: var(--wf-text);
-  font-size: 12.5px;
-  line-height: 1.6;
+  color: var(--wf-muted);
+  font-size: 12px;
+  line-height: 1.45;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
 }
 .wf .wf-step-body small { font-size: 12px; }
-.wf .wf-step-references { display: flex; flex-wrap: wrap; gap: 4px; max-height: 48px; overflow: auto; }
+.wf .wf-step-references { display: flex; flex-wrap: wrap; gap: 4px; max-height: 44px; overflow: auto; }
 .wf .wf-inline-reference {
-  display: inline-block;
-  padding: 1px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 5px;
+  padding: 2px 10px;
   border-radius: 999px;
-  background: var(--step-tint, #e5e7ee);
-  color: var(--step-ink, #303742);
+  background: var(--wf-surface-strong);
+  color: var(--wf-text);
   font-size: 11px;
+  font-weight: 500;
   vertical-align: baseline;
 }
-.wf .wf-step-model { color: var(--wf-muted); font-size: 11px; }
-.wf .wf-node-card .react-flow__handle { width: 9px; height: 9px; border: 2px solid var(--wf-surface); background: var(--step-ink, #303742); }
-.wf .react-flow__edge-path { stroke: color-mix(in srgb, var(--wf-accent) 72%, #7a5cc4); stroke-width: 1.6; }
-.wf .react-flow__edge.wf-edge-dashed .react-flow__edge-path { stroke-dasharray: 5 5; stroke: var(--wf-line-strong); }
+.wf .wf-inline-reference::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--step-ink, var(--wf-accent));
+}
+.wf .wf-step-model { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--wf-muted); font-size: 11px; }
+.wf .wf-node-card .react-flow__handle,
+.wf .wf-shell-card .react-flow__handle {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--wf-surface);
+  background: #9aa3af;
+  transition: transform .15s ease, background .15s ease;
+}
+.wf .wf-node-card .react-flow__handle:hover,
+.wf .wf-shell-card .react-flow__handle:hover,
+.wf .wf-node-card.is-selected .react-flow__handle,
+.wf .wf-shell-card.is-selected .react-flow__handle { background: var(--wf-accent); transform: scale(1.15); }
+.wf .react-flow__edge-path { stroke-width: 2; stroke-linecap: round; filter: url(#wf-sketch-line); }
+.wf-sketch-defs { position: absolute; width: 0; height: 0; }
+.wf .react-flow__edges { color: var(--wf-edge-color); }
+.wf .react-flow__edge:hover .react-flow__edge-path,
+.wf .react-flow__edge.selected .react-flow__edge-path { stroke: var(--wf-accent); stroke-width: 2.25; }
+.wf .react-flow__edge-text { font-size: 11px; font-weight: 600; }
+.wf .react-flow__edge.wf-edge-loop { color: var(--wf-accent); }
+.wf .react-flow__edge.wf-edge-dashed .react-flow__edge-path { stroke-dasharray: 5 5; }
 .wf .react-flow__controls { overflow: hidden; border: 1px solid var(--wf-line); border-radius: 10px; box-shadow: var(--wf-shadow); }
 .wf .react-flow__controls button { min-height: 28px; padding: 5px; border: 0; border-bottom: 1px solid var(--wf-line); border-radius: 0; background: var(--wf-surface); color: var(--wf-text); }
 .wf .react-flow__minimap { width: 130px; height: 84px; border: 1px solid var(--wf-line); border-radius: 10px; background: var(--wf-surface); overflow: hidden; }
@@ -745,10 +930,7 @@
 .wf-step-prompt:hover { border-color: var(--wf-line); }
 .wf-step-prompt:focus { border-color: var(--wf-accent); background: var(--wf-surface); }
 .wf-step-prompt:empty::before { content: attr(data-placeholder); color: var(--wf-muted); pointer-events: none; }
-.wf-prompt-composer { display: flex; flex-direction: column; }
-.wf-add-reference { align-self: flex-start; min-height: 26px; padding: 2px 10px; border: 0; border-radius: 999px; background: var(--wf-surface-strong); color: var(--wf-muted); font-size: 11px; }
-.wf-reference-picker { display: grid; gap: 5px; padding-top: 10px; }
-.wf-reference-picker button { justify-content: flex-start; border: 0; background: var(--step-tint, var(--wf-surface-strong)); color: var(--step-ink, var(--wf-text)); }
+.wf-prompt-composer { display: flex; flex-direction: column; position: relative; }
 .wf-advanced { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--wf-line); }
 .wf-advanced summary { margin-bottom: 14px; color: var(--wf-muted); cursor: pointer; }
 
@@ -824,19 +1006,42 @@
     --wf-line-strong: var(--dsw-alias-border-l2, #4a515b);
     --wf-accent: var(--dsw-alias-brand-primary, #8f7ff0);
   }
-  body[data-ds-dark-theme] .wf .wf-step-input { --step-tint: #3c4118; --step-ink: #e2ecab; --step-body: #24260f; }
-  body[data-ds-dark-theme] .wf .wf-step-interact { --step-tint: #17453f; --step-ink: #a9e7dc; --step-body: #0e2a26; }
-  body[data-ds-dark-theme] .wf .wf-step-agent { --step-tint: #26324f; --step-ink: #c3d3f8; --step-body: #1b2233; }
-  body[data-ds-dark-theme] .wf .wf-step-tool { --step-tint: #4a3316; --step-ink: #f6d3a4; --step-body: #2a1e0e; }
-  body[data-ds-dark-theme] .wf .wf-step-condition { --step-tint: #4b2131; --step-ink: #f8c2d6; --step-body: #2b131c; }
-  body[data-ds-dark-theme] .wf .wf-step-join { --step-tint: #322b57; --step-ink: #d3cbf8; --step-body: #1f1b36; }
-  body[data-ds-dark-theme] .wf .wf-step-loop { --step-tint: #173d4a; --step-ink: #bde6f4; --step-body: #0f262e; }
-  body[data-ds-dark-theme] .wf .wf-step-subworkflow { --step-tint: #3a2154; --step-ink: #dfc9f8; --step-body: #231434; }
-  body[data-ds-dark-theme] .wf .wf-step-approval { --step-tint: #4a3416; --step-ink: #f7d8aa; --step-body: #2b1f0e; }
-  body[data-ds-dark-theme] .wf .wf-step-artifact { --step-tint: #1c3f2a; --step-ink: #bdeecb; --step-body: #10261a; }
-  body[data-ds-dark-theme] .wf .wf-step-publish { --step-tint: #294336; --step-ink: #c9e8d5; --step-body: #182b21; }
-  body[data-ds-dark-theme] .wf .wf-node-card { box-shadow: 0 5px 18px rgb(0 0 0 / 32%); }
-  body[data-ds-dark-theme] .wf .wf-node-card .react-flow__handle { border-color: var(--step-body, #25272b); }
+  body[data-ds-dark-theme] .wf .wf-step-input,
+  body[data-ds-dark-theme] .wf .wf-add-input .wf-add-glyph { --step-tint: #3a341c; --step-ink: #e6d7a2; }
+  body[data-ds-dark-theme] .wf .wf-step-interact { --step-tint: #143833; --step-ink: #9ee6d8; }
+  body[data-ds-dark-theme] .wf .wf-step-agent { --step-tint: #242c4a; --step-ink: #c5cff8; }
+  body[data-ds-dark-theme] .wf .wf-step-tool { --step-tint: #3d2a16; --step-ink: #f3d0a4; }
+  body[data-ds-dark-theme] .wf .wf-step-condition,
+  body[data-ds-dark-theme] .wf .wf-step-join { --step-tint: #2c2748; --step-ink: #d2c8f6; }
+  body[data-ds-dark-theme] .wf .wf-step-subworkflow { --step-tint: #321c46; --step-ink: #e0c8f6; }
+  body[data-ds-dark-theme] .wf .wf-step-approval { --step-tint: #3d2c16; --step-ink: #f4d4a6; }
+  body[data-ds-dark-theme] .wf .wf-step-artifact { --step-tint: #163224; --step-ink: #b7ebc8; }
+  body[data-ds-dark-theme] .wf .wf-step-publish { --step-tint: #1d3328; --step-ink: #c5e6d2; }
+  body[data-ds-dark-theme] .wf .wf-step-script { --step-tint: #1c2836; --step-ink: #c5d4e6; }
+  body[data-ds-dark-theme] .wf .wf-step-multithread,
+  body[data-ds-dark-theme] .wf .wf-shell-multithread { --step-tint: #2a2444; --step-ink: #d4c8f6; }
+  body[data-ds-dark-theme] .wf .wf-node-card { box-shadow: 0 8px 22px rgb(0 0 0 / 28%); }
+  body[data-ds-dark-theme] .wf .wf-node-card .react-flow__handle,
+  body[data-ds-dark-theme] .wf .wf-shell-card .react-flow__handle { border-color: var(--wf-surface, #25272b); }
+  body[data-ds-dark-theme] .wf .wf-shell-card {
+    background: color-mix(in srgb, var(--step-tint) 30%, #23262a);
+    border-color: color-mix(in srgb, var(--step-ink) 34%, transparent);
+    box-shadow: none;
+  }
+  body[data-ds-dark-theme] .wf .wf-shell-card::before {
+    background-image: radial-gradient(color-mix(in srgb, var(--step-ink) 26%, transparent) 1px, transparent 1px);
+    opacity: .35;
+  }
+  body[data-ds-dark-theme] .wf .wf-shell-card.is-selected { box-shadow: 0 0 0 2px color-mix(in srgb, var(--wf-accent) 34%, transparent); }
+  body[data-ds-dark-theme] .wf .wf-shell-head {
+    background: color-mix(in srgb, var(--step-tint) 26%, #23262a);
+    border-bottom-color: color-mix(in srgb, var(--step-ink) 24%, transparent);
+    color: var(--step-ink, var(--wf-text));
+  }
+  body[data-ds-dark-theme] .wf .wf-shell-card.is-selected .wf-shell-head { background: color-mix(in srgb, var(--step-tint) 36%, #23262a); }
+  body[data-ds-dark-theme] .wf .wf-shell-head .wf-step-meta { color: color-mix(in srgb, var(--step-ink) 80%, #fff 6%); }
+  body[data-ds-dark-theme] .wf .wf-shell-empty { border-color: color-mix(in srgb, var(--step-ink) 46%, transparent); }
+  body[data-ds-dark-theme] .wf .wf-title-input { background: #25272b; color: inherit; }
 
 
 /* --------------------------------------------------- composer tag (dark) */
@@ -910,6 +1115,184 @@
 
 .wf-root-conversation { width:min(100%,880px); margin:0 auto 0 0; padding:12px 28px; color:var(--dsw-alias-label-primary,#202428); font-size:14px; }
 .wf-root-conversation > summary { cursor: pointer; }
+.wf-session-shell { min-width: 0; width: 100%; }
+.wf-session-rail {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  margin: 0 0 4px;
+  padding: 10px 28px 12px;
+  border-bottom: 1px solid var(--dsw-alias-border-l3, #e4e7ea);
+  background: color-mix(in srgb, var(--dsw-alias-bg-base, #fff) 88%, transparent);
+  backdrop-filter: blur(10px);
+  color: var(--dsw-alias-label-primary, #202428);
+  font: 13px/1.4 var(--dsw-font-family, system-ui, sans-serif);
+}
+.wf-session-rail[data-mode="author"] {
+  border-bottom-color: color-mix(in srgb, #6a5acd 28%, var(--dsw-alias-border-l3, #e4e7ea));
+  background: color-mix(in srgb, #6a5acd 8%, var(--dsw-alias-bg-base, #fff));
+}
+.wf-session-rail[data-mode="run"] {
+  border-bottom-color: color-mix(in srgb, #2f9e6b 28%, var(--dsw-alias-border-l3, #e4e7ea));
+  background: color-mix(in srgb, #2f9e6b 8%, var(--dsw-alias-bg-base, #fff));
+}
+.wf-session-rail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.wf-session-rail-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  flex: 0 1 auto;
+}
+.wf-session-rail-kind {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentcolor 12%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.wf-session-rail-status strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+.wf-session-rail-steps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  flex: 1 1 auto;
+  scrollbar-width: thin;
+}
+.wf-session-rail-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary, #6c747c);
+  font: 12px/1 var(--dsw-font-family, system-ui, sans-serif);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.wf-session-rail-step:hover { background: color-mix(in srgb, currentcolor 10%, transparent); color: inherit; }
+.wf-session-rail-step:disabled { opacity: .55; cursor: default; }
+.wf-session-rail-step:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary, #6a5acd); outline-offset: 2px; }
+.wf-session-rail-step[aria-current="step"] {
+  background: color-mix(in srgb, currentcolor 12%, transparent);
+  color: var(--dsw-alias-label-primary, #202428);
+  font-weight: 600;
+}
+.wf-session-rail-step i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dsw-alias-border-l2, #cfd5db);
+}
+.wf-session-rail-step i[data-status="running"],
+.wf-session-rail-step i[data-status="queued"] { background: #2f9e6b; }
+.wf-session-rail-step i[data-status="completed"] { background: #1d7d52; }
+.wf-session-rail-step i[data-status="paused"],
+.wf-session-rail-step i[data-status="waiting_input"],
+.wf-session-rail-step i[data-status="waiting_approval"] { background: #c48a16; }
+.wf-session-rail-step i[data-status="failed"],
+.wf-session-rail-step i[data-status="needs_attention"] { background: #c23d3d; }
+.wf-session-rail-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+.wf-session-rail-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  min-width: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary, #6c747c);
+  font: 12px/1 var(--dsw-font-family, system-ui, sans-serif);
+  cursor: pointer;
+}
+.wf-session-rail-actions button:hover { background: color-mix(in srgb, currentcolor 12%, transparent); color: inherit; }
+.wf-session-rail-actions button:disabled { opacity: .4; cursor: default; }
+.wf-session-rail-actions button:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary, #6a5acd); outline-offset: 2px; }
+.wf-session-rail-ask,
+.wf-session-rail-error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.wf-session-rail-error { color: #b42318; }
+@media (max-width: 700px) {
+  .wf-session-rail { padding: 8px 12px 10px; }
+  .wf-session-rail-row { flex-wrap: wrap; }
+  .wf-session-rail-steps { order: 3; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wf-session-rail { backdrop-filter: none; }
+}
+body[data-ds-dark-theme] .wf-session-rail[data-mode="run"] {
+  background: color-mix(in srgb, #2f9e6b 16%, transparent);
+}
+body[data-ds-dark-theme] .wf-session-rail[data-mode="author"] {
+  background: color-mix(in srgb, #6a5acd 16%, transparent);
+}
+body[data-ds-dark-theme] .wf-session-rail-error { color: #ffb4ab; }
+.wf-session-mode-banner {
+  margin: 0;
+  padding: 10px 28px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--dsw-alias-label-primary, #202428);
+  background: color-mix(in srgb, #2f9e6b 12%, var(--wf-bg, #fff));
+  border-bottom: 1px solid color-mix(in srgb, #2f9e6b 28%, var(--wf-line, #ddd));
+}
+.wf-session-mode-banner[data-mode="author"] {
+  background: color-mix(in srgb, #6a5acd 12%, var(--wf-bg, #fff));
+  border-bottom-color: color-mix(in srgb, #6a5acd 28%, var(--wf-line, #ddd));
+}
+.wf-session-trial {
+  width: min(100%, 880px);
+  margin: 0 auto 16px 0;
+  padding: 0 28px 12px;
+  color: var(--dsw-alias-label-primary, #202428);
+}
+.wf-session-trial > summary {
+  cursor: pointer;
+  padding: 12px 0;
+  color: var(--dsw-alias-label-secondary, #6c747c);
+  font-size: 13px;
+  font-weight: 600;
+}
+body[data-ds-dark-theme] .wf-session-mode-banner[data-mode="run"] {
+  background: color-mix(in srgb, #2f9e6b 18%, transparent);
+}
+body[data-ds-dark-theme] .wf-session-mode-banner[data-mode="author"] {
+  background: color-mix(in srgb, #6a5acd 18%, transparent);
+}
 .wf-native-scroll { overflow:visible; max-height:none; overscroll-behavior:auto; }
 .wf-native-step [data-slot="conversation.view"] > div > div { padding-inline: 0; }
 .wf-step-views { display: flex; gap: 18px; border-bottom: 1px solid var(--wf-line); margin-bottom: 12px; }
@@ -970,8 +1353,7 @@ body[data-ds-dark-theme] .wf-run-step { background:color-mix(in srgb,hsl(var(--w
 .wf-appbar > button,.wf-appbar > .wf-segmented,.wf-appbar > .wf-chip,.wf-appbar > .wf-editor-debug { flex-shrink: 0; white-space: nowrap; }
 .wf-appbar .wf-segmented button { white-space: nowrap; flex-shrink: 0; }
 @media(max-width:700px) { .wf-appbar { flex-wrap: wrap; overflow: visible; padding: 8px; gap: 6px; } .wf-appbar-name { max-width: 150px; } }
-body[data-ds-dark-theme] .wf button:not(.wf-native-step *):not(.wf-primary):not(.wf-run-action) { background-color: var(--wf-bg); color: var(--wf-text); }
-body[data-ds-dark-theme] .wf button:not(.wf-native-step *):not(.wf-primary):not(.wf-run-action):hover { background-color: var(--wf-surface-strong); }
+/* Buttons stay transparent in dark theme; fills are opt-in via wf-primary etc. */
 
 /* Reserve canvas space for the step palette at every viewport size. */
 .wf-canvas > .wf-flow { margin-top: 62px; }
@@ -1069,13 +1451,13 @@ body[data-ds-dark-theme] .wf .wf-card-actions > .wf-run-action:hover {
 .wf-card-sessions > summary:focus-visible { outline: 2px solid var(--wf-accent); outline-offset: 3px; border-radius: 4px; }
 .wf .wf-session-name { min-height: 38px; padding-inline: 8px; }
 .wf-sessions-empty { font-size: 12px; line-height: 1.7; padding: 4px 0; }
-.wf-addbar { border-radius: 12px; box-shadow: 0 2px 8px rgb(0 0 0 / 4%); }
-.wf-addbar button { border-radius: 8px; min-height: 34px; }
-.wf .wf-node-card { background: color-mix(in srgb, var(--step-body) 45%, var(--wf-surface)); box-shadow: 0 1px 2px rgb(0 0 0 / 4%); }
-.wf .wf-node-card.is-selected { box-shadow: 0 0 0 2px var(--wf-accent); }
-.wf .wf-step-heading { background: color-mix(in srgb, var(--step-tint) 40%, var(--wf-surface)); padding-block: 12px; }
-.wf .wf-step-body { gap: 10px; padding-block: 14px 16px; }
-.wf .react-flow__edge-path { stroke: var(--wf-muted); stroke-width: 1.3; }
+.wf-addbar { border-radius: 14px; box-shadow: 0 1px 2px rgb(16 24 40 / 4%), 0 8px 24px rgb(16 24 40 / 5%); }
+.wf-addbar button { border-radius: 9px; min-height: 34px; gap: 7px; }
+.wf .wf-node-card { background: var(--wf-surface); }
+.wf .wf-node-card.is-selected { box-shadow: 0 0 0 2px var(--wf-accent), 0 8px 20px rgb(16 24 40 / 8%); }
+.wf .wf-step-heading { background: transparent; padding-block: 10px; }
+.wf .wf-node-card.is-selected .wf-step-body { gap: 6px; padding: 0 12px 12px; }
+.wf .react-flow__edge-path { stroke-width: 2; stroke-linecap: round; filter: url(#wf-sketch-line); }
 .wf-routing-settings,.wf-review-settings { border: 0; border-bottom: 1px solid var(--wf-line); border-radius: 0; padding: 10px 0; }
 .wf-panel-tabs { gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--wf-line); }
 .wf-panel-tabs button { border-radius: 7px; }
@@ -1093,32 +1475,30 @@ body[data-ds-dark-theme] .wf .wf-card-actions > .wf-run-action:hover {
   .wf-run-step { padding: 16px 12px; }
 }
 @media(prefers-reduced-motion:reduce) { .wf *, .wf *::before, .wf *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
-.wf-editor-viewbar { display:flex; align-items:center; gap:16px; padding:10px 16px; border-bottom:1px solid var(--wf-line); }
+.wf-editor-viewbar { display:flex; align-items:center; gap:16px; padding:8px 16px; border-bottom:1px solid var(--wf-line); background: color-mix(in srgb, var(--wf-surface) 86%, transparent); }
 .wf-outline { flex:1; min-height:0; overflow:auto; padding:82px 24px 72px; background:var(--wf-bg); }
 .wf-outline > header { margin-bottom:24px; }
-.wf .wf-outline-step { display:flex; align-items:flex-start; gap:14px; width:100%; padding:18px; margin-bottom:12px; text-align:left; border-radius:12px; background:var(--wf-surface); }
-.wf .wf-outline-step[aria-pressed="true"] { border-color:var(--wf-accent); background:color-mix(in srgb,var(--wf-accent) 4%,var(--wf-surface)); }
+.wf .wf-outline-step { display:flex; align-items:flex-start; gap:12px; width:100%; padding:12px 14px; margin-bottom:8px; text-align:left; border:1px solid var(--wf-line); border-radius:12px; background:var(--wf-surface); box-shadow:none; }
+.wf .wf-outline-step[aria-pressed="true"] { border-color:color-mix(in srgb, var(--wf-accent) 55%, var(--wf-line)); background:var(--wf-surface); box-shadow:0 0 0 3px var(--wf-accent-soft); }
 .wf-outline-number { color:var(--wf-muted); font-size:12px; font-variant-numeric:tabular-nums; padding-top:2px; }
-.wf-outline-copy { flex:1; min-width:0; display:grid; gap:8px; }
-.wf-outline-copy strong { font-size:14px; }
-.wf-outline-copy > span { color:var(--wf-muted); font-size:13px; line-height:1.65; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+.wf-outline-copy { flex:1; min-width:0; display:grid; gap:2px; }
+.wf-outline-copy strong { font-size:13.5px; }
+.wf-outline-copy > span { color:var(--wf-muted); font-size:12px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+.wf-outline-step:not([aria-pressed="true"]) .wf-outline-copy small { display:none; }
 .wf-outline-copy small { font-size:12px; color:var(--wf-muted); overflow-wrap:anywhere; }
 /* Workflow cells own their reading width; native resize rails belong to plain chat. */
 [data-phase="active"]:has(.wf-timeline) > [data-width-handle],
 [data-phase="active"]:has(.wf-timeline) [data-width-handle] { display:none; }
 body[data-ds-dark-theme] .wf .wf-primary { color:var(--dsw-alias-bg-base,#141414); }
 body[data-ds-dark-theme] .wf .wf-primary:hover { color:var(--dsw-alias-bg-base,#141414); }
-/* The add toolbar occupies a separate row above the scrollable content. */
-.wf-canvas > .wf-addbar { position:static; transform:none; flex:0 0 auto; align-self:stretch; max-width:none; margin:12px; justify-content:flex-start; box-shadow:none; }
+/* The add toolbar sits in its own row so it never covers nodes. */
+.wf-canvas > .wf-addbar { position:static; transform:none; flex:0 0 auto; align-self:center; width:fit-content; max-width:calc(100% - 24px); margin:12px auto 0; justify-content:flex-start; border:1px solid color-mix(in srgb, var(--wf-text) 6%, transparent); background:color-mix(in srgb, var(--wf-surface) 94%, transparent); box-shadow:0 1px 2px rgb(16 24 40 / 4%), 0 8px 24px rgb(16 24 40 / 5%); backdrop-filter:blur(12px); }
 .wf-canvas > .wf-flow { margin-top:0; }
 .wf-outline { padding-top:16px; }
 .wf-outline-row { position:relative; }
 .wf .wf-outline-step { padding-right:58px; }
 .wf .wf-outline-delete { position:absolute; right:14px; top:14px; min-height:32px; width:32px; padding:6px; background:transparent; border:0; color:var(--wf-muted); }
 .wf-outline-step > svg { display:none; }
-.wf-editor-notice { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:8px 16px; border-bottom:1px solid var(--wf-line); font-size:12px; }
-.wf-editor-notice > span { flex:1; }
-.wf .wf-editor-notice button { border:0; }
 .wf-panel-head { background:var(--wf-surface); color:var(--wf-text); border-bottom:1px solid var(--wf-line); border-radius:0; margin:0; padding:16px; }
 .wf-panel-head strong { white-space:normal; font-size:14px; }
 .wf .wf-delete-step { border:0; color:var(--wf-muted); padding:6px 8px; min-height:32px; background:transparent; font-size:12px; }
@@ -1132,8 +1512,8 @@ body[data-ds-dark-theme] .wf .wf-primary:hover { color:var(--dsw-alias-bg-base,#
 .wf .wf-panel-tabs button[aria-selected="true"] { border-bottom-color:var(--wf-accent); background:transparent; }
 .wf-canvas-tools { bottom:12px; }
 .wf-canvas-tools button:first-child:not(.wf-icon) { width:auto; padding-inline:10px; }
-.wf .react-flow__node.selected .wf-node-card { box-shadow:0 0 0 2px var(--wf-accent); }
-.wf .react-flow__edge:hover .react-flow__edge-path { stroke:var(--wf-accent); stroke-width:2; }
+.wf .react-flow__node.selected .wf-node-card { border-color:transparent; box-shadow:0 0 0 2px var(--wf-accent), 0 8px 20px rgb(16 24 40 / 8%); }
+.wf .react-flow__edge:hover .react-flow__edge-path { stroke:var(--wf-accent); stroke-width:1.75; }
 @media(max-width:760px) { .wf-outline { padding-top:12px; } .wf-panel-body { padding:12px; } }
 .wf-more-steps { position:relative; flex:none; }
 .wf-more-menu { position:absolute; z-index:30; top:calc(100% + 8px); left:0; width:230px; padding:6px; border:1px solid var(--wf-line); border-radius:12px; background:var(--wf-surface); box-shadow:0 12px 30px rgb(16 24 40 / 16%); }
@@ -1149,13 +1529,140 @@ body[data-ds-dark-theme] .wf .wf-primary:hover { color:var(--dsw-alias-bg-base,#
 .wf-skill-add input { flex:1; }
 .wf-skill-add button { flex:none; }
 .wf-review-settings > summary small { display:block; margin:4px 0 0 20px; color:var(--wf-muted); font-weight:400; }
-.wf .react-flow__edge.wf-edge-loop .react-flow__edge-path { stroke:var(--wf-accent); stroke-width:2; stroke-dasharray:7 5; }
+.wf .react-flow__edge.wf-edge-loop .react-flow__edge-path { stroke:var(--wf-accent); stroke-width:1.5; stroke-dasharray:5 4; }
 .wf .react-flow__edge.wf-edge-loop .react-flow__edge-text { fill:var(--wf-accent); font-size:11px; font-weight:600; }
 .wf .react-flow__edge-path { stroke-linecap:round; }
-.wf .react-flow__edge.selected .react-flow__edge-path { stroke:var(--wf-accent); stroke-width:2.5; }
+.wf .react-flow__edge.selected .react-flow__edge-path { stroke:var(--wf-accent); stroke-width:1.75; }
+
+/* ---------------------------------------------------------------------------
+   Quiet workspace refresh
+
+   The workflow surface is a tool, so hierarchy comes from spacing and type,
+   not from a wall of tinted cards. This final layer intentionally keeps the
+   host tokens and makes the list the calm default while preserving the card
+   view as an explicit preference.
+*/
+.wf {
+  --wf-accent: var(--dsw-static-deepseek-500, #4176e6);
+  --wf-line: color-mix(in srgb, var(--wf-text) 10%, transparent);
+  --wf-line-strong: color-mix(in srgb, var(--wf-text) 18%, transparent);
+  --wf-surface-subtle: color-mix(in srgb, var(--wf-bg) 94%, var(--wf-text));
+  --wf-surface-strong: color-mix(in srgb, var(--wf-text) 7%, transparent);
+  --wf-hover: color-mix(in srgb, var(--wf-accent) 7%, transparent);
+  --wf-radius: 10px;
+  --wf-shadow: none;
+}
+.wf button:where(:not(.wf-native-step *)) { min-height: 34px; border-radius: 8px; }
+.wf .wf-appbar {
+  min-height: 62px;
+  padding: 12px 20px;
+  gap: 8px;
+  background: var(--wf-bg);
+  border-bottom-color: var(--wf-line);
+}
+.wf-appbar-name { max-width: min(300px, 24vw); font-size: 15px !important; }
+.wf-appbar > .wf-segmented { margin-inline: 8px auto; }
+.wf-appbar > button:not(.wf-icon):not(.wf-primary) { border-color: transparent; color: var(--wf-muted); }
+.wf-appbar > button:not(.wf-icon):not(.wf-primary):hover { background: var(--wf-surface-strong); color: var(--wf-text); }
+.wf-appbar > .wf-primary { min-height: 36px; padding-inline: 14px; border-radius: 9px; }
+.wf-appbar > .wf-icon { color: var(--wf-muted); }
+.wf-appbar > .wf-icon:hover { color: var(--wf-text); }
+.wf-editor-viewbar { min-height: 44px; padding: 6px 20px; background: var(--wf-bg); border-bottom-color: var(--wf-line); }
+.wf-editor-viewbar .wf-segmented { background: var(--wf-surface-strong); }
+.wf-editor-viewbar .wf-segmented button { min-height: 28px; padding-inline: 12px; font-weight: 500; }
+.wf-editor-body { grid-template-columns: minmax(0, 1fr) 320px; background: var(--wf-bg); }
+.wf-canvas { background-color: var(--wf-surface-subtle); background-image: radial-gradient(color-mix(in srgb, var(--wf-muted) 12%, transparent) 1px, transparent 1px); background-size: 24px 24px; }
+.wf-addbar { border-color: var(--wf-line); box-shadow: 0 4px 14px rgb(16 24 40 / 7%); }
+.wf-addbar button { min-height: 32px; }
+.wf .wf-node-card { border-color: var(--wf-line); box-shadow: 0 1px 2px rgb(16 24 40 / 3%); }
+.wf .wf-node-card.is-selected { box-shadow: 0 0 0 2px var(--wf-accent); }
+.wf .wf-step-glyph, .wf-workflow-icon, .wf-add-glyph { filter: saturate(.72); }
+.wf .wf-node-card:not(.is-selected) .wf-step-glyph { opacity: .78; }
+.wf-inspector { border-left-color: var(--wf-line); }
+.wf-panel-tabs { padding: 8px 16px 0; gap: 2px; }
+.wf-panel-tabs button { min-height: 32px; border-radius: 7px; font-weight: 500; }
+.wf-panel-tabs button[aria-selected="true"] { background: var(--wf-surface-strong); color: var(--wf-text); box-shadow: inset 0 -2px 0 var(--wf-accent); }
+.wf-panel-head { margin: 10px 16px; padding: 11px 0; border-radius: 0; border-bottom: 1px solid var(--wf-line); background: transparent; }
+.wf-panel-head .wf-step-glyph { width: 24px; height: 24px; border-radius: 7px; }
+.wf-panel-body { padding-inline: 16px; }
+.wf-settings-group > summary, .wf-routing-settings > summary, .wf-review-settings > summary, .wf-advanced > summary { min-height: 42px; }
+
+/* Library rows share column tracks and keep commands visible. */
+.wf-gallery { padding: 28px 32px; background: var(--wf-bg); }
+.wf-gallery-bar { min-height: 40px; margin-bottom: 18px; padding: 0 0 14px; border-bottom: 1px solid var(--wf-line); }
+.wf-gallery-search { flex-basis: 320px; border-color: var(--wf-line); border-radius: 9px; background: var(--wf-surface-subtle); }
+.wf-gallery-search input { font-size: 13px; }
+.wf-gallery-count { font-size: 12px; }
+.wf-gallery { container-type: inline-size; }
+.wf-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.wf-col-version { width: 146px; }
+.wf-col-chat { width: 100px; }
+.wf-col-time { width: 172px; }
+.wf-col-actions { width: 152px; }
+.wf-table th { height: 36px; padding: 0 12px; border-bottom: 1px solid var(--wf-line); color: var(--wf-muted); font-size: 12px; font-weight: 500; letter-spacing: 0; text-align: left; }
+.wf-table td { height: 76px; padding: 12px; border-bottom: 1px solid var(--wf-line); background: transparent; color: var(--wf-text); vertical-align: middle; }
+.wf-table tr:not(.wf-detail-row):hover td { background: var(--wf-surface-subtle); }
+.wf-list-identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.wf-list-identity .wf-workflow-icon { width: 34px; height: 34px; flex: none; border-radius: 8px; background: var(--wf-surface-strong); color: var(--wf-muted); }
+.wf-list-copy { min-width: 0; }
+.wf .wf-list-title { display: block; min-height: 22px; max-width: 100%; padding: 0; font-size: 14px; line-height: 22px; font-weight: 600; color: var(--wf-text); text-align: left; border-radius: 3px; }
+.wf .wf-list-title:hover { background: transparent; color: var(--wf-accent); }
+.wf .wf-list-desc { max-width: 58ch; margin-top: 2px; color: var(--wf-muted); font-size: 12px; line-height: 20px; }
+.wf-list-versions { display: flex; flex-wrap: wrap; gap: 4px; }
+.wf-list-versions .wf-chip { font-size: 11px; border-radius: 4px; padding: 2px 6px; white-space: nowrap; }
+.wf .wf-list-conversations { min-height: 32px; gap: 6px; padding: 0 4px; color: var(--wf-muted); font-weight: 500; }
+.wf-list-conversations[aria-expanded="true"] > svg:last-child { transform: rotate(180deg); }
+.wf-list-time { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-variant-numeric: tabular-nums; }
+.wf-list-actions { display: flex; justify-content: flex-end; gap: 4px; }
+.wf .wf-list-actions .wf-icon { width: 30px; height: 32px; min-height: 32px; flex-basis: 30px; border-radius: 6px; }
+.wf .wf-list-actions .wf-icon:first-child:not(:disabled) { color: var(--wf-text); background: var(--wf-surface-strong); }
+.wf-table th:last-child { text-align: right; }
+.wf-table .wf-detail-row td { height: auto; padding: 8px 12px 16px 58px; background: var(--wf-surface-subtle); }
+.wf-table td:nth-child(2), .wf-table td:nth-child(3), .wf-table td:nth-child(4) { color: var(--wf-muted); font-size: 12px; }
+.wf-table td > .wf-link { border: 0; background: transparent; color: inherit; }
+.wf-table td > .wf-link:hover { color: var(--wf-accent); }
+.wf-gallery .wf-segmented { background: var(--wf-surface-strong); }
+.wf-gallery .wf-segmented button { min-height: 30px; padding-inline: 11px; font-weight: 500; }
+.wf-gallery .wf-segmented button[aria-selected="true"] { background: var(--wf-bg); box-shadow: 0 1px 3px rgb(16 24 40 / 10%); color: var(--wf-text); }
+.wf-card { border-color: var(--wf-line); box-shadow: none; }
+.wf-card:hover { border-color: var(--wf-line-strong); }
+.wf-card-actions { border-top: 1px solid var(--wf-line); padding-top: 10px; }
+.wf-card-actions > button:not(.wf-run-action) { color: var(--wf-muted); }
+.wf-card-actions > button:not(.wf-run-action):hover { color: var(--wf-text); }
+.wf-gallery-empty { min-height: 260px; padding: 70px 24px; }
+.wf-gallery-empty p { color: var(--wf-text); font-size: 15px; }
+
+@media (max-width: 940px) {
+  .wf-appbar { padding-inline: 14px; }
+  .wf-appbar > .wf-segmented { margin-left: 0; }
+  .wf-editor-body { grid-template-columns: minmax(0, 1fr) 280px; }
+  .wf-gallery { padding-inline: 20px; }
+}
+@media (max-width: 720px) {
+  .wf-editor-body { grid-template-columns: 1fr; grid-template-rows: minmax(320px, 1fr) minmax(240px, 44vh); overflow: auto; }
+  .wf-inspector { border-top: 1px solid var(--wf-line); border-left: 0; }
+  .wf-appbar { gap: 5px; }
+  .wf-appbar > .wf-segmented { order: 5; flex: 1 1 100%; margin: 4px 0 0; }
+  .wf-appbar-name { max-width: 42vw; }
+  .wf-gallery { padding: 18px 14px; }
+}
+@container (max-width: 860px) {
+  .wf-col-time { width: 0; }
+  .wf-table th:nth-child(4), .wf-table tr:not(.wf-detail-row) td:nth-child(4) { display: none; }
+}
+@container (max-width: 620px) {
+  .wf-col-version { width: 0; }
+  .wf-table th:nth-child(2), .wf-table tr:not(.wf-detail-row) td:nth-child(2) { display: none; }
+  .wf-col-chat { width: 76px; }
+  .wf-col-actions { width: 144px; }
+  .wf-list-identity { gap: 8px; }
+  .wf-list-identity .wf-workflow-icon { display: none; }
+  .wf-table td, .wf-table th { padding-inline: 6px; }
+  .wf-table .wf-detail-row td { padding-left: 6px; }
+}
 
 .wf-step-picker { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-.wf .wf-step-picker button { justify-content:flex-start; min-height:56px; padding:14px; }
+.wf .wf-step-picker button { justify-content:flex-start; align-items:center; gap:10px; min-height:64px; padding:14px 16px; border:1px solid var(--wf-line); background:var(--wf-surface); border-radius:12px; }
 .wf-skill-content { min-height:45vh; width:100%; font:13px/1.6 ui-monospace,monospace; margin:12px 0; }
 .wf-settings-group > summary,.wf-routing-settings > summary,.wf-review-settings > summary,.wf-advanced > summary { display:flex; align-items:center; gap:8px; list-style:none; min-height:40px; font-size:13px; font-weight:500; }
 .wf-settings-group > summary::-webkit-details-marker,.wf-routing-settings > summary::-webkit-details-marker,.wf-review-settings > summary::-webkit-details-marker,.wf-advanced > summary::-webkit-details-marker { display:none; }
@@ -1163,9 +1670,10 @@ body[data-ds-dark-theme] .wf .wf-primary:hover { color:var(--dsw-alias-bg-base,#
 .wf-settings-group[open] > summary::before,.wf-routing-settings[open] > summary::before,.wf-review-settings[open] > summary::before,.wf-advanced[open] > summary::before { transform:rotate(90deg); }
 .wf-settings-group > summary small,.wf-setting-value { display:inline!important; margin:0 0 0 auto; font-size:12px; color:var(--wf-muted); }
 .wf-settings-group,.wf-routing-settings,.wf-review-settings { padding:4px 0; margin:0; }
-.wf .wf-node-order { display:grid; place-items:center; border-radius:6px; min-width:23px; height:23px; background:var(--wf-surface); font-size:12px; }
-.wf .wf-step-heading { background:var(--wf-surface); border-bottom:1px solid var(--wf-line); }
-.wf .wf-node-card { border:1px solid var(--wf-line-strong); border-radius:12px; box-shadow:0 2px 5px rgb(0 0 0 / 5%); }
+.wf .wf-node-order { display:inline; min-width:0; height:auto; padding:0; border-radius:0; background:transparent; color:var(--wf-muted); font-size:11px; font-variant-numeric:tabular-nums; }
+.wf .wf-node-order::after { content:"·"; margin-left:6px; color:color-mix(in srgb, var(--wf-muted) 70%, transparent); }
+.wf .wf-step-heading { background:transparent; border-bottom:0; }
+.wf .wf-node-card { border:1px solid color-mix(in srgb, var(--wf-text) 8%, transparent); border-radius:12px; box-shadow:0 1px 2px rgb(16 24 40 / 4%); }
 .wf .wf-step-body p { -webkit-line-clamp:2; }
 .wf-addbar { overflow:visible; }
 .wf-canvas > .wf-addbar { flex-wrap:wrap; }
@@ -1177,6 +1685,368 @@ body[data-ds-dark-theme] .wf .wf-primary:hover { color:var(--dsw-alias-bg-base,#
 .wf-panel-head { flex-shrink: 0; }
 .wf-panel-body { flex: 1 1 0; overscroll-behavior: contain; padding-bottom: 32px; }
 .wf-step-picker { gap: 12px; }
-.wf .wf-step-picker button { min-height: 64px; padding: 16px; }
+.wf .wf-step-picker button { min-height: 64px; padding: 14px 16px; }
 @media(max-width:760px) { .wf-editor-body { grid-template-rows:minmax(260px,1fr) minmax(200px,46vh); overflow:auto; } }
 @media(max-width:480px) { .wf-step-picker { grid-template-columns:minmax(0,1fr); } }
+
+
+/* ---- Run list: summary column and labeled actions. ---- */
+.wf-run-open { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.wf-run-action { display: inline-flex; align-items: center; gap: 4px; min-height: 26px; margin-right: 6px; padding: 0 8px; border: 1px solid var(--wf-line); border-radius: 8px; background: transparent; color: inherit; font-size: 12px; }
+.wf-run-action:hover { border-color: color-mix(in srgb, currentcolor 30%, var(--wf-line)); }
+.wf-run-error-hint { display: block; margin-top: 2px; color: var(--dsw-alias-state-error-primary, #b13e4a); font-size: 11.5px; }
+
+/* ---- Run detail: one friendly error banner instead of raw code twice. ---- */
+.wf-error-banner { display: flex; gap: 10px; margin: 10px 0; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--dsw-alias-state-error-primary, #b13e4a) 32%, var(--wf-line)); border-radius: 10px; background: color-mix(in srgb, var(--dsw-alias-state-error-primary, #b13e4a) 7%, transparent); }
+.wf-error-banner > svg { flex: none; margin-top: 2px; color: var(--dsw-alias-state-error-primary, #b13e4a); }
+.wf-error-banner p { margin: 0; font-weight: 600; font-size: 13px; }
+.wf-error-banner small { display: block; margin-top: 3px; color: var(--wf-muted); font-size: 11.5px; overflow-wrap: anywhere; }
+.wf-error-raw { display: block; margin-top: 2px; color: var(--wf-muted); font-size: 11px; font-weight: 400; overflow-wrap: anywhere; }
+
+/* ---- Failed step highlight inside the run timeline. ---- */
+.wf-run-step.is-failed { border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary, #b13e4a) 45%, var(--wf-line)); box-shadow: inset 3px 0 0 var(--dsw-alias-state-error-primary, #b13e4a); }
+.wf-run-step.is-failed > header .wf-step-state { color: var(--dsw-alias-state-error-primary, #b13e4a); font-weight: 600; }
+
+/* ---- Event timeline: the run's event stream for people. ---- */
+.wf-events > summary { cursor: pointer; font-size: 13px; font-weight: 500; }
+.wf-event-list { display: grid; gap: 2px; margin: 10px 0; padding: 0; list-style: none; }
+.wf-event-list li { display: flex; align-items: baseline; gap: 10px; padding: 3px 6px; border-radius: 6px; font-size: 12.5px; }
+.wf-event-list li:nth-child(odd) { background: var(--wf-surface-subtle); }
+.wf-event-list time { flex: none; min-width: 62px; color: var(--wf-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.wf-event-label { flex: none; min-width: 118px; font-weight: 500; }
+.wf-event-detail { min-width: 0; color: var(--wf-muted); overflow-wrap: anywhere; }
+.wf-events details { margin: 6px 0 0; }
+.wf-events details > summary { color: var(--wf-muted); font-size: 12px; }
+
+/* ---- 主题补偿：桌面透明材质在浅色主题下仍渲染深色侧栏，而宿主文本颜色随主题
+   翻成深色，出现"深底深字"。浅色主题下为侧栏表面提供浅色底，恢复对比度；
+   不改动任何条目自身的配色与选中态。 ---- */
+body:not([data-ds-dark-theme]) .dshDesktopSidebarSurface { background: rgb(247 248 250 / 0.97); }
+
+/* ---- 暗色补偿：暗色规则会给无边框按钮刷 bg-base 底色，把 tab 文本按钮变成
+   一排黑色小方块。恢复文本类按钮的透明底。 ---- */
+/* 暗色下 bg-base 比桌面材质更黑，标题栏/分段控件/子 tab 会被看成一格格黑框。
+   文本型控件一律透明，与材质融为一体；选中态用描边、下划线或浅一档底色区分。
+   宿主暗色规则带 :not 链，特异性更高，这里必须同级选择器 + !important 才能压住。 */
+body[data-ds-dark-theme] .wf .wf-appbar,
+body[data-ds-dark-theme] .wf .wf-tabs { background: transparent !important; }
+body[data-ds-dark-theme] .wf .wf-segmented { background: transparent !important; border: 1px solid var(--wf-line); }
+body[data-ds-dark-theme] .wf .wf-segmented button[aria-selected="true"] { background: var(--wf-surface-strong); }
+
+/* ---- Prompt 内联引用 chip：可拖动；虚拟引用（连线自动附在消息开头）为虚线描边 ---- */
+.wf .wf-inline-reference { cursor: grab; }
+.wf .wf-inline-reference:active { cursor: grabbing; }
+.wf .wf-inline-reference.wf-reference-auto { border-style: dashed; }
+
+/* ---- @ 引用浮层：出现在光标位置，卡片式可点选 ---- */
+.wf .wf-reference-picker {
+  position: absolute;
+  z-index: 40;
+  display: grid;
+  gap: 5px;
+  min-width: 220px;
+  max-width: 320px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--wf-line-strong);
+  border-radius: 12px;
+  background: var(--wf-surface);
+  box-shadow: 0 12px 32px rgb(16 24 40 / 18%);
+}
+.wf .wf-reference-picker input { min-height: 28px; font-size: 12px; }
+.wf .wf-reference-picker button {
+  justify-content: flex-start;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--wf-surface-subtle);
+  color: var(--wf-text);
+  font-size: 12px;
+}
+.wf .wf-reference-picker button::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--step-ink, var(--wf-accent));
+}
+.wf .wf-reference-picker button:hover { background: var(--wf-hover, var(--wf-surface-strong)); }
+.wf .wf-reference-picker button.is-active,
+.wf .wf-reference-picker button[aria-selected="true"] { background: var(--wf-accent-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wf-accent) 35%, transparent); }
+.wf .wf-reference-picker .wf-match { color: var(--wf-accent); font-weight: 600; }
+
+/* ---- 节点卡片行内重命名 ---- */
+.wf-node-rename { min-height: 26px !important; padding: 2px 6px !important; font-size: 13px; font-weight: 600; }
+
+/* ---- 脚本节点代码编辑 ---- */
+.wf .wf-script-code { font: 12px/1.6 ui-monospace, monospace; min-height: 140px; }
+
+/* ===========================================================================
+   Quiet Graph — 视觉系统 v2
+
+   设计原则（依据 Linear《A calmer interface》与 Graph Visual Grammar）：
+   1. 不抢没挣来的注意力：外壳、连线、分隔线一律退居次位，节点卡片是唯一主角。
+   2. 结构被感知而非被看见：实线、低对比的脆边框取代半透明糊边；去掉多余分隔与阴影。
+   3. 一种类型一种颜色，且只活在图标井与极淡的头部提示里，绝不铺满卡片。
+   4. 阅读层级：选中一个节点时，无关节点与连线轻微变暗，聚焦当前编辑对象。
+   5. 清除"糊"的三个来源：画布点阵与外壳内点阵的摩尔纹、半透明 1px 彩边、
+      backdrop-filter 模糊、以及 filter/saturate 让图标栅格化的软化。
+   ======================================================================== */
+
+.wf {
+  /* —— 中性色阶：与 surface 混合（solid）而非 transparent，边框才脆 —— */
+  --wf-line: color-mix(in srgb, var(--wf-text) 12%, var(--wf-surface));
+  --wf-line-strong: color-mix(in srgb, var(--wf-text) 20%, var(--wf-surface));
+  --wf-hover: color-mix(in srgb, var(--wf-text) 6%, var(--wf-surface));
+  --wf-surface-subtle: color-mix(in srgb, var(--wf-text) 4%, var(--wf-bg));
+  --wf-surface-strong: color-mix(in srgb, var(--wf-text) 7%, var(--wf-surface));
+
+  /* —— 单一强调色：只用于运行 / 选中 / 主动作 —— */
+  --wf-accent: var(--dsw-static-deepseek-500, #4176e6);
+  --wf-accent-soft: color-mix(in srgb, var(--wf-accent) 16%, transparent);
+
+  /* —— 画布底纹：单层、低对比、实色点 —— */
+  --wf-grid-dot: color-mix(in srgb, var(--wf-muted) 30%, var(--wf-surface-subtle));
+
+  --wf-node-radius: 12px;
+  --wf-shell-radius: 16px;
+  --wf-shadow-node: 0 1px 2px rgb(16 24 40 / 5%);
+  --wf-shadow-lift: 0 2px 6px rgb(16 24 40 / 7%), 0 8px 20px rgb(16 24 40 / 6%);
+}
+
+/* —— 画布：只留一层安静点阵，去掉双层纹理造成的摩尔纹 —— */
+.wf-canvas {
+  background-color: var(--wf-surface-subtle);
+  background-image: radial-gradient(circle at 1px 1px, var(--wf-grid-dot) 1.1px, transparent 1.3px);
+  background-size: 26px 26px;
+  background-position: 0 0;
+}
+
+/* —— 外壳内衬点阵：直接移除（这是"糊"的主因之一）—— */
+.wf .wf-shell-card::before { background-image: none; opacity: 0; }
+body[data-ds-dark-theme] .wf .wf-shell-card::before { background-image: none; opacity: 0; }
+
+/* —— 外壳：退居为安静的框架，头部只留一抹类型色 —— */
+.wf .wf-shell-card {
+  border: 1.5px solid var(--wf-line);
+  border-radius: var(--wf-shell-radius);
+  background: var(--wf-surface);
+  box-shadow: none;
+}
+.wf .wf-shell-head {
+  background: color-mix(in srgb, var(--step-ink, var(--wf-text)) 9%, var(--wf-surface));
+  border-bottom: 1px solid var(--wf-line);
+  color: var(--step-ink, var(--wf-text));
+}
+.wf .wf-shell-card.is-selected {
+  border-color: color-mix(in srgb, var(--wf-accent) 55%, var(--wf-line));
+  box-shadow: 0 0 0 2px var(--wf-accent-soft);
+}
+.wf .wf-shell-card.is-selected .wf-shell-head {
+  background: color-mix(in srgb, var(--wf-accent) 10%, var(--wf-surface));
+  border-bottom-color: color-mix(in srgb, var(--wf-accent) 30%, var(--wf-line));
+}
+body[data-ds-dark-theme] .wf .wf-shell-head {
+  background: color-mix(in srgb, var(--step-ink, var(--wf-text)) 14%, var(--wf-surface));
+}
+body[data-ds-dark-theme] .wf .wf-shell-card { background: var(--wf-surface); border-color: var(--wf-line); }
+body[data-ds-dark-theme] .wf .wf-shell-card.is-selected { border-color: var(--wf-accent); }
+
+/* —— 节点卡：脆边框 + 极轻投影；颜色只在图标井 —— */
+.wf .wf-node-card {
+  border: 1px solid var(--wf-line);
+  border-radius: var(--wf-node-radius);
+  background: var(--wf-surface);
+  box-shadow: var(--wf-shadow-node);
+}
+.wf .wf-node-card:not(.is-selected):hover {
+  border-color: var(--wf-line-strong);
+  box-shadow: var(--wf-shadow-lift);
+}
+.wf .wf-node-card.is-selected,
+.wf .react-flow__node.selected .wf-node-card {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--wf-accent), 0 8px 20px rgb(16 24 40 / 10%);
+}
+body[data-ds-dark-theme] .wf .wf-node-card {
+  background: var(--wf-surface);
+  border-color: var(--wf-line);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 40%);
+}
+body[data-ds-dark-theme] .wf .wf-node-card.is-selected {
+  box-shadow: 0 0 0 2px var(--wf-accent), 0 8px 22px rgb(0 0 0 / 45%);
+}
+
+/* —— 图标井：撤销 filter 让矢量图标回到锐利栅格；颜色保持在井内 —— */
+.wf .wf-step-glyph, .wf-workflow-icon, .wf-add-glyph { filter: none; }
+.wf .wf-node-card:not(.is-selected) .wf-step-glyph { opacity: 1; }
+.wf .wf-step-copy strong { color: var(--wf-text); font-size: 13px; font-weight: 600; }
+.wf .wf-step-meta, .wf .wf-step-meta em, .wf .wf-step-model { color: var(--wf-muted); }
+
+/* —— 端口把手：默认减淡（方向靠连线+箭头表达），悬停/选中才上色 —— */
+.wf .wf-node-card .react-flow__handle,
+.wf .wf-shell-card .react-flow__handle {
+  opacity: .5;
+  border: 2px solid var(--wf-surface);
+  background: var(--wf-line-strong);
+}
+.wf .react-flow__node:hover .react-flow__handle,
+.wf .wf-node-card.is-selected .react-flow__handle,
+.wf .wf-shell-card.is-selected .react-flow__handle {
+  opacity: 1;
+  background: var(--wf-accent);
+  transform: scale(1.12);
+}
+
+/* —— 连线：默认退居，悬停/选中用强调色（!important 以覆盖 JSX 内联描边）—— */
+.wf .react-flow__edge-path { stroke-linecap: round; }
+.wf .react-flow__edge:hover .react-flow__edge-path,
+.wf .react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--wf-accent) !important;
+  stroke-width: 2 !important;
+}
+.wf .react-flow__edge.wf-edge-loop .react-flow__edge-path {
+  stroke: var(--wf-accent) !important;
+  stroke-width: 1.5 !important;
+  stroke-dasharray: 6 5;
+}
+.wf .react-flow__edge.wf-edge-loop .react-flow__edge-text { fill: var(--wf-accent); font-size: 11px; font-weight: 600; }
+
+/* —— 阅读层级：选中节点时，无关节点与连线轻微变暗，聚焦当前对象 —— */
+.wf-flow:has(.react-flow__node.selected) .react-flow__node { transition: opacity .18s ease; }
+.wf-flow:has(.react-flow__node.selected) .react-flow__node:not(.selected):not(:hover) { opacity: .82; }
+.wf-flow:has(.react-flow__node.selected) .react-flow__edge:not(.selected) .react-flow__edge-path { opacity: .6 !important; }
+
+/* —— 顶部步骤条：去掉 backdrop-filter 字面模糊，改用实底 —— */
+.wf-canvas > .wf-addbar {
+  backdrop-filter: none;
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-line);
+  box-shadow: 0 1px 2px rgb(16 24 40 / 4%), 0 6px 18px rgb(16 24 40 / 6%);
+}
+body[data-ds-dark-theme] .wf-canvas > .wf-addbar { background: var(--wf-surface); box-shadow: 0 6px 18px rgb(0 0 0 / 45%); }
+.wf-canvas > .wf-addbar button { min-height: 32px; }
+
+/* —— 画布左下工具条：与步骤条同一材质 —— */
+.wf-canvas-tools {
+  background: var(--wf-surface);
+  border: 1px solid var(--wf-line);
+  box-shadow: 0 1px 2px rgb(16 24 40 / 5%);
+}
+.wf-canvas-tools button[aria-pressed="true"] { background: var(--wf-accent-soft); color: var(--wf-accent); }
+
+/* —— 减少动效时，阅读层级不再依赖过渡 —— */
+@media (prefers-reduced-motion: reduce) {
+  .wf-flow:has(.react-flow__node.selected) .react-flow__node { transition: none; }
+}
+
+/* —— Excalidraw-inspired canvas modules: ink outline, paper cards, hand-drawn rhythm —— */
+.wf .react-flow__node,
+.wf .wf-node-card,
+.wf .wf-shell-card {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.wf .wf-node-card .wf-title-input,
+.wf .wf-shell-card .wf-title-input {
+  user-select: text;
+  -webkit-user-select: text;
+}
+.wf .wf-node-card {
+  border: 1.6px solid color-mix(in srgb, var(--wf-text) 55%, var(--wf-bg));
+  border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
+  background: var(--wf-surface);
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--wf-text) 10%, transparent);
+  font-family: var(--wf-hand);
+  transform: rotate(-0.35deg);
+}
+.wf .react-flow__node:nth-child(even) .wf-node-card { transform: rotate(0.4deg); }
+.wf .wf-node-card.is-selected,
+.wf .react-flow__node.selected .wf-node-card {
+  border-color: transparent;
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--wf-text) 10%, transparent), 0 0 0 2px var(--wf-accent);
+}
+.wf .wf-shell-card {
+  border: 1.6px solid color-mix(in srgb, var(--wf-text) 45%, var(--wf-bg));
+  border-radius: 255px 24px 225px 24px / 24px 225px 24px 255px;
+  background: var(--wf-surface);
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--wf-text) 10%, transparent);
+  font-family: var(--wf-hand);
+  transform: rotate(0.3deg);
+}
+.wf .wf-shell-card.is-selected {
+  border-color: var(--wf-accent);
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--wf-text) 10%, transparent), 0 0 0 2px var(--wf-accent-soft);
+}
+.wf .react-flow__edge-path {
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: url(#wf-sketch-line);
+}
+.wf .react-flow__edge:hover .react-flow__edge-path,
+.wf .react-flow__edge.selected .react-flow__edge-path {
+  stroke-width: 2.25;
+}
+
+/* —— 可读性优先：规整矩形、清晰文字、稳定间距 —— */
+.wf {
+  --wf-edge-color: color-mix(in srgb, var(--wf-text) 84%, var(--wf-bg));
+}
+.wf .wf-node-card,
+.wf .wf-shell-card {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  transform: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgb(16 24 40 / 9%);
+}
+.wf .react-flow__node:nth-child(even) .wf-node-card { transform: none; }
+.wf .wf-node-card {
+  border: 1px solid color-mix(in srgb, var(--wf-text) 24%, var(--wf-line));
+  background: var(--wf-surface);
+}
+.wf .wf-node-card.is-selected,
+.wf .react-flow__node.selected .wf-node-card {
+  border-color: var(--wf-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--wf-accent) 26%, transparent), 0 4px 10px rgb(16 24 40 / 12%);
+}
+.wf .wf-shell-card {
+  border: 1px solid color-mix(in srgb, var(--wf-text) 22%, var(--wf-line));
+  background: color-mix(in srgb, var(--wf-surface) 96%, var(--wf-accent-soft));
+}
+.wf .wf-shell-card.is-selected {
+  border-color: var(--wf-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--wf-accent) 26%, transparent), 0 4px 12px rgb(16 24 40 / 10%);
+}
+.wf .wf-step-heading,
+.wf .wf-shell-head { min-height: 54px; padding: 12px 14px; }
+.wf .wf-step-copy strong { color: var(--wf-text); font-size: 14px; font-weight: 650; letter-spacing: .01em; }
+.wf .wf-step-meta,
+.wf .wf-step-meta em,
+.wf .wf-step-model { color: color-mix(in srgb, var(--wf-text) 68%, var(--wf-muted)); font-size: 11.5px; }
+.wf .wf-step-body { padding: 0 14px 14px; color: color-mix(in srgb, var(--wf-text) 86%, var(--wf-muted)); }
+.wf .wf-step-body p { margin: 0; font-size: 12.5px; line-height: 1.6; }
+.wf .wf-shell-head { color: var(--wf-text); border-bottom-color: var(--wf-line-strong); }
+.wf .wf-shell-count { color: var(--wf-muted); font-size: 11.5px; }
+.wf .react-flow__edge-path { filter: none !important; opacity: .92; }
+.wf .react-flow__edge:not(.wf-edge-yes):not(.wf-edge-dashed):not(.wf-edge-loop) .react-flow__edge-path {
+  stroke: var(--wf-edge-color) !important;
+  stroke-width: 2.25px !important;
+}
+.wf .react-flow__edge.wf-edge-yes .react-flow__edge-path,
+.wf .react-flow__edge.wf-edge-dashed .react-flow__edge-path {
+  stroke-width: 2px !important;
+}
+.wf .react-flow__edge:hover .react-flow__edge-path,
+.wf .react-flow__edge.selected .react-flow__edge-path,
+.wf .react-flow__edge.wf-edge-selected .react-flow__edge-path {
+  stroke: var(--wf-accent) !important;
+  stroke-width: 2.5px !important;
+  opacity: 1 !important;
+}
+.wf-flow:has(.react-flow__node.selected) .react-flow__edge:not(.selected) .react-flow__edge-path {
+  opacity: .86 !important;
+}
+.wf .react-flow__edge-text { paint-order: stroke; stroke: var(--wf-surface); stroke-width: 3px; stroke-linejoin: round; }

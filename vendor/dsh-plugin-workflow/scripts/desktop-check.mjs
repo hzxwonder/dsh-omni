@@ -32,15 +32,22 @@ try {
   if (!(await session.eval(`document.querySelector('button[aria-label=工作流]')?.getAttribute('aria-expanded') === 'true'`))) await session.click('button[aria-label=工作流]');
   if(await session.eval(`!!document.querySelector('button[aria-label=返回工作流列表]')`)) await click('返回工作流列表');
   await session.waitFor(`!!document.querySelector('[data-workflow-card="desktop-review-${suffix}"]')`);
-  await click('打开',`[data-workflow-card="desktop-review-${suffix}"] button`);await click('运行记录','[role=tab]');await click('运行记录');await click(runId.slice(0,18));await click('打开总会话');
+  await click('打开',`[data-workflow-card="desktop-review-${suffix}"] button`);await click('运行记录','[role=tab]');await click('运行记录');await click(runId.slice(0,18));
   await session.waitFor('!!document.querySelector(".wf-timeline")');if(await session.eval(`!!document.querySelector('button[aria-label=展开过程]')`)) await click('展开过程');
   await session.waitFor(`document.querySelector('.wf-native-step [data-chat-flow]')?.textContent.includes('Synthetic local execution completed')`);
   await capture('native-step');
-  assert.equal(await session.eval(`document.querySelectorAll('.wf-native-step [role=tab]').length`),0);await click('收起过程');await capture('notebook-overview');
+  assert.equal(await session.eval(`document.querySelectorAll('.wf-native-step [role=tab]').length`),0);if(await session.eval(`!!document.querySelector('button[aria-label=收起过程]')`)) await click('收起过程');
+  await click('打开总会话');
+  await session.waitFor('!!document.querySelector(".wf-session-rail")');
+  await capture('notebook-overview');
  });
- await record('E03','Desktop 步骤独立会话及返回',async()=>{await click('打开步骤会话');await session.waitFor(`!!document.querySelector('button[aria-label=返回工作流总会话]')`);await capture('independent-session');await click('返回工作流总会话');await session.waitFor('!!document.querySelector(".wf-timeline")');});
+ await record('E03','Desktop 步骤独立会话及返回',async()=>{
+  const rect=await session.eval(`(()=>{const e=document.querySelector('.wf-session-rail [data-step-id="review"]');if(!e)return null;e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
+  assert(rect,'missing review step');await session.clickAt(rect.x,rect.y);await new Promise(r=>setTimeout(r,400));
+  await session.waitFor(`!!document.querySelector('button[aria-label=返回工作流总会话]')`);await capture('independent-session');await click('返回工作流总会话');await session.waitFor('!!document.querySelector(".wf-session-rail")');
+ });
  await record('E04','Desktop 单步完成交付',async()=>{await click('运行一步');run=await waitRun(runId,'completed');assert.equal(run.nodes.deliver.status,'completed');await capture('completed');});
- await record('E05','Desktop 刷新后恢复运行',async()=>{await session.client.send('Page.reload');await session.waitFor('!!document.querySelector(".wf-timeline")');assert.equal((await call({action:'runRead',id:runId})).run.status,'completed');});
+ await record('E05','Desktop 刷新后恢复运行',async()=>{await session.client.send('Page.reload');await session.waitFor('!!document.querySelector(".wf-session-rail")');assert.equal((await call({action:'runRead',id:runId})).run.status,'completed');});
  results.push({id:'E06',title:'Desktop 隐藏恢复后的可见界面',status:'待测',reason:'需通过真实窗口隐藏与恢复验证内容绘制及交互'});
  
  console.log('Desktop: '+results.length+' passed');
