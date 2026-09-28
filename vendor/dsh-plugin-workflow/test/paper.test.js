@@ -15,7 +15,7 @@ test('four-stage paper workflow revises, isolates reader input, exports article 
     rootRoute: () => ({ provider: 'fixture', model: 'fixture' }), route: async () => ({ provider: 'fixture', model: 'fixture' }), skills: async () => [],
     agent: async (node, input) => {
       calls.push(node.id);
-      if (node.id === 'source') return { text: 'ORIGINAL_PRIVATE_MARKER', title: 'Paper', sourceUrl: 'https://example.org/paper', complete: true };
+      if (node.id === 'source') return { text: 'ORIGINAL_PRIVATE_MARKER ' + ('Section 3 describes a concrete method; Section 5 provides measured comparisons. ').repeat(8), title: 'Paper', sourceUrl: 'https://example.org/paper', complete: true };
       if (node.id === 'article') return { title: 'Paper explained', slug: 'paper-explained', text: ('Clear reader article with one concrete example. ').repeat(8) };
       if (node.id === 'ask') return { text: 'Explain the example.' };
       if (node.id === 'answer') { assert(!JSON.stringify(input).includes('ORIGINAL_PRIVATE_MARKER')); assert.deepEqual(Object.keys(input).sort(), ['article', 'questions']); return { text: 'The article explains the example.' }; }
