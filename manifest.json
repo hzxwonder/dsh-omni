@@ -89,8 +89,8 @@
     },
     {
       "name": "dsh-plugin-prompt",
-      "version": "0.1.0",
-      "commit": "18d29ddeca882e6f79d897a1493e0a7e73572eff",
+      "version": "0.1.1",
+      "commit": "5cc28b63db03193e907bbf0a1d530d87af873fc7",
       "repository": "https://github.com/hzxwonder-dsh-plugins/dsh-plugin-prompt.git",
       "integrated": true
     },

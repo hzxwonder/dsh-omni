@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-prompt",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Saved prompt templates for DeepSeek Harness Desktop and DSH Omni",
   "type": "module",
   "main": "index.js",
