@@ -245,10 +245,17 @@ export async function apply(ctx, config = {}) {
   ];
   const skillText = {};
   for (const [skillName, description] of bundledSkills) {
-    const content = await readFile(
+    let content = await readFile(
       new URL(`./skills/${skillName}/SKILL.md`, import.meta.url),
       "utf8",
     );
+    if (skillName === "paper-explainer") {
+      const articleTemplate = await readFile(
+        new URL("./skills/paper-explainer/references/article-template.md", import.meta.url),
+        "utf8",
+      );
+      content += `\n\n---\n\n${articleTemplate}`;
+    }
     skillText[skillName] = content;
     ctx.skills.register({ name: skillName, description, content, source: "bundled" });
   }
