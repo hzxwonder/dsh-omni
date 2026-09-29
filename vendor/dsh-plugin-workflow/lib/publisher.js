@@ -15,7 +15,7 @@ export async function publishHalo(input, configPath, signal) {
   const article = input.article;
   if (!article || typeof article.text !== 'string' || !article.text.trim() || typeof article.title !== 'string' || !/^[a-z0-9][a-z0-9-]{2,100}$/.test(article.slug ?? '')) fail('PUBLISH_ARTICLE_INVALID');
   if (!Number.isFinite(input.review?.score) || input.review.score < 85) fail('PUBLISH_REVIEW_REQUIRED');
-  const publication = input.request?.publication;
+  const publication = input.publication ?? input.request?.publication;
   if (publication?.slug && article.slug !== publication.slug) fail('PUBLISH_TARGET_MISMATCH');
   if (publication?.postId && !/^[a-zA-Z0-9-]+$/.test(publication.postId)) fail('PUBLISH_TARGET_INVALID');
   let overview;

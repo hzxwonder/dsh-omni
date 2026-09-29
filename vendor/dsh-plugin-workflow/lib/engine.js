@@ -7,6 +7,7 @@ import {
   evaluateCondition,
   fail,
   mapInputs,
+  mapOutputs,
   pointer,
   validateDefinition,
 } from "./definition.js";
@@ -293,7 +294,7 @@ export class Engine {
       else {
         run.status = "completed";
         run.result = run.prepared.definition.outputs
-          ? mapInputs(run.prepared.definition.outputs, run.input, run.outputs)
+          ? mapOutputs(run.prepared.definition.outputs, run.input, run.outputs)
           : run.outputs;
       }
     } catch (error) {
@@ -350,14 +351,17 @@ export class Engine {
           const key = prefix + node.id;
           if (run.nextNode === key) delete run.nextNode;
           const incoming = def.edges.filter((e) => e.to === node.id);
-          const activeEdges = incoming.filter(
+          const controlEdges = incoming.filter(e =>
+            !['skill', 'file'].includes(def.nodes.find(candidate => candidate.id === e.from)?.kind));
+          const gatingEdges = controlEdges.length ? controlEdges : incoming;
+          const activeEdges = gatingEdges.filter(
             (e) =>
               run.nodes[prefix + e.from]?.status === "completed" &&
               (!e.on ||
                 e.on === "success" ||
                 String(local[e.from]?.condition) === e.on),
           );
-          if (incoming.length && activeEdges.length === 0) {
+          if (gatingEdges.length && activeEdges.length === 0) {
             run.nodes[key] = { status: "skipped" };
             this.store.updateRun(run, "node.skipped", { nodeId: key });
             return;
@@ -419,7 +423,7 @@ export class Engine {
       }
       if (Object.values(run.nodes).some(paused) || run.debugBoundary) return local;
     }
-    return def.outputs ? mapInputs(def.outputs, input, local) : local;
+    return def.outputs ? mapOutputs(def.outputs, input, local) : local;
   }
   // ---- 外壳容器：Multithread（并发分发）/ 循环外壳（重复执行）/ 分支外壳（条件守卫） ----
   // 子步骤（parentId 指向容器的 agent 节点）不参与独立调度，由容器统一执行：
@@ -538,7 +542,7 @@ export class Engine {
       input,
       prompt: node.prompt ?? "",
       effects:
-        node.kind === "tool" || node.kind === 'publish' || node.kind === 'script' || node.tools?.length ||
+        (node.kind === "tool" && node.effects !== 'read-only') || node.kind === 'publish' || node.kind === 'script' || node.tools?.length ||
         containerChildren.some((c) => c.tools?.length)
           ? "write"
           : (node.effects ?? "read-only"),
@@ -587,7 +591,7 @@ export class Engine {
     if (
       run.unattended &&
       !run.approvedTools?.includes(key) &&
-      ((node.kind === 'publish' && !allowed.includes('halo_publish')) || (node.kind === "tool" && !allowed.includes(node.tool)) ||
+      ((node.kind === 'publish' && !allowed.includes('halo_publish')) || (node.kind === "tool" && node.effects !== 'read-only' && !allowed.includes(node.tool)) ||
         (node.kind === 'script' && !allowed.includes('script')) ||
         (containerChildren.some((c) => (c.tools ?? []).some((t) => !allowed.includes(t)))) ||
         node.tools?.some((t) => !allowed.includes(t)) ||

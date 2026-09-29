@@ -199,14 +199,22 @@ export function pointer(value, path = "") {
 }
 export function mapInputs(mapping = {}, input, outputs) {
   return Object.fromEntries(
-    Object.entries(mapping).map(([key, ref]) => {
-      if (ref?.source === "workflow") return [key, pointer(input, ref.path)];
-      if (ref?.source === "node")
-        return [key, pointer(outputs[ref.nodeId], ref.path)];
-      if (ref?.source === "literal") return [key, ref.value];
-      fail("INVALID_INPUT_REFERENCE", key);
+    Object.entries(mapping).flatMap(([key, ref]) => {
+      try {
+        if (ref?.source === "workflow") return [[key, pointer(input, ref.path)]];
+        if (ref?.source === "node") return [[key, pointer(outputs[ref.nodeId], ref.path)]];
+        if (ref?.source === "literal") return [[key, ref.value]];
+        fail("INVALID_INPUT_REFERENCE", key);
+      } catch (error) {
+        if (ref?.optional && error.code === 'MISSING_INPUT') return [];
+        throw error;
+      }
     }),
   );
+}
+export function mapOutputs(mapping = {}, input, outputs) {
+  return mapInputs(Object.fromEntries(Object.entries(mapping).filter(([, ref]) =>
+    !ref.optional || ref.source !== 'node' || outputs[ref.nodeId] !== undefined)), input, outputs);
 }
 export function validateDefinition(def) {
   if (!validateShape(def))
@@ -352,6 +360,8 @@ export function validateDefinition(def) {
 function validateReference(ref) {
   if (!ref || !["workflow", "node", "literal"].includes(ref.source))
     fail("INVALID_INPUT_REFERENCE");
+  if (ref.optional !== undefined && typeof ref.optional !== 'boolean')
+    fail('OPTIONAL_REFERENCE_INVALID');
   if (ref.source === "literal" && !Object.hasOwn(ref, "value"))
     fail("LITERAL_VALUE_REQUIRED");
   if (ref.source === "node" && typeof ref.nodeId !== "string")

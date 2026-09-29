@@ -3,6 +3,7 @@ import { fail } from "./definition.js";
 import { hash, uid } from "./store.js";
 import { renderPrompt } from "./graph-edit.js";
 import { publishHalo } from './publisher.js';
+import { lookupHaloPaper, publicationTarget } from './halo-lookup.js';
 
 // Only the authored step prompt enables delegation; input materials cannot grant tools.
 export function stepTools(node) {
@@ -240,6 +241,8 @@ export function harnessAdapter(ctx, options = {}) {
     },
     async tool(name, input, parent, signal) {
       if (name === "workflow_studio") fail("RECURSIVE_TOOL");
+      if (name === "halo_paper_lookup") return lookupHaloPaper(input, options.haloConfigPath, signal);
+      if (name === "halo_publication_target") return publicationTarget(input);
       const result = await ctx.agents.withInitiator(parent, () =>
         ctx.tools.execute({
           name,
