@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import * as fontkit from 'fontkit';
 import rough from './vendor/rough.esm.mjs';
+import { renderPaperArgumentMap, validatePaperArgumentMap } from './paper-argument-map.js';
 
 const WIDTH = 820;
 const HEIGHT = 752;
@@ -35,6 +36,7 @@ function checkText(value, max) {
 }
 
 export function validatePaperOverview(input) {
+  if (input?.branches) return validatePaperArgumentMap(input);
   if (!input || typeof input !== 'object' || !Array.isArray(input.steps) || input.steps.length < 4 || input.steps.length > 6) throw new Error('PAPER_OVERVIEW_INVALID');
   return {
     title: checkText(input.title, 48),
@@ -92,6 +94,7 @@ function roughCard(generator, x, y, width, height, fill, seed, emphasis = false)
 }
 
 export async function renderPaperOverview(input) {
+  if (input?.branches) return renderPaperArgumentMap(input);
   const overview = validatePaperOverview(input);
   const generator = rough.generator();
   const elements = [];
