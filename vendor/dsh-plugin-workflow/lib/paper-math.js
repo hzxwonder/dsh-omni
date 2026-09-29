@@ -35,8 +35,10 @@ export async function renderPaperMath(tex, displayMode = false) {
   const png = new Resvg(sizedSvg, { fitTo: { mode: 'zoom', value: 2 } }).render().asPng();
   const sourceImage = `data:image/png;base64,${png.toString('base64')}`;
   const label = escape(source);
+  // The PNG contains 2x pixels for sharp copying into WeChat. Its CSS width
+  // must remain the logical MathJax width instead of the PNG's intrinsic width.
   const imageStyle = displayMode
-    ? 'display:block;max-width:100%;width:auto;height:auto;margin:0 auto'
-    : 'display:inline-block;vertical-align:-0.18em;margin:0;max-width:100%;width:auto;height:auto';
+    ? `display:block;max-width:100%;width:${width}px;height:auto;margin:0 auto`
+    : `display:inline-block;vertical-align:-0.18em;margin:0;max-width:100%;width:${width}px;height:${height}px`;
   return `<img class="paper-math-image" src="${sourceImage}" width="${width}" height="${height}" alt="${label}" loading="lazy" style="${imageStyle}">`;
 }
