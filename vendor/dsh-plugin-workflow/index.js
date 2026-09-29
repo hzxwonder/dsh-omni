@@ -184,7 +184,7 @@ export async function apply(ctx, config = {}) {
     ...decision,
     messages: [...(decision.messages ?? messages), {
       id: uid("wf-context"), role: "user",
-      source: { kind: "plugin", plugin: "workflow-studio", form: "notice", summary: "工作流状态" },
+      source: { kind: "plugin:workflow-studio", form: "notice", summary: "工作流状态" },
       content: [{ type: "text", text }],
     }],
   });
