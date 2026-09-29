@@ -19,7 +19,7 @@ export const kinds = [
   "file",
 ];
 export const containers = ["multithread"];
-export const interactions = ["once", "goal"];
+export const interactions = ["once", "goal", "choice"];
 const route = {
   type: "object",
   additionalProperties: false,
@@ -111,6 +111,9 @@ export const schema = {
           },
           tool: { type: "string" },
           interaction: { enum: interactions },
+          choice: { type: "object", additionalProperties: false, required: ["yes", "no"],
+            properties: { yes: { type: "string", minLength: 1, maxLength: 500 },
+              no: { type: "string", minLength: 1, maxLength: 500 } } },
           provided: {},
           condition: {},
           workflow: {
@@ -258,8 +261,11 @@ export function validateDefinition(def) {
       !node.prompt?.trim()
     )
       fail("PROMPT_REQUIRED", node.id);
-    if (node.kind === "interact" && node.maxTurns && node.interaction !== "goal")
+    if (node.kind === "interact" && node.maxTurns && !["goal", "choice"].includes(node.interaction))
       fail("INTERACTION_TURNS_UNUSED", node.id);
+    if (node.kind === "interact" && node.interaction === "choice" &&
+        (!node.choice?.yes?.trim() || !node.choice?.no?.trim() || node.provided))
+      fail("INTERACTION_CHOICE_REQUIRED", node.id);
     if (node.kind === "tool" && !node.tool) fail("TOOL_REQUIRED", node.id);
     if (node.kind === "script" && !String(node.code ?? "").trim()) fail("CODE_REQUIRED", node.id);
     const containers = ["multithread"];
@@ -300,7 +306,8 @@ export function validateDefinition(def) {
     if (
       edge.on &&
       edge.on !== "success" &&
-      def.nodes.find((n) => n.id === edge.from).kind !== "condition"
+      !def.nodes.some((n) => n.id === edge.from &&
+        (n.kind === "condition" || (n.kind === "interact" && n.interaction === "choice")))
     )
       fail("CONDITION_EDGE_REQUIRED");
     graph.setEdge(edge.from, edge.to);

@@ -682,7 +682,7 @@ export function apply(ctx) {
             {view.repeat && <span className="wf-step-model">未通过返回修订 · 最多 {view.repeat.maxRounds} 轮</span>}
           </div>
         )}
-        {view.kind === "condition" ? (
+        {view.branches ? (
           <>
             <Handle id="yes" type="source" position={Position.Bottom} style={{ left: "32%" }} className="wf-port-yes" />
             <Handle id="no" type="source" position={Position.Bottom} style={{ left: "68%" }} className="wf-port-no" />
@@ -978,7 +978,8 @@ export function apply(ctx) {
         model: n.model?.mode === "explicit" ? n.model.id : "会话模型",
         summary: n.kind === 'skill' ? `${n.skill?.name ?? ''} · ${n.skill?.description ?? ''}` : n.kind === 'file' ? n.file?.name ?? '' : displayPrompt(n.prompt) || "",
         onRename: (name) => change({ ...definition, nodes: definition.nodes.map(x => x.id === n.id ? { ...x, name } : x) }),
-        mode: n.kind === 'interact' ? (n.interaction === 'goal' ? '交互目标' : '交互一次') : undefined,
+        mode: n.kind === 'interact' ? (n.interaction === 'goal' ? '交互目标' : n.interaction === 'choice' ? 'Agent 交互决策' : '交互一次') : undefined,
+        branches: n.kind === 'condition' || (n.kind === 'interact' && n.interaction === 'choice'),
         references: Object.values(n.input ?? {}).filter(r => r.source === 'node').map(r => definition.nodes.find(x => x.id === r.nodeId)).filter(Boolean),
         evidenceOutgoing: definition.edges.some(edge => edge.from === n.id && edge.label),
         evidenceIncoming: definition.edges.some(edge => edge.to === n.id && edge.label),
@@ -1018,7 +1019,7 @@ export function apply(ctx) {
       id: `${e.from}:${e.to}`,
       source: e.from,
       target: e.to,
-      ...(e.label ? { sourceHandle: 'evidence-out', targetHandle: 'evidence-in' } : {}),
+      ...(e.on === 'true' ? { sourceHandle: 'yes' } : e.on === 'false' ? { sourceHandle: 'no' } : e.label ? { sourceHandle: 'evidence-out', targetHandle: 'evidence-in' } : {}),
       type: "smoothstep",
       selected: `${e.from}:${e.to}` === selectedEdge,
        className: `${e.on === "false" ? "wf-edge-dashed" : e.on === "true" ? "wf-edge-yes" : "wf-edge-default"}${`${e.from}:${e.to}` === selectedEdge ? " wf-edge-selected" : ""}`,
@@ -1431,6 +1432,8 @@ export function apply(ctx) {
                     {node.kind === "interact"
                       ? node.interaction === "goal"
                         ? "交互目标"
+                        : node.interaction === "choice"
+                          ? "交互决策问题"
                         : "提问内容"
                       : "步骤说明"}
                   </span>
@@ -1455,7 +1458,7 @@ export function apply(ctx) {
                 {node.kind === "condition" && (
                   <p className="wf-panel-note">填写步骤说明时，由模型判断并只回答「是/否」；留空则按高级设置里的条件表达式本地判断。</p>
                 )}
-                {(node.kind === 'agent' || (node.kind === 'interact' && node.interaction === 'goal')) && (
+                {(node.kind === 'agent' || (node.kind === 'interact' && ['goal', 'choice'].includes(node.interaction))) && (
                   <details className="wf-routing-settings" open><summary>模型</summary><Routing node={node} update={update} caps={caps} /></details>
                 )}
                 {node.kind === "agent" && (
@@ -1515,28 +1518,35 @@ export function apply(ctx) {
                             interaction: e.target.value,
                             ...(e.target.value === "once"
                               ? { maxTurns: undefined }
-                              : {}),
+                              : e.target.value === "choice"
+                                ? { choice: node.choice ?? { yes: "继续执行", no: "结束当前流程" }, provided: undefined, maxTurns: node.maxTurns ?? 4 }
+                                : {}),
                           })
                         }
                       >
                         <option value="once">交互一次：用户回答一次后继续</option>
                         <option value="goal">交互目标：反复澄清直到确认理解</option>
+                        <option value="choice">Agent 交互决策：理解答复并选择是/否路径</option>
                       </select>
                     </Field>
-                    {node.interaction === "goal" && (
+                    {node.interaction === "choice" && <>
+                      <Field label="是路径含义"><input value={node.choice?.yes ?? ''} onChange={e=>update({choice:{yes:e.target.value,no:node.choice?.no ?? '结束当前流程'}})} /></Field>
+                      <Field label="否路径含义"><input value={node.choice?.no ?? ''} onChange={e=>update({choice:{yes:node.choice?.yes ?? '继续执行',no:e.target.value}})} /></Field>
+                    </>}
+                    {['goal', 'choice'].includes(node.interaction) && (
                       <Field label="最多回答轮次">
                         <input
                           type="number"
                           min="1"
                           max="20"
-                          value={node.maxTurns ?? 8}
+                          value={node.maxTurns ?? (node.interaction === 'choice' ? 4 : 8)}
                           onChange={(e) =>
                             update({ maxTurns: Number(e.target.value) })
                           }
                         />
                       </Field>
                     )}
-                    <Field label="已有材料时跳过提问">
+                    {node.interaction !== 'choice' && <Field label="已有材料时跳过提问">
                       <select
                         value={
                           node.provided
@@ -1563,7 +1573,7 @@ export function apply(ctx) {
                             <option value="custom">自定义引用</option>
                           )}
                       </select>
-                    </Field>
+                    </Field>}
                   </>
                 )}
                 <datalist id="wf-tools">
@@ -1640,7 +1650,7 @@ export function apply(ctx) {
                           }
                         >
                           <option value="success">成功</option>
-                          {node.kind === "condition" && (
+                          {(node.kind === "condition" || (node.kind === "interact" && node.interaction === "choice")) && (
                             <>
                               <option value="true">是</option>
                               <option value="false">否</option>
@@ -1678,7 +1688,7 @@ export function apply(ctx) {
     };
     return (
       <div className="wf-scroll">
-        <table>
+        <table className="wf-run-table">
           <thead>
             <tr>
               <th>运行</th>
@@ -1695,13 +1705,17 @@ export function apply(ctx) {
                 <tr key={r.id}>
                   <td>
                     <button
+                      type="button"
                       className="wf-run-open"
                       title={r.summary || r.id}
+                      aria-label={`查看运行详情：${r.summary || r.id.slice(0, 18)}`}
                       onClick={async () =>
                         setDetail(await api({ action: "runRead", id: r.id }))
                       }
                     >
-                      {r.summary || r.id.slice(0, 18)}
+                      <span className="wf-run-open-icon" aria-hidden="true"><FileText size={16} /></span>
+                      <span className="wf-run-open-text">{r.summary || `运行 ${r.id.slice(0, 8)}`}</span>
+                      <ChevronRight className="wf-run-open-arrow" size={16} aria-hidden="true" />
                     </button>
                   </td>
                   <td>v{r.revision}</td>

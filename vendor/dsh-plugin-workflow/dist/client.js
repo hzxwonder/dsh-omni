@@ -11846,7 +11846,51 @@ body[data-ds-dark-theme] .wf .wf-primary:hover { color:var(--dsw-alias-bg-base,#
 
 
 /* ---- Run list: summary column and labeled actions. ---- */
-.wf-run-open { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.wf-run-table { table-layout: fixed; min-width: 820px; }
+.wf-run-table th:nth-child(1) { width: 40%; }
+.wf-run-table th:nth-child(2) { width: 7%; }
+.wf-run-table th:nth-child(3) { width: 13%; }
+.wf-run-table th:nth-child(4) { width: 18%; }
+.wf-run-table th:nth-child(5) { width: 22%; }
+.wf .wf-run-open {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 16px;
+  justify-content: stretch;
+  gap: 10px;
+  width: 100%;
+  min-height: 54px;
+  padding: 7px 10px 7px 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+}
+.wf .wf-run-open:hover { border-color: transparent; background: var(--wf-hover); }
+.wf-run-open-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--wf-accent) 18%, var(--wf-line));
+  border-radius: 9px;
+  background: var(--wf-accent-soft);
+  color: var(--wf-accent);
+}
+.wf-run-open-text {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: var(--wf-text);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.wf-run-open-arrow { color: var(--wf-muted); opacity: .55; }
+.wf .wf-run-open:hover .wf-run-open-arrow,
+.wf .wf-run-open:focus-visible .wf-run-open-arrow { color: var(--wf-accent); opacity: 1; }
 .wf-run-action { display: inline-flex; align-items: center; gap: 4px; min-height: 26px; margin-right: 6px; padding: 0 8px; border: 1px solid var(--wf-line); border-radius: 8px; background: transparent; color: inherit; font-size: 12px; }
 .wf-run-action:hover { border-color: color-mix(in srgb, currentcolor 30%, var(--wf-line)); }
 .wf-run-error-hint { display: block; margin-top: 2px; color: var(--dsw-alias-state-error-primary, #b13e4a); font-size: 11.5px; }
@@ -13914,7 +13958,7 @@ function apply(ctx) {
             " \u8F6E"
           ] })
         ] }),
-        view.kind === "condition" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+        view.branches ? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { id: "yes", type: "source", position: Position.Bottom, style: { left: "32%" }, className: "wf-port-yes" }),
           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Handle, { id: "no", type: "source", position: Position.Bottom, style: { left: "68%" }, className: "wf-port-no" }),
           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-port-label wf-port-yes-label", children: "\u662F" }),
@@ -14202,7 +14246,8 @@ function apply(ctx) {
             model: n.model?.mode === "explicit" ? n.model.id : "\u4F1A\u8BDD\u6A21\u578B",
             summary: n.kind === "skill" ? `${n.skill?.name ?? ""} \xB7 ${n.skill?.description ?? ""}` : n.kind === "file" ? n.file?.name ?? "" : displayPrompt(n.prompt) || "",
             onRename: (name2) => change({ ...definition, nodes: definition.nodes.map((x) => x.id === n.id ? { ...x, name: name2 } : x) }),
-            mode: n.kind === "interact" ? n.interaction === "goal" ? "\u4EA4\u4E92\u76EE\u6807" : "\u4EA4\u4E92\u4E00\u6B21" : void 0,
+            mode: n.kind === "interact" ? n.interaction === "goal" ? "\u4EA4\u4E92\u76EE\u6807" : n.interaction === "choice" ? "Agent \u4EA4\u4E92\u51B3\u7B56" : "\u4EA4\u4E92\u4E00\u6B21" : void 0,
+            branches: n.kind === "condition" || n.kind === "interact" && n.interaction === "choice",
             references: Object.values(n.input ?? {}).filter((r) => r.source === "node").map((r) => definition.nodes.find((x) => x.id === r.nodeId)).filter(Boolean),
             evidenceOutgoing: definition.edges.some((edge) => edge.from === n.id && edge.label),
             evidenceIncoming: definition.edges.some((edge) => edge.to === n.id && edge.label),
@@ -14246,7 +14291,7 @@ function apply(ctx) {
           id: `${e.from}:${e.to}`,
           source: e.from,
           target: e.to,
-          ...e.label ? { sourceHandle: "evidence-out", targetHandle: "evidence-in" } : {},
+          ...e.on === "true" ? { sourceHandle: "yes" } : e.on === "false" ? { sourceHandle: "no" } : e.label ? { sourceHandle: "evidence-out", targetHandle: "evidence-in" } : {},
           type: "smoothstep",
           selected: `${e.from}:${e.to}` === selectedEdge,
           className: `${e.on === "false" ? "wf-edge-dashed" : e.on === "true" ? "wf-edge-yes" : "wf-edge-default"}${`${e.from}:${e.to}` === selectedEdge ? " wf-edge-selected" : ""}`,
@@ -14679,7 +14724,7 @@ function apply(ctx) {
               return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
                 /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-prompt-label", children: [
                   /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Sparkles, { size: 12 }),
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: node.kind === "interact" ? node.interaction === "goal" ? "\u4EA4\u4E92\u76EE\u6807" : "\u63D0\u95EE\u5185\u5BB9" : "\u6B65\u9AA4\u8BF4\u660E" })
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: node.kind === "interact" ? node.interaction === "goal" ? "\u4EA4\u4E92\u76EE\u6807" : node.interaction === "choice" ? "\u4EA4\u4E92\u51B3\u7B56\u95EE\u9898" : "\u63D0\u95EE\u5185\u5BB9" : "\u6B65\u9AA4\u8BF4\u660E" })
                 ] }),
                 /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                   StepPrompt,
@@ -14702,7 +14747,7 @@ function apply(ctx) {
               ] });
             })(),
             node.kind === "condition" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "wf-panel-note", children: "\u586B\u5199\u6B65\u9AA4\u8BF4\u660E\u65F6\uFF0C\u7531\u6A21\u578B\u5224\u65AD\u5E76\u53EA\u56DE\u7B54\u300C\u662F/\u5426\u300D\uFF1B\u7559\u7A7A\u5219\u6309\u9AD8\u7EA7\u8BBE\u7F6E\u91CC\u7684\u6761\u4EF6\u8868\u8FBE\u5F0F\u672C\u5730\u5224\u65AD\u3002" }),
-            (node.kind === "agent" || node.kind === "interact" && node.interaction === "goal") && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { className: "wf-routing-settings", open: true, children: [
+            (node.kind === "agent" || node.kind === "interact" && ["goal", "choice"].includes(node.interaction)) && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("details", { className: "wf-routing-settings", open: true, children: [
               /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("summary", { children: "\u6A21\u578B" }),
               /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Routing, { node, update, caps })
             ] }),
@@ -14765,25 +14810,30 @@ function apply(ctx) {
                   value: node.interaction ?? "once",
                   onChange: (e) => update({
                     interaction: e.target.value,
-                    ...e.target.value === "once" ? { maxTurns: void 0 } : {}
+                    ...e.target.value === "once" ? { maxTurns: void 0 } : e.target.value === "choice" ? { choice: node.choice ?? { yes: "\u7EE7\u7EED\u6267\u884C", no: "\u7ED3\u675F\u5F53\u524D\u6D41\u7A0B" }, provided: void 0, maxTurns: node.maxTurns ?? 4 } : {}
                   }),
                   children: [
                     /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "once", children: "\u4EA4\u4E92\u4E00\u6B21\uFF1A\u7528\u6237\u56DE\u7B54\u4E00\u6B21\u540E\u7EE7\u7EED" }),
-                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "goal", children: "\u4EA4\u4E92\u76EE\u6807\uFF1A\u53CD\u590D\u6F84\u6E05\u76F4\u5230\u786E\u8BA4\u7406\u89E3" })
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "goal", children: "\u4EA4\u4E92\u76EE\u6807\uFF1A\u53CD\u590D\u6F84\u6E05\u76F4\u5230\u786E\u8BA4\u7406\u89E3" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "choice", children: "Agent \u4EA4\u4E92\u51B3\u7B56\uFF1A\u7406\u89E3\u7B54\u590D\u5E76\u9009\u62E9\u662F/\u5426\u8DEF\u5F84" })
                   ]
                 }
               ) }),
-              node.interaction === "goal" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u6700\u591A\u56DE\u7B54\u8F6E\u6B21", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+              node.interaction === "choice" && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u662F\u8DEF\u5F84\u542B\u4E49", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("input", { value: node.choice?.yes ?? "", onChange: (e) => update({ choice: { yes: e.target.value, no: node.choice?.no ?? "\u7ED3\u675F\u5F53\u524D\u6D41\u7A0B" } }) }) }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5426\u8DEF\u5F84\u542B\u4E49", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("input", { value: node.choice?.no ?? "", onChange: (e) => update({ choice: { yes: node.choice?.yes ?? "\u7EE7\u7EED\u6267\u884C", no: e.target.value } }) }) })
+              ] }),
+              ["goal", "choice"].includes(node.interaction) && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u6700\u591A\u56DE\u7B54\u8F6E\u6B21", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
                 "input",
                 {
                   type: "number",
                   min: "1",
                   max: "20",
-                  value: node.maxTurns ?? 8,
+                  value: node.maxTurns ?? (node.interaction === "choice" ? 4 : 8),
                   onChange: (e) => update({ maxTurns: Number(e.target.value) })
                 }
               ) }),
-              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5DF2\u6709\u6750\u6599\u65F6\u8DF3\u8FC7\u63D0\u95EE", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
+              node.interaction !== "choice" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Field, { label: "\u5DF2\u6709\u6750\u6599\u65F6\u8DF3\u8FC7\u63D0\u95EE", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
                 "select",
                 {
                   value: node.provided ? ["/text", "/attachments"].includes(node.provided.path) ? node.provided.path : "custom" : "",
@@ -14890,7 +14940,7 @@ function apply(ctx) {
                       }),
                       children: [
                         /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "success", children: "\u6210\u529F" }),
-                        node.kind === "condition" && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+                        (node.kind === "condition" || node.kind === "interact" && node.interaction === "choice") && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
                           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "true", children: "\u662F" }),
                           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("option", { value: "false", children: "\u5426" })
                         ] })
@@ -14922,7 +14972,7 @@ function apply(ctx) {
       }
     };
     return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "wf-scroll", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("table", { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("table", { className: "wf-run-table", children: [
         /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("tr", { children: [
           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u8FD0\u884C" }),
           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u7248\u672C" }),
@@ -14931,13 +14981,19 @@ function apply(ctx) {
           /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("th", { children: "\u64CD\u4F5C" })
         ] }) }),
         /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("tbody", { children: data.runs.filter((r) => r.workflowId === id2).map((r) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("tr", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("td", { children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("td", { children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
             "button",
             {
+              type: "button",
               className: "wf-run-open",
               title: r.summary || r.id,
+              "aria-label": `\u67E5\u770B\u8FD0\u884C\u8BE6\u60C5\uFF1A${r.summary || r.id.slice(0, 18)}`,
               onClick: async () => setDetail(await api({ action: "runRead", id: r.id })),
-              children: r.summary || r.id.slice(0, 18)
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-run-open-icon", "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(FileText, { size: 16 }) }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "wf-run-open-text", children: r.summary || `\u8FD0\u884C ${r.id.slice(0, 8)}` }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(ChevronRight, { className: "wf-run-open-arrow", size: 16, "aria-hidden": "true" })
+              ]
             }
           ) }),
           /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("td", { children: [
