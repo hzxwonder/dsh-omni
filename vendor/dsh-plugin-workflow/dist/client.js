@@ -11362,8 +11362,9 @@ var style_default4 = `/* Workflow Studio surfaces.
 }
 
 /* Resource inspectors keep the directory visible while each file has a focused editor. */
-.wf-resource-editor { display:grid; gap:14px; padding:4px 0 24px; }
-.wf-resource-workspace { display:grid; gap:12px; min-width:0; }
+.wf-resource-editor { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; min-width:0; width:100%; padding:4px 0 24px; }
+.wf-resource-editor > * { min-width:0; }
+.wf-resource-workspace { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; min-width:0; }
 .wf-resource-document { min-width:0; }
 .wf-resource-dialog { width:min(980px,calc(100vw - 48px)); height:min(760px,calc(100vh - 48px)); max-width:none; max-height:none; margin:auto; padding:0; border:1px solid var(--wf-line); border-radius:14px; background:var(--wf-surface); color:var(--wf-text); box-shadow:0 24px 80px rgb(0 0 0 / 28%); }
 .wf-resource-dialog::backdrop { background:rgb(16 24 40 / 52%); }
@@ -11379,10 +11380,11 @@ var style_default4 = `/* Workflow Studio surfaces.
 .wf-resource-summary { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
 .wf-resource-summary strong { font-size:13px; }
 .wf-resource-summary span { color:var(--wf-muted); font-size:11px; text-align:right; }
-.wf-resource-path { display:flex; align-items:center; gap:6px; border:1px solid var(--wf-line); border-radius:9px; padding:6px; background:var(--wf-surface-subtle); }
-.wf-resource-path code { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:11px/1.5 ui-monospace,monospace; }
+.wf-resource-path { display:flex; align-items:flex-start; gap:6px; min-width:0; border:1px solid var(--wf-line); border-radius:9px; padding:6px; background:var(--wf-surface-subtle); }
+.wf-resource-path code { flex:1; min-width:0; overflow-wrap:anywhere; white-space:normal; font:11px/1.5 ui-monospace,monospace; }
 .wf .wf-resource-path button { flex:none; min-height:28px; font-size:11px; }
-.wf-resource-tree { display:grid; gap:5px; padding:8px; border:1px solid var(--wf-line); border-radius:11px; background:var(--wf-surface-subtle); }
+.wf-resource-tree { display:grid; grid-template-columns:minmax(0,1fr); gap:5px; min-width:0; padding:8px; border:1px solid var(--wf-line); border-radius:11px; background:var(--wf-surface-subtle); }
+.wf-resource-tree > *,.wf-resource-folder { min-width:0; }
 .wf .wf-resource-tree > button,.wf .wf-resource-folder > button { display:flex; justify-content:space-between; width:100%; min-height:32px; border:0; text-align:left; overflow-wrap:anywhere; }
 .wf-resource-tree button.is-selected { background:var(--wf-accent-soft)!important; color:var(--wf-accent); }
 .wf-resource-tree button span,.wf-resource-tree summary span { color:var(--wf-muted); font-size:11px; font-weight:400; }
@@ -11392,7 +11394,7 @@ var style_default4 = `/* Workflow Studio surfaces.
 .wf-resource-actions,.wf-resource-create { display:flex; align-items:center; flex-wrap:wrap; gap:5px; }
 .wf .wf-resource-actions button,.wf .wf-resource-create button { min-height:27px; padding:3px 7px; font-size:11px; }
 .wf .wf-resource-create input { flex:1; min-width:120px; }
-.wf-resource-fields,.wf-resource-file-editor,.wf-resource-content { display:grid; gap:11px; min-width:0; }
+.wf-resource-fields,.wf-resource-file-editor,.wf-resource-content { display:grid; grid-template-columns:minmax(0,1fr); gap:11px; min-width:0; }
 .wf-resource-field { display:grid; gap:5px; font-weight:600; font-size:12px; }
 .wf-resource-field small { font-weight:400; }
 .wf .wf-resource-field textarea { min-height:86px; }
@@ -13298,7 +13300,7 @@ function SkillResourceEditor({ node, update, api, onError, savedPath }) {
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => setExpanded(true), children: "\u5C55\u5F00\u6587\u4EF6\u7F16\u8F91\u5668" }),
       savedPath && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-path", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("code", { children: savedPath }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("code", { title: savedPath, children: savedPath }),
         /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => navigator.clipboard.writeText(savedPath), children: "\u590D\u5236\u8DEF\u5F84" })
       ] }),
       !expanded && workspace
@@ -13331,7 +13333,7 @@ function FileResourceEditor({ node, update, api, onError, savedPath }) {
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("input", { value: file.name, onChange: (event) => patch({ name: event.target.value }), placeholder: "notes.md" })
     ] }),
     savedPath && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "wf-resource-path", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("code", { children: savedPath }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("code", { title: savedPath, children: savedPath }),
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "button", onClick: () => navigator.clipboard.writeText(savedPath), children: "\u590D\u5236\u8DEF\u5F84" })
     ] }),
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TextOrBlob, { entry: file, label: "\u6587\u4EF6\u5185\u5BB9", update: patch, api, replace: async (selected2) => {

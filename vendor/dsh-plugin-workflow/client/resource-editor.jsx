@@ -122,7 +122,7 @@ export function SkillResourceEditor({ node, update, api, onError, savedPath }) {
     <div className="wf-resource-editor">
       <div className="wf-resource-summary"><strong>Skill 文件夹</strong><span>保存后生成标准目录</span></div>
       <button type="button" onClick={() => setExpanded(true)}>展开文件编辑器</button>
-      {savedPath && <div className="wf-resource-path"><code>{savedPath}</code><button type="button" onClick={() => navigator.clipboard.writeText(savedPath)}>复制路径</button></div>}
+      {savedPath && <div className="wf-resource-path"><code title={savedPath}>{savedPath}</code><button type="button" onClick={() => navigator.clipboard.writeText(savedPath)}>复制路径</button></div>}
       {!expanded && workspace}
     </div>
     {expanded && <dialog ref={dialog} className="wf-resource-dialog wf" onCancel={event => { event.preventDefault(); setExpanded(false); }}>
@@ -139,7 +139,7 @@ export function FileResourceEditor({ node, update, api, onError, savedPath }) {
     <div className="wf-resource-summary"><strong>文件</strong><span>连线后在下游步骤中插入路径</span></div>
     <label className="wf-resource-field">文件名
       <input value={file.name} onChange={event => patch({ name: event.target.value })} placeholder="notes.md" /></label>
-    {savedPath && <div className="wf-resource-path"><code>{savedPath}</code><button type="button" onClick={() => navigator.clipboard.writeText(savedPath)}>复制路径</button></div>}
+    {savedPath && <div className="wf-resource-path"><code title={savedPath}>{savedPath}</code><button type="button" onClick={() => navigator.clipboard.writeText(savedPath)}>复制路径</button></div>}
     <TextOrBlob entry={file} label="文件内容" update={patch} api={api} replace={async selected => {
       try { patch({ name: selected.name, content: undefined, ...await uploadResource(selected, api) }); }
       catch (error) { onError(error.message); }
