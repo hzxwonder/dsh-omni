@@ -24,25 +24,25 @@ function check(value, max) {
 export function validatePaperArgumentMap(input) {
   if (!input || typeof input !== 'object' || !Array.isArray(input.branches) || input.branches.length < 3 || input.branches.length > 4) throw new Error('PAPER_OVERVIEW_INVALID');
   return {
-    title: check(input.title, 48),
-    question: check(input.question, 58),
-    thesis: check(input.thesis, 95),
+    title: check(input.title, 36),
+    question: check(input.question, 52),
+    thesis: check(input.thesis, 75),
     branches: input.branches.map(branch => ({
-      role: check(branch.role, 14),
-      title: check(branch.title, 24),
-      problem: check(branch.problem, 62),
-      insight: check(branch.insight, 62),
-      method: check(branch.method, 82),
+      role: check(branch.role, 12),
+      title: check(branch.title, 20),
+      problem: check(branch.problem, 52),
+      insight: check(branch.insight, 52),
+      method: check(branch.method, 68),
       source: check(branch.source, 26),
     })),
     evidence: {
-      finding: check(input.evidence?.finding, 105),
-      context: check(input.evidence?.context, 105),
+      finding: check(input.evidence?.finding, 100),
+      context: check(input.evidence?.context, 85),
       source: check(input.evidence?.source, 26),
     },
     boundary: {
-      scope: check(input.boundary?.scope, 100),
-      unknown: check(input.boundary?.unknown, 90),
+      scope: check(input.boundary?.scope, 75),
+      unknown: check(input.boundary?.unknown, 75),
     },
   };
 }
@@ -139,21 +139,23 @@ export async function renderPaperArgumentMap(input) {
     elements.push(sceneLine(x1, y1, x2, y2, seed++, color));
   };
 
-  drawText(32, 43, 'PAPER MAP  /  论文全景', 14, '#53747a', 696);
-  drawLines(32, 83, map.title, 26, INK, 696, 25, 33);
-  drawCard(32, 137, 696, 116, '#f9f3e9', '#a47554');
-  drawText(52, 165, '聚焦问题', 15, '#875737', 655);
-  drawLines(52, 200, map.question, 22, INK, 650, 29, 27);
-  drawLine(380, 253, 380, 269, '#759a99');
-  drawCard(32, 269, 696, 148, '#e9f3f0', '#2e7477');
-  drawText(52, 299, '论文给出的答案', 15, '#256d70', 655);
-  drawLines(52, 335, map.thesis, 20, INK, 653, 32, 26);
+  const titleLines = drawLines(32, 54, map.title, 26, INK, 696, 25, 33);
+  const questionY = 94 + (titleLines - 1) * 33;
+  const questionHeight = 70 + wrap(map.question, 29).length * 27;
+  drawCard(32, questionY, 696, questionHeight, '#f9f3e9', '#a47554');
+  drawText(52, questionY + 28, '问题', 15, '#875737', 655);
+  drawLines(52, questionY + 64, map.question, 22, INK, 650, 29, 27);
+  const answerY = questionY + questionHeight + 16;
+  const answerHeight = 70 + wrap(map.thesis, 32).length * 26;
+  drawLine(380, questionY + questionHeight, 380, answerY, '#759a99');
+  drawCard(32, answerY, 696, answerHeight, '#e9f3f0', '#2e7477');
+  drawText(52, answerY + 28, '答案', 15, '#256d70', 655);
+  drawLines(52, answerY + 62, map.thesis, 20, INK, 653, 32, 26);
 
   const branchX = 84;
   const branchWidth = 644;
-  let y = 474;
+  let y = answerY + answerHeight + 30;
   const branchCenters = [];
-  drawText(84, 452, '展开为以下机制', 15, MUTED, 600);
   map.branches.forEach((branch, index) => {
     const palette = PALETTES[index];
     const rows = [
@@ -166,7 +168,7 @@ export async function renderPaperArgumentMap(input) {
     branchCenters.push(center);
     drawCard(branchX, y, branchWidth, height, palette.fill, palette.accent);
     contents.push(`<rect x="${branchX + 1}" y="${y + 15}" width="5" height="${height - 30}" rx="2.5" fill="${palette.accent}"/>`);
-    drawText(105, y + 30, `${String(index + 1).padStart(2, '0')}  ${branch.role}`, 15, palette.accent, 275);
+    drawText(105, y + 30, branch.role, 15, palette.accent, 275);
     drawText(105, y + 61, branch.title, 22, INK, 478);
     drawLines(565, y + 28, branch.source, 13, MUTED, 135, 14, 16);
     let rowY = y + 90;
@@ -178,7 +180,7 @@ export async function renderPaperArgumentMap(input) {
     });
     y += height + 25;
   });
-  drawLine(47, 417, 47, branchCenters.at(-1), '#83a6a3');
+  drawLine(47, answerY + answerHeight, 47, branchCenters.at(-1), '#83a6a3');
   branchCenters.forEach((center, index) => {
     drawLine(47, center, 84, center, PALETTES[index].accent);
     contents.push(`<circle cx="47" cy="${center}" r="4" fill="${PALETTES[index].accent}"/>`);
@@ -190,7 +192,7 @@ export async function renderPaperArgumentMap(input) {
   const contextLines = wrap(map.evidence.context, 35);
   const evidenceHeight = 78 + evidenceLines.length * 23 + contextLines.length * 21;
   drawCard(32, y, 696, evidenceHeight, '#e9f2ec', '#538268');
-  drawText(52, y + 31, '论文证据  /  能支持什么', 17, '#315f50', 500);
+  drawText(52, y + 31, '实验证据', 17, '#315f50', 500);
   drawLines(566, y + 28, map.evidence.source, 13, MUTED, 135, 14, 16);
   drawLines(52, y + 66, map.evidence.finding, 18, INK, 650, 33);
   drawLines(52, y + 66 + evidenceLines.length * 23, map.evidence.context, 15, MUTED, 650, 35, 21);
@@ -200,7 +202,7 @@ export async function renderPaperArgumentMap(input) {
   const unknownLines = wrap(map.boundary.unknown, 34);
   const boundaryHeight = 79 + scopeLines.length * 22 + unknownLines.length * 22;
   drawCard(32, y, 696, boundaryHeight, '#fbf0e7', '#a47554');
-  drawText(52, y + 31, '适用边界  /  还不能推出什么', 17, '#8c5c3e', 650);
+  drawText(52, y + 31, '适用边界', 17, '#8c5c3e', 650);
   drawLines(52, y + 65, map.boundary.scope, 17, INK, 650, 34, 22);
   drawLines(52, y + 65 + scopeLines.length * 22, map.boundary.unknown, 15, MUTED, 650, 34, 22);
   const height = Math.ceil(y + boundaryHeight + 28);
